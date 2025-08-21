@@ -1,0 +1,14 @@
+ignoredBuiltDependencies:
+  - '@alicloud/openapi-core'
+  - '@scarf/scarf'
+  - argon2
+  - cpu-features
+  - msgpackr-extract
+  - ssh2
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@swc/core'
+  - prisma

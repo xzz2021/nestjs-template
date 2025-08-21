@@ -1,0 +1,103 @@
+### 框架架构
+
+#### 运行说明
+
+1. 这是一个基于nestjs-cli生成的模板框架,整合了常用的库和业务功能, 多数据库, 字段校验, 文件上传等, 复杂度较高, 后期会逐渐优化成flag配置式, 减轻使用者的心智负担
+2. 前置条件: 准备好数据库, 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm dev`启动项目
+
+
+#### 必备功能定位
+
+- [√] 环境变量配置
+- [√] redis缓存
+- [√] swagger自动文档
+- [√] 版本控制
+- [√] 静态资源/文件上传/流文件
+- [x] 架构基础(中间件/守卫/拦截器/管道/控制器/服务/过滤器-异常捕获处理)
+- [√] 任务调度(定时/队列)
+- [√] ORM与连接池及多数据库
+- [√] DTO校验/序列化/反序列化
+- [√] websocket通信(socket.io)
+- [√] 认证与授权(JWT+RBAC+CASL)
+- [x] 日志系统(操作埋点审计)
+
+#### 小功能点实现
+
+- [√] 单点登录
+- [√]
+
+#### 待深入学习
+
+1. 多租户/分库分表
+2. 任务调度
+3. Cookie和Session
+4. GraphQL
+5. WebSocket
+6. Microservices
+7. swagger-cli
+8. prisma官方文档
+9. 流程引擎
+10. 日志审计(操作/接口访问)
+11. 系统监控
+12. 数据可视化
+13. 消息通知(邮件/站内/报表)
+14. 内容管理(富文本/文件/excel)
+15. 多语言
+
+#### 开发历程
+
+1. 核心依赖
+
+   > 环境变量配置: `@nestjs/config`  
+   > Joi验证器: `joi`  
+   > 自定义环境变量: `cross-env`  
+   > 缓存功能: `@nestjs/cache-manager` `cache-manager`  
+   > redis缓存: `@keyv/redis`  
+   > 接口文档: `@nestjs/swagger` `basic-auth` `@types/basic-auth`  
+   > 静态资源托管及文件上传: `@nestjs/serve-static` `@types/multer`  
+   > 任务和队列: `@nestjs/schedule` `cron` `@nestjs/bullmq` `bullmq`  
+   > 安全速率限制: `@nestjs/throttler`  
+   > websocket通信: `@nestjs/websockets` `@nestjs/platform-socket.io` `socket.io`  
+   > swc快速编译: `@swc/cli` `@swc/core`  
+   > ALS异步调用链私有上下文存储: `nestjs-cls`  
+   > 系统日志: `winston` `nest-winston` `winston-daily-rotate-file` `winston-transport` `morgan` `@types/morgan`
+
+2. 外部业务依赖
+
+   > 邮件服务: `nodemailer`  
+   > 阿里云短信:`@alicloud/dysmsapi20170525` `@alicloud/openapi-client` `@alicloud/tea-util`  
+   > ssh连接远程服务器: `node-ssh`  
+   > ORM平台prisma: `@prisma/client` `prisma`  
+   > 字段转换与校验: `class-validator` `class-transformer`  
+   > DTO自动生成: `prisma-class-generator`  
+   > Cookies: `cookie-parser` `@types/cookie-parser`  
+   > HTTP请求: `undici`  
+   > JWT认证和权限: `@nestjs/passport` `@nestjs/jwt` `passport-jwt`  
+   > CASL权限: `@casl/ability` `@casl/prisma`  
+   > 支付加密: `argon2`  
+   > 安全防护: `helmet` `csrf-csrf` `cookie-parser`  
+   > 支付宝api: `alipay-sdk`
+
+#### 注意事项
+
+1. 自定义多数据库连接时,需要配置nest-cli.json文件,将自定义client输出目录进行设置,否则打包dist内会缺少client(路径不需要src,因为打包入口就是src)
+2. 如果`npx prisma push`出现警告会重置数据库, 一定要取消; 如果是字段冲突, 可以尝试删除冲突表, 再重新生成,避免影响整个数据库;
+
+#### 开发功能笔记
+
+1. 单点登录: 使用cookie跨子域共享token; 给token加上版本,每次新登录+1, JwtStrategy的validate校验tokenVersion
+
+#### 系统设计要点
+
+ERP系统:
+
+> 1.  人力资源(员工档案/招聘/考勤/薪资/培训与绩效)
+> 2.  财务(总账/应收应付/资产/报表)
+> 3.  采购(申请/订单/供应商/合同/流程)
+> 4.  生产(物料/bom/工单/车间/设备/品控)
+> 5.  仓储(入出库/盘点/条码/预警)
+> 6.  销售与客户(订单/客户/报价单/物流)
+> 7.  报表(数据分析统计/文档导出)
+> 8.  项目(计划/任务/成本/进度)
+
+找到你喜欢并擅长的那件事
