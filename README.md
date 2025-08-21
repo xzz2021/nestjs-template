@@ -5,7 +5,6 @@
 1. 这是一个基于nestjs-cli生成的模板框架,整合了常用的库和业务功能, 多数据库, 字段校验, 文件上传等, 复杂度较高, 后期会逐渐优化成flag配置式, 减轻使用者的心智负担
 2. 前置条件: 准备好数据库, 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm dev`启动项目
 
-
 #### 必备功能定位
 
 - [√] 环境变量配置
@@ -71,7 +70,7 @@
    > 字段转换与校验: `class-validator` `class-transformer`  
    > DTO自动生成: `prisma-class-generator`  
    > Cookies: `cookie-parser` `@types/cookie-parser`  
-   > HTTP请求: `undici`  
+   > HTTP请求: `undici` `@nestjs/axios` `axios`  
    > JWT认证和权限: `@nestjs/passport` `@nestjs/jwt` `passport-jwt`  
    > CASL权限: `@casl/ability` `@casl/prisma`  
    > 支付加密: `argon2`  
