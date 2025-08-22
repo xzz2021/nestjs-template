@@ -7,6 +7,8 @@ import { Cache } from 'cache-manager';
 import { Inject } from '@nestjs/common';
 
 @Injectable()
+//  Strategy默认值为'jwt',  如果需要多个strategyextends 则需要使用不同的name   否则会覆写
+//  export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
@@ -22,6 +24,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     // 此处用于返回需要挂载到 所有走jwtguard的接口中 使用 @Request  req.user  的数据
     const { id, username, phone, roleIds, tokenVersion } = payload;
+
+    /*
+
+    //  登录时检查  或者  每次都检查???????     或者维护一张userid 黑名单?
+    // 此处校验是为了解决  token依旧有效  但数据库清除了当前用户   导致的bug
+    const user = await this.prismaClient.user.findUnique({ where: { id, status: 1 } }); // 查数据库
+    if (!user) {
+      throw new UnauthorizedException('用户不存在或已被删除');
+    }
+
+    */
+
     const sso = this.configService.get<string>('SSO');
     // console.log('tokenVersion', tokenVersion);
     // console.log('sso', sso);
