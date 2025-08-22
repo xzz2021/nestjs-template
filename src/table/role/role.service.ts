@@ -102,11 +102,18 @@ export class RoleService {
         return { code: 200, menuList: [], message: '请联系管理员分配角色' };
       }
       const rolesMenus = await Promise.all(roleIds.map(item => this.getRoleMenuWithPermission(+item.id)));
-      const res = mergeMenusByRoles(rolesMenus.flat() as MenuItemsType[]);
-      if (res?.length === 0) {
+      const menuWithPermission = mergeMenusByRoles(rolesMenus.flat() as MenuItemsType[]);
+      if (menuWithPermission?.length === 0) {
         return { code: 200, menuList: [], message: '请联系管理员分配角色菜单' };
       }
-      return { code: 200, menuList: res, message: '菜单成功' };
+
+      // 还需要判断   遍历整个数组  如果某个菜单项的父级不存在则删除当前项
+      // 1. 收集所有 id
+      const ids = new Set(menuWithPermission.map(m => m.id));
+
+      // 2. 过滤：只保留 parentId === null 或者 parentId 在 ids 里
+      const filtered = menuWithPermission.filter((m: any) => m.parentId === null || ids.has(m.parentId as number));
+      return { code: 200, menuList: filtered, message: '菜单成功' };
     } catch (error) {
       return { code: 400, message: error.message };
     }
@@ -205,6 +212,48 @@ export class RoleService {
       return [];
     }
   }
+
+  // async getRoleMenuWithPermission2(id: number) {
+  //   //  获取单个角色菜单及对应的权限
+  //   const start = Date.now();
+  //   try {
+  //     // 1. role  --> menus  --> permissions
+  //     const roleData = await this.pgService.role.findUnique({
+  //       where: { id },
+  //       select: {
+  //         menus: {
+  //           select: {
+  //             id: true,
+  //             meta: true,
+  //             permissionList: {
+  //               where: { roles: { some: { id } } },
+  //               select: {
+  //                 value: true,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+
+  //     const newData = roleData?.menus.map(menu => {
+  //       const { meta, permissionList, ...rest } = menu;
+  //       if (!permissionList) return menu;
+  //       return {
+  //         ...rest,
+  //         meta: {
+  //           ...(meta || {}),
+  //           permissions: permissionList.map(p => p.value),
+  //         },
+  //       };
+  //     });
+  //     const end = Date.now();
+  //     console.log('🚀 ~ RoleService ~ getRoleMenuWithPermission ~ end:', end - start);
+  //     return newData;
+  //   } catch {
+  //     return [];
+  //   }
+  // }
 
   async getRoleMenuWithPermission2display(id: number) {
     const start = Date.now();

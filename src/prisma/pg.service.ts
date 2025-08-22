@@ -6,7 +6,7 @@ pnpm add pgdb@link:@/prisma/client/postgresql   //  创建软链接
 import { PrismaClient } from 'pgdb';   // pgdb依赖别名
 
 
-
+  //  全局排除字段  omit
 const prisma = new PrismaClient({
   omit: {
     user: {
@@ -16,16 +16,11 @@ const prisma = new PrismaClient({
 })
 
 */
-// const prisma = new PrismaClient()
-// import { PrismaClient } from '@prisma/client';
 
 //  关于 中间件已废弃  封装使用prisma的extend的曲线方法 https://github.com/prisma/prisma/issues/18628
 @Injectable()
 export class PgService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  //  全局排除字段  omit
-
   constructor() {
-    // private readonly prismaClient: PrismaClient, // @Inject('PRISMA_CLIENT')
     super({
       // 连接池配置
       //   connection: {

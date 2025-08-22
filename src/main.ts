@@ -28,13 +28,11 @@ async function bootstrap() {
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER)); // 使用winston替换掉nest内置日志
   // app.setGlobalPrefix('api');
   const configService = app.get(ConfigService);
-  const swaggerEnabled = configService.get<string>('SWAGGER');
-  if (swaggerEnabled == 'true') {
+  if (configService.get<string>('SWAGGER') == 'true') {
     createSwagger(app);
   }
 
-  const helmetEnabled = configService.get<string>('HELMET');
-  if (helmetEnabled == 'true') {
+  if (configService.get<string>('HELMET') == 'true') {
     app.use(
       helmet({
         crossOriginEmbedderPolicy: false,
