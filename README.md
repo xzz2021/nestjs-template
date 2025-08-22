@@ -3,7 +3,10 @@
 #### 运行说明
 
 1. 这是一个基于nestjs-cli生成的模板框架,整合了常用的库和业务功能, 多数据库, 字段校验, 文件上传等, 复杂度较高, 后期会逐渐优化成flag配置式, 减轻使用者的心智负担
-2. 前置条件: 准备好数据库, 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm dev`启动项目
+2. 前置条件:
+   > 准备好数据库, 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm dev`启动项目
+   >
+   > 运行 `pnpm prepare` 生成husky
 
 #### 必备功能定位
 

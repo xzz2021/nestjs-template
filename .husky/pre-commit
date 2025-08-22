@@ -1,0 +1,2 @@
+pnpm run ts:check
+pnpm run lint:lint-staged
