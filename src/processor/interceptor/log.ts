@@ -41,9 +41,6 @@ export class RequestLogInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data: any) => {
-        // if (!data) {
-        //   throw new NotFoundException('没有return数据');
-        // }
         // 如果返回的是文件流 则不包装
         if (data instanceof ReadableStream) {
           return data;

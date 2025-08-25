@@ -3,23 +3,24 @@ import { AuthService } from './auth.service';
 import { LoginInfo, RegisterInfo } from './types';
 import { Public } from '@/processor/decorator/public.decorator';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { JwtRefreshAuthGuard } from '@/processor/guard/jwt-refresh.guard';
-// import { Serialize } from '@/processor/decorator/serialize';
+// import { JwtRefreshAuthGuard } from '@/processor/guard/jwt-refresh.guard';
+import { Serialize } from '@/processor/decorator/serialize';
+import { RegisterResDto } from './dto/auth.dto';
 
 @Public()
 @ApiTags('帐号权限')
-@Controller('admin/auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Serialize(RegisterResDto)
   @ApiOperation({ summary: '用户注册' })
   create(@Body() createUserinfo: RegisterInfo) {
     return this.authService.create(createUserinfo);
   }
 
   @Post('login')
-  // @Serialize(UserLoginDto)
   @ApiOperation({ summary: '用户登录' })
   login(@Body() loginInfo: LoginInfo) {
     return this.authService.login(loginInfo);

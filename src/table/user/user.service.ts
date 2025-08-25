@@ -142,9 +142,7 @@ export class UserService {
           phone: true,
           status: true,
           department: { select: { id: true, name: true } },
-          roles: {
-            select: { id: true, name: true },
-          },
+          roles: true,
           createdAt: true,
         },
       });

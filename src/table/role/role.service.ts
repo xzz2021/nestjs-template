@@ -73,10 +73,10 @@ export class RoleService {
     return executePagedQuery(this.pgService.role, searchParam, '角色');
   }
 
-  async getMenuByRoleId(roleId: number) {
+  getMenuByRoleId(roleId: number) {
     // 既包含包含菜单也包含权限列表和meta内真实权限
-    const res = await this.getRoleMenuWithPermission(roleId);
-    return { code: 200, list: res, message: '获取菜单及对应权限成功' };
+    // const res = await this.getRoleMenuWithPermission(roleId);
+    return { code: 200, list: [], message: '获取菜单及对应权限成功' };
   }
 
   //  登录瞬间获取菜单表和对应的权限值字符串数组
@@ -101,7 +101,8 @@ export class RoleService {
       if (!roleIds) {
         return { code: 200, menuList: [], message: '请联系管理员分配角色' };
       }
-      const rolesMenus = await Promise.all(roleIds.map(item => this.getRoleMenuWithPermission(+item.id)));
+      // const rolesMenus = await Promise.all(roleIds.map(item => this.getRoleMenuWithPermission(+item.id)));
+      const rolesMenus = [];
       const menuWithPermission = mergeMenusByRoles(rolesMenus.flat() as MenuItemsType[]);
       if (menuWithPermission?.length === 0) {
         return { code: 200, menuList: [], message: '请联系管理员分配角色菜单' };
@@ -166,52 +167,52 @@ export class RoleService {
     }
   }
 
-  async getRoleMenuWithPermission(id: number) {
-    //  获取单个角色菜单及对应的权限
-    try {
-      // 1. role  --> menus  --> permissions
-      const roleData = await this.pgService.role.findUnique({
-        where: { id },
-        select: {
-          menus: {
-            select: {
-              id: true,
-              name: true,
-              path: true,
-              component: true,
-              redirect: true,
-              type: true,
-              status: true,
-              sort: true,
-              meta: true,
-              parentId: true,
-              permissionList: {
-                where: { roles: { some: { id } } },
-                select: {
-                  code: true,
-                },
-              },
-            },
-          },
-        },
-      });
+  // async getRoleMenuWithPermission(id: number) {
+  //   //  获取单个角色菜单及对应的权限
+  //   try {
+  //     // 1. role  --> menus  --> permissions
+  //     const roleData = await this.pgService.role.findUnique({
+  //       where: { id },
+  //       select: {
+  //         menus: {
+  //           select: {
+  //             id: true,
+  //             name: true,
+  //             path: true,
+  //             component: true,
+  //             redirect: true,
+  //             type: true,
+  //             status: true,
+  //             sort: true,
+  //             meta: true,
+  //             parentId: true,
+  //             permissionList: {
+  //               where: { roles: { some: { id } } },
+  //               select: {
+  //                 code: true,
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
 
-      const newData = roleData?.menus.map(menu => {
-        const { meta, permissionList, ...rest } = menu;
-        if (!permissionList) return menu;
-        return {
-          ...rest,
-          meta: {
-            ...((meta as object) || {}),
-            permissions: permissionList.map(p => p.code),
-          },
-        };
-      });
-      return newData;
-    } catch {
-      return [];
-    }
-  }
+  //     const newData = roleData?.menus.map(menu => {
+  //       const { meta, permissionList, ...rest } = menu;
+  //       if (!permissionList) return menu;
+  //       return {
+  //         ...rest,
+  //         meta: {
+  //           ...((meta as object) || {}),
+  //           permissions: permissionList.map(p => p.code),
+  //         },
+  //       };
+  //     });
+  //     return newData;
+  //   } catch {
+  //     return [];
+  //   }
+  // }
 
   // async getRoleMenuWithPermission2(id: number) {
   //   //  获取单个角色菜单及对应的权限
@@ -255,62 +256,62 @@ export class RoleService {
   //   }
   // }
 
-  async getRoleMenuWithPermission2display(id: number) {
-    const start = Date.now();
-    try {
-      const roleWithMenusAndPermissions = await this.pgService.role.findUnique({
-        where: { id },
-        select: {
-          id: true,
-          name: true,
-          status: true,
-          remark: true,
-          menus: {
-            select: {
-              id: true,
-              name: true,
-              path: true,
-              component: true,
-              redirect: true,
-              type: true,
-              status: true,
-              sort: true,
-              meta: true,
-              parentId: true,
-              permissionList: {
-                select: {
-                  name: true,
-                  code: true,
-                  roles: {
-                    where: { id },
-                    select: { id: true },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-      if (!roleWithMenusAndPermissions) return [];
-      // 整理权限名数组到每个菜单的 meta.permission 中
-      const result = roleWithMenusAndPermissions.menus.map(menu => {
-        const permissionNames = menu.permissionList.filter(p => p.roles.length > 0).map(p => p.code);
+  // async getRoleMenuWithPermission2display(id: number) {
+  //   const start = Date.now();
+  //   try {
+  //     const roleWithMenusAndPermissions = await this.pgService.role.findUnique({
+  //       where: { id },
+  //       select: {
+  //         id: true,
+  //         name: true,
+  //         status: true,
+  //         remark: true,
+  //         menus: {
+  //           select: {
+  //             id: true,
+  //             name: true,
+  //             path: true,
+  //             component: true,
+  //             redirect: true,
+  //             type: true,
+  //             status: true,
+  //             sort: true,
+  //             meta: true,
+  //             parentId: true,
+  //             permissionList: {
+  //               select: {
+  //                 name: true,
+  //                 code: true,
+  //                 roles: {
+  //                   where: { id },
+  //                   select: { id: true },
+  //                 },
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     });
+  //     if (!roleWithMenusAndPermissions) return [];
+  //     // 整理权限名数组到每个菜单的 meta.permission 中
+  //     const result = roleWithMenusAndPermissions.menus.map(menu => {
+  //       const permissionNames = menu.permissionList.filter(p => p.roles.length > 0).map(p => p.code);
 
-        return {
-          ...menu,
-          meta: {
-            ...((menu?.meta as object) || {}),
-            permission: permissionNames,
-          },
-        };
-      });
-      const end = Date.now();
-      console.log('🚀 ~ RoleService ~ getRoleMenuWithPermission2display ~ end:', end - start);
-      return result;
-    } catch {
-      return [];
-    }
-  }
+  //       return {
+  //         ...menu,
+  //         meta: {
+  //           ...((menu?.meta as object) || {}),
+  //           permission: permissionNames,
+  //         },
+  //       };
+  //     });
+  //     const end = Date.now();
+  //     console.log('🚀 ~ RoleService ~ getRoleMenuWithPermission2display ~ end:', end - start);
+  //     return result;
+  //   } catch {
+  //     return [];
+  //   }
+  // }
 
   async update(updateRoleDto: RoleDTO & { id: number }) {
     const { id, menuIds, permissionIds, ...rest } = updateRoleDto;

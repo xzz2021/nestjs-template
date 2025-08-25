@@ -13,7 +13,8 @@ export class SerializeInterceptor<T> implements NestInterceptor {
         /*
         //  普通方案一=======  适用于直接返回查询实体结果
         return plainToInstance(this.dto, data, {
-          // 设为true 将会对出参进行严格的控制 以及类型转换
+          // 设为true 将会对出参进行严格的控制 以及类型转换  只有主动@Expose()的才会返回
+          // 设为false  所有参数会直接返回  只有主动@Exclude()的才会排除
           excludeExtraneousValues: false,
           // 设为true 将会对出参进行类型转换
           // enableImplicitConversion: true,

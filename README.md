@@ -103,3 +103,25 @@ ERP系统:
 > 8.  项目(计划/任务/成本/进度)
 
 找到你喜欢并擅长的那件事
+
+#### 代码规范
+
+1. 异常抛出,一律使用nest内置封装好的函数, 这样可以在全局统一捕获处理
+
+- BadRequestException (400): 请求参数不合法，例如缺少必填字段、类型错误、非法输入。
+
+- UnauthorizedException (401): 需要认证但未提供凭证，或凭证无效。
+
+- ForbiddenException (403): 已认证但没有权限访问资源。
+
+- NotFoundException (404): 请求的资源不存在。
+
+- RequestTimeoutException (408): 客户端请求超时。
+
+- ConflictException (409): 请求和当前状态冲突。
+
+- GoneException (410): 请求的资源已永久移除。
+
+- InternalServerErrorException (500): 通用错误，表示服务器内部异常。
+
+- ServiceUnavailableException (503): 服务不可用，可能宕机或过载。

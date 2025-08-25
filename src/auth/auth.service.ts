@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PgService } from '@/prisma/pg.service';
 import { LoginInfo, RegisterInfo } from './types';
@@ -27,36 +27,28 @@ export class AuthService {
 
   async create(createUserDto: RegisterInfo) {
     const { phone, code, password, username } = createUserDto;
-    // 应该要先查询下手机号是否存在,  存在 抛出异常提示
     const user = await this.isUserExist(phone);
     if (user) {
-      return { code: 400, message: phone + '手机号已存在' };
+      throw new ConflictException(phone + '手机号已存在');
     }
 
-    //  比对验证码
-    const smsCheck = await this.smsService.checkSmsCode('register_' + phone, code as string);
-    if (!smsCheck.status) return smsCheck;
+    // 注册前需要请求验证码 请求时已经将验证码存入cache  此处比对验证码 是否正确
+    // const smsCheck = await this.smsService.checkSmsCode('register_' + phone, code as string);
+    // if (!smsCheck.status) return smsCheck;
 
-    try {
-      const hashedPassword = await hashPayPassword(password);
-      const res = await this.pgService.user.create({
-        data: {
-          phone,
-          username,
-          password: hashedPassword,
-        },
-      });
-      await this.cacheManager.del('register_' + phone);
-      return { code: 200, message: phone + '注册成功', data: res };
-    } catch (error) {
-      console.log(error);
-      //  错误  抛出异常
-      return { code: 400, message: error?.sqlMessage };
-    }
+    const hashedPassword = await hashPayPassword(password);
+    const res = await this.pgService.user.create({
+      data: {
+        phone,
+        username,
+        password: hashedPassword,
+      },
+    });
+    // await this.cacheManager.del('register_' + phone);  // 删除缓存的 验证码
+    return { message: phone + '注册成功', data: res };
   }
 
   async login(loginInfo: LoginInfo) {
-    console.log('🚀 ~ AuthService ~ login ~ loginInfo:', loginInfo);
     const user = await this.pgService.user.findUnique({
       where: { phone: loginInfo.phone },
       select: {
@@ -64,13 +56,7 @@ export class AuthService {
         username: true,
         phone: true,
         password: true,
-        roles: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-          },
-        },
+        roles: true,
       },
     });
 
@@ -301,7 +287,7 @@ export class AuthService {
       avatar: data.avatar,
       wechatId: data.unionid,
     });
-    if (res?.code == 200) {
+    if (res?.data?.id) {
       const res2 = await this.login({ phone: data.phone, password: data.password });
       return res2;
     } else {
@@ -348,13 +334,7 @@ export class AuthService {
     const user = await this.pgService.user.findUnique({
       where: { phone: data.phone },
       include: {
-        roles: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-          },
-        },
+        roles: true,
       },
     });
     if (!user) {

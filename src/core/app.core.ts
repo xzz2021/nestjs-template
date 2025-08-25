@@ -16,9 +16,11 @@ import { JwtAuthGuard } from '@/processor/guard/jwt-auth.guard';
 import { ClsModule } from 'nestjs-cls';
 import { WinstonLoggerModule } from '@/logger/winston.module';
 import { RequestLogInterceptor } from '@/processor/interceptor/log';
-import { AllExceptionsFilter } from '@/processor/filter/exceptions';
+import { AllExceptionsFilter } from '@/processor/filter/all-exceptions.filter';
 import { WsModule } from '@/ws/ws.module';
 import { CACHE_MODULE } from './cache';
+import { TransformInterceptor } from '@/processor/interceptor/transform.interceptor';
+import { HttpExceptionFilter } from '@/processor/filter/http-exception.filter';
 
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
@@ -98,6 +100,7 @@ export const GLOBAL_GUARD = [
     //  全局缓存所有端点  无论什么请求
     provide: APP_INTERCEPTOR,
     useClass: CacheInterceptor, //  自定义 处理  HttpCacheInterceptor
+    multi: true,
     /*
     内置的缓存拦截器  CacheInterceptor  可以应用在 不同层级上
 @Controller()
@@ -120,6 +123,11 @@ export class AppController {
 
     */
   },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: TransformInterceptor,
+    multi: true,
+  },
 
   {
     // 全局JWT token校验
@@ -138,10 +146,14 @@ export class AppController {
   //   provide: APP_GUARD,
   //   useClass: PermissionGuard,
   // },
-  // {
-  //   provide: APP_FILTER,
-  //   useClass: AllExceptionsFilter,
-  // },
+  {
+    provide: APP_FILTER,
+    useClass: AllExceptionsFilter,
+  },
+  {
+    provide: APP_FILTER,
+    useClass: HttpExceptionFilter,
+  },
   //  管道 校验器 其实可以对单个特殊接口的输入数据进行颗粒度控制
   // {
   //   provide: APP_PIPE,

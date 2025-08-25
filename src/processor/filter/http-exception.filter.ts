@@ -1,42 +1,62 @@
-// import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
-// import { Request, Response } from 'express';
+//  此处用于所有请求的异常结果返回  确保 捕获到的异常 都能有正常的错误响应给前端
+//   因为时nest内置封装的函数  所以可以拿到错误的源信息
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 
-// import { LoggerService } from '../shared/services/logger.service';
+@Catch(HttpException)
+export class HttpExceptionFilter implements ExceptionFilter {
+  catch(exception: HttpException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse();
+    const status = exception.getStatus();
 
-// @Catch(HttpException)
-// export class HttpExceptionFilter implements ExceptionFilter {
-//   constructor(private readonly _logger: LoggerService) {}
+    response.status(status).json({
+      code: 400,
+      timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '),
+      message: exception.message,
+      meta: exception.getResponse(),
+    });
+  }
+}
 
-//   catch(exception: HttpException, host: ArgumentsHost) {
-//     const ctx = host.switchToHttp();
-//     const response = ctx.getResponse<Response>();
-//     const request = ctx.getRequest<Request>();
-//     if (request) {
-//       const status = exception.getStatus ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+/*
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { Request, Response } from 'express';
 
-//       const errorResponse = {
-//         code: status,
-//         timestamp: new Date().toISOString(),
-//         path: request.url,
-//         method: request.method,
-//         error: status !== HttpStatus.INTERNAL_SERVER_ERROR ? exception.message || null : 'Internal server error',
-//         message:
-//           typeof exception.getResponse() === 'object'
-//             ? (exception.getResponse() as any).message
-//             : exception.getResponse(),
-//       };
 
-//       if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
-//         this._logger.error(`${request.method} ${request.url}`, exception.stack, 'ExceptionFilter');
-//       } else {
-//         this._logger.error(`${request.method} ${request.url}`, JSON.stringify(errorResponse), 'ExceptionFilter');
-//       }
+@Catch(HttpException)
+export class HttpExceptionFilter implements ExceptionFilter {
+  constructor() {}
 
-//       return response.status(status).json(errorResponse);
-//     } else {
-//       // GRAPHQL Exception
-//       // const gqlHost = GqlArgumentsHost.create(host);
-//       return exception;
-//     }
-//   }
-// }
+  catch(exception: HttpException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    if (request) {
+      const status = exception.getStatus ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+
+      const errorResponse = {
+        code: status,
+        timestamp: new Date().toISOString(),
+        path: request.url,
+        method: request.method,
+        error: status !== HttpStatus.INTERNAL_SERVER_ERROR ? exception.message || null : 'Internal server error',
+        message: typeof exception.getResponse() === 'object' ? (exception.getResponse() as any).message : exception.getResponse(),
+      };
+
+      if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+        this._logger.error(`${request.method} ${request.url}`, exception.stack, 'ExceptionFilter');
+      } else {
+        this._logger.error(`${request.method} ${request.url}`, JSON.stringify(errorResponse), 'ExceptionFilter');
+      }
+
+      return response.status(status).json(errorResponse);
+    } else {
+      // GRAPHQL Exception
+      // const gqlHost = GqlArgumentsHost.create(host);
+      return exception;
+    }
+  }
+}
+
+
+*/

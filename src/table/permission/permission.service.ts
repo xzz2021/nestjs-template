@@ -35,7 +35,7 @@ export class PermissionService {
       skipDuplicates: true, // 跳过重复的
     };
     try {
-      const res = await this.pgService.permission.createMany(createStatement);
+      const res = await this.pgService.permission.createMany(createStatement as any);
       console.log('✨ 🍰 ✨ xzz2021: PermissionService -> batchCreate -> res', res);
       if (res?.count > 0) {
         return { code: 200, count: res.count, messgae: '快速生成权限模版成功' };

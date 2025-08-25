@@ -119,13 +119,13 @@ export class DictionaryService {
 
     let result;
     if (id && id > 0) {
-      result = await this.pgService.dicEntry.update({
+      result = await this.pgService.dictionaryEntry.update({
         where: { id },
         data: { ...rest },
         select: { id: true },
       });
     } else {
-      result = await this.pgService.dicEntry.create({
+      result = await this.pgService.dictionaryEntry.create({
         data: { ...rest, dictionary: { connect: { id: dictionaryId } } },
         select: { id: true },
       });
@@ -135,7 +135,7 @@ export class DictionaryService {
 
   async batchRemoveEntry(idList: number[]) {
     try {
-      const res = await this.pgService.dicEntry.deleteMany({
+      const res = await this.pgService.dictionaryEntry.deleteMany({
         where: { id: { in: idList } },
       });
       if (res?.count) return { code: 200, count: res.count, message: '删除字典项成功' };
@@ -155,7 +155,7 @@ export class DictionaryService {
       },
       ...rest,
     };
-    return executePagedQuery(this.pgService.dicEntry, newSearchParam, '字典项');
+    return executePagedQuery(this.pgService.dictionaryEntry, newSearchParam, '字典项');
   }
 
   async findAll() {

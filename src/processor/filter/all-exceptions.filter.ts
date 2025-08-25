@@ -1,3 +1,6 @@
+//  这里是捕获所未知异常  无法拿到源信息
+// 如果需要源信息   后期考虑 实现return next.handle().pipe() 来捕获
+
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Response, Request } from 'express';
 
@@ -5,27 +8,31 @@ import { Response, Request } from 'express';
 @Catch() // @Catch()参数留空  表示 捕获所有异常
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
-    console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
-
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    // console.log('🚀 ~ AllExceptionsFilter ~ catch ~ response:', response);
+    console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
     const request = ctx.getRequest<Request>();
     const path = request.url;
     // ✅ 忽略 favicon.ico 请求
     if (path === 'favicon.ico') {
       return response.status(204).send(); // No Content
     }
-    const httpStatus = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
-    const exceptionResponse = exception instanceof HttpException ? exception.getResponse() : '网络异常,请稍后再试!';
-    // const errMsg = exception instanceof Error ? exception.message : 'Internal server error';
-    const errMsg = typeof exceptionResponse === 'string' ? exceptionResponse : (exceptionResponse as any).message || '网络异常,请稍后再试!';
+    let status = 500;
+    let message = 'Internal server error';
+
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      message = exception.message;
+    } else if (exception instanceof Error) {
+      message = exception.message;
+    }
+
     //  一定要返回数据 否则会截断
-    response.status(httpStatus).json({
-      statusCode: httpStatus,
-      timestamp: new Date().toISOString(),
+    response.status(status).json({
+      code: 400,
+      timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '),
       path,
-      message: errMsg,
+      message: message || '未捕获异常,请检查后端代码!',
     });
   }
   // //  对正常返回数据进行处理
