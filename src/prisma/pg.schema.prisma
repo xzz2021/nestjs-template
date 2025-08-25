@@ -151,7 +151,7 @@ model Menu {
   name      String  @db.VarChar(50)
   path      String  @db.VarChar(100)
   redirect  String? @db.VarChar(100)
-  type      String  @default("DIRECTORY") // 使用字符串常量
+  type      Int? // 当type=1时说明是子组件 而不是目录  用于回显菜单类型
   component String  @db.VarChar(100)
   sort      Int     @default(0)
   status    Boolean @default(true)

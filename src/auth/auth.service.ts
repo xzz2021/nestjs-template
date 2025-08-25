@@ -75,10 +75,11 @@ export class AuthService {
       tokenVersion = await this.updateTokenVersion(user.phone);
     }
     return {
-      code: 200,
       message: user.username + '登录成功',
-      userinfo: result,
-      access_token: this.jwtService.sign(ssoEnabled ? { ...result, tokenVersion } : result),
+      data: {
+        userinfo: result,
+        access_token: this.jwtService.sign(ssoEnabled ? { ...result, tokenVersion } : result),
+      },
     };
   }
 

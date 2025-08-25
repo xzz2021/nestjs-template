@@ -16,10 +16,15 @@ export interface AdminListType {
 }
 
 async function _createMenu(data: any, parentId: number | null = null, sort = 0) {
-  const { children, ...rest } = data;
+  const { children, meta, ...rest } = data;
   const created = await prisma.menu.create({
     data: {
       ...rest,
+      meta: {
+        create: {
+          ...meta,
+        },
+      },
       parentId,
     },
   });

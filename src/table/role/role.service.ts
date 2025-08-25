@@ -80,13 +80,13 @@ export class RoleService {
   }
 
   //  登录瞬间获取菜单表和对应的权限值字符串数组
-  async findRoleMenu(userid: number): Promise<{ code: number; menuList?: any[]; list?: any[]; message: string }> {
+  async findRoleMenu(userid: number): Promise<{ list?: any[]; message: string }> {
     // 1. 获取角色菜单 首先判断用户id, 管理员返回所有菜单
     // 2. 其他用户 获取用户角色id数组
     try {
       if (+userid === 1) {
-        const res = await this.getRoleMenuWithPermissionOfAdmin();
-        return { code: 200, menuList: res, message: '获取管理员菜单成功' };
+        const list = await this.getRoleMenuWithPermissionOfAdmin();
+        return { list, message: '获取管理员菜单成功' };
       }
       //  其他用户 先查询角色信息
       const user = await this.pgService.user.findUnique({
@@ -99,13 +99,13 @@ export class RoleService {
       const roleIds = user?.roles as Array<{ id: number }>;
       console.log('🚀 ~ RoleService ~ findRoleMenu ~ roleIds:', roleIds);
       if (!roleIds) {
-        return { code: 200, menuList: [], message: '请联系管理员分配角色' };
+        return { list: [], message: '请联系管理员分配角色' };
       }
       // const rolesMenus = await Promise.all(roleIds.map(item => this.getRoleMenuWithPermission(+item.id)));
       const rolesMenus = [];
       const menuWithPermission = mergeMenusByRoles(rolesMenus.flat() as MenuItemsType[]);
       if (menuWithPermission?.length === 0) {
-        return { code: 200, menuList: [], message: '请联系管理员分配角色菜单' };
+        return { list: [], message: '请联系管理员分配角色菜单' };
       }
 
       // 还需要判断   遍历整个数组  如果某个菜单项的父级不存在则删除当前项
@@ -114,9 +114,9 @@ export class RoleService {
 
       // 2. 过滤：只保留 parentId === null 或者 parentId 在 ids 里
       const filtered = menuWithPermission.filter((m: any) => m.parentId === null || ids.has(m.parentId as number));
-      return { code: 200, menuList: filtered, message: '菜单成功' };
+      return { list: filtered, message: '菜单成功' };
     } catch (error) {
-      return { code: 400, message: error.message };
+      return { list: [], message: error.message };
     }
   }
 

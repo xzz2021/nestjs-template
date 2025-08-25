@@ -10,7 +10,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
 
     response.status(status).json({
-      code: 400,
+      code: status || 400, //  常规状态码 需在前端拦截处理   401  403 500 等  默认 400
       timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '),
       message: exception.message,
       meta: exception.getResponse(),
