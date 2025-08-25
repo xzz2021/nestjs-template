@@ -122,8 +122,9 @@ model Role {
   
   users   UserRole[]
   
-  permissions Permission[] @relation("role_permission", onDelete: Cascade)
-  menus       Menu[]       @relation("role_menu", onDelete: Cascade)
+  // 显式多对多关系
+  permissions RolePermission[]
+  menus       RoleMenu[]
 
   @@index([code, status])
   @@map("role")
@@ -163,7 +164,9 @@ model Menu {
   
   meta           Meta?        
   permissionList Permission[]
-  roles          Role[]       @relation("role_menu")
+  
+  // 显式多对多关系
+  roles      RoleMenu[]
 
   parentId       Int?         @map("parent_id")
   parent         Menu?        @relation("MenuSelf", fields: [parentId], references: [id], onDelete: SetNull)
@@ -208,11 +211,47 @@ model Permission {
 
   menuId    Int             @map("menu_id")
   menu      Menu            @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  roles     Role[]          @relation("role_permission")
+  
+  // 显式多对多关系
+  roles RolePermission[]
 
   @@unique([menuId, code])
   @@index([code])
   @@map("permission")
+}
+
+// 角色权限关联表 - 显式多对多关系
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permission")
+}
+
+// 角色菜单关联表 - 显式多对多关系
+model RoleMenu {
+  id        Int      @id @default(autoincrement())
+  roleId    Int      @map("role_id")
+  menuId    Int      @map("menu_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, menuId])
+  @@index([roleId])
+  @@index([menuId])
+  @@map("role_menu")
 }
 
 model Notice {
