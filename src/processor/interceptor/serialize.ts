@@ -7,6 +7,30 @@ import { map } from 'rxjs/operators';
 @Injectable()
 export class SerializeInterceptor<T> implements NestInterceptor {
   constructor(private dto: ClassConstructor<T>) {}
+  // 递归序列化树形数据
+  // private serializeTreeData(data: any, dto: any): any {
+  //   if (!data || typeof data !== 'object') return data;
+
+  //   // 如果是数组，递归处理每个元素
+  //   if (Array.isArray(data)) {
+  //     return data.map(item => this.serializeTreeData(item, dto));
+  //   }
+
+  //   // 处理单个对象
+  //   const serialized = plainToInstance(dto, data, {
+  //     excludeExtraneousValues: false,
+  //     exposeUnsetFields: false,
+  //   });
+
+  //   const childrenData = serialized?.children || [];
+  //   // 递归处理 children 属性
+  //   if (childrenData.length > 0 && Array.isArray(childrenData)) {
+  //     serialized.children = this.serializeTreeData(childrenData, dto);
+  //   }
+
+  //   return serialized;
+  // }
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data: any) => {
@@ -22,6 +46,7 @@ export class SerializeInterceptor<T> implements NestInterceptor {
         });
         */
         if (data?.list) {
+          // data.list = this.serializeTreeData(data.list, this.dto);
           data.list = plainToInstance(this.dto, data.list, {
             excludeExtraneousValues: false,
             exposeUnsetFields: false,

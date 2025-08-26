@@ -3,6 +3,7 @@
 
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Response, Request } from 'express';
+import { checkPrismaError } from './prisma.exception';
 
 //  捕获 HttpException 异常 或 HttpException 子类 异常
 @Catch() // @Catch()参数留空  表示 捕获所有异常
@@ -17,7 +18,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (path === 'favicon.ico') {
       return response.status(204).send(); // No Content
     }
-    let status = 500;
+    let status = 400;
     let message = 'Internal server error';
 
     if (exception instanceof HttpException) {
@@ -27,12 +28,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = exception.message;
     }
 
+    const { msg, meta } = checkPrismaError(exception) || {};
+
     //  一定要返回数据 否则会截断
     response.status(status).json({
       code: 400,
       timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '),
       path,
-      message: message || '未捕获异常,请检查后端代码!',
+      message: msg || message || '未捕获异常,请检查后端代码!',
+      meta,
     });
   }
   // //  对正常返回数据进行处理

@@ -1,5 +1,6 @@
 //  此处用于所有请求的异常结果返回  确保 捕获到的异常 都能有正常的错误响应给前端
 //   因为时nest内置封装的函数  所以可以拿到错误的源信息
+//  dto的错误也会走向这里
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 
 @Catch(HttpException)
@@ -14,6 +15,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '),
       message: exception.message,
       meta: exception.getResponse(),
+      meta2: '222',
     });
   }
 }

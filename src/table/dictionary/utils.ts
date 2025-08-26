@@ -1,27 +1,28 @@
 const list = [
   {
-    label: '新增',
+    name: '新增',
     code: 'add',
   },
   {
-    label: '编辑',
+    name: '编辑',
     code: 'update',
   },
   {
-    label: '删除',
+    name: '删除',
     code: 'delete',
   },
   {
-    label: '查看',
+    name: '查看',
     code: 'view',
   },
 ];
 
-export const batchCreatePermissionList = (menuId: number, path: string) => {
+export const batchCreatePermissionList = (menuId: number, resource: string) => {
   const permissionList = list.map(item => ({
     ...item,
+    resource,
     menuId,
-    name: (path + '_' + item.code).toUpperCase(),
+    // name: (resource + '_' + item.code).toUpperCase(),
   }));
   return permissionList;
 };

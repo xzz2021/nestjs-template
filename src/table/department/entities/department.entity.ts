@@ -12,31 +12,50 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 
 */
 export class Department1Entity {
+  @Expose()
   // @Transform(({ value }) => value.toString())
   id: number;
 
+  @Expose()
   name: string;
 
+  @Expose()
   status: boolean;
+
+  @Expose()
   remark: string;
+
   @Expose()
   isDeleted: boolean;
 
+  @Expose()
   parentId: number;
+
   //  转换成 2025-05-28 11:41:45
   // @Transform(({ value }) => value.toISOString().split('T').join(' '))
+  @Expose()
   createdAt: Date;
 
   // @Exclude()   //  指定时区 转换
+  @Expose()
   @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '))
   updatedAt: Date;
 
   @Exclude()
   deletedAt: Date;
+
   // 构造一个新的字段
   @Expose()
   @Transform(({ obj }) => obj.name + '111')
   newName: string;
+
+  // 添加子部门字段
+  @Expose()
+  children: Department1Entity[];
+
+  // 添加父部门字段
+  @Expose()
+  parent: Department1Entity;
 
   /*
   // 加解密

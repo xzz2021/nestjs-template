@@ -127,3 +127,17 @@ ERP系统:
 - InternalServerErrorException (500): 通用错误，表示服务器内部异常。
 
 - ServiceUnavailableException (503): 服务不可用，可能宕机或过载。
+
+2. 返回前端数据格式保持一致
+   ```ts
+   interface ListWithTotal {
+     list: any[];
+     total: number;
+   }
+   interface ResData {
+     message: string;
+     list: any[];
+     data?: any;
+     total?: number;
+   }
+   ```

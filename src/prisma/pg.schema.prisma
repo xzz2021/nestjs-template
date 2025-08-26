@@ -10,7 +10,7 @@
 generator client {
   provider               = "prisma-client-js"
   output                 = "./client/postgresql"
-  previewFeatures        = []
+  previewFeatures        = ["driverAdapters"]
   // Optional
   moduleFormat           = "esm"
   generatedFileExtension = "ts"
@@ -70,25 +70,7 @@ model User {
   @@map("user")
 }
 
-// 用户角色关联表 - 显式多对多关系
-model UserRole {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  roleId    Int      @map("role_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
-  // updatedBy Int?     @map("updated_by")
-  // updatedByUser User? @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
-  // 当删除  某个 角色  或 用户时 需要 级联删除 用户角色关联表
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, roleId])
-  @@index([userId])
-  @@index([roleId])
-  @@map("user_role")
-}
 
 model WechatInfo {
   id           Int      @id @default(autoincrement())
@@ -127,10 +109,67 @@ model Role {
   @@map("role")
 }
 
+// 用户角色关联表 - 显式多对多关系
+model UserRole {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  roleId    Int      @map("role_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // updatedBy Int?     @map("updated_by")
+  // updatedByUser User? @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
+  // 当删除  某个 角色  或 用户时 需要 级联删除 用户角色关联表
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_role")
+}
+
+model Permission {
+  id       Int     @id @default(autoincrement())
+  name     String  @db.VarChar(50) // 名称可重复 code 必须唯一  配合控制器api 实现唯一性控制
+  code     String  @unique @db.VarChar(50) // 权限标识，例如 "add/update"
+  value    String? @db.VarChar(50) // 权限值，可选
+  resource String  @db.VarChar(50) // 资源(user/menu/dictionary)
+  // type      String          @default("ACTION") // 使用字符串常量
+  // route     String?         // 对应的后端 API（可选）
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  menuId Int  @map("menu_id")
+  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  // 显式多对多关系
+  roles RolePermission[]
+
+  @@unique([menuId, code])
+  @@map("permission")
+}
+
+// 角色权限关联表 - 显式多对多关系
+model RolePermission {
+  id           Int      @id @default(autoincrement())
+  roleId       Int      @map("role_id")
+  permissionId Int      @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permission")
+}
+
 model Department {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(50)
-  code      String   @db.VarChar(50)
+  // code      String   @db.VarChar(50)
   status    Boolean  @default(true)
   remark    String?  @db.VarChar(100)
   createdAt DateTime @default(now()) @map("created_at")
@@ -142,7 +181,9 @@ model Department {
   children Department[] @relation("DepartmentSelf")
   users    User[]
 
-  @@index([parentId, code])
+  // 复合主键  parentId 和 name 一起查询  唯一约束
+  @@unique([parentId, name])
+
   @@map("department")
 }
 
@@ -194,45 +235,7 @@ model Meta {
   @@map("menu_meta")
 }
 
-model Permission {
-  id       Int     @id @default(autoincrement())
-  name     String  @db.VarChar(50) // 名称可重复 code 必须唯一  配合控制器api 实现唯一性控制
-  code     String  @unique @db.VarChar(50) // 权限标识，例如 "add/update"
-  value    String? @db.VarChar(50) // 权限值，可选
-  resource String  @db.VarChar(50) // 资源(user/menu/dictionary)
-  // type      String          @default("ACTION") // 使用字符串常量
-  // route     String?         // 对应的后端 API（可选）
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  menuId Int  @map("menu_id")
-  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
-
-  // 显式多对多关系
-  roles RolePermission[]
-
-  @@unique([menuId, code])
-  @@index([code])
-  @@map("permission")
-}
-
-// 角色权限关联表 - 显式多对多关系
-model RolePermission {
-  id           Int      @id @default(autoincrement())
-  roleId       Int      @map("role_id")
-  permissionId Int      @map("permission_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  @@unique([roleId, permissionId])
-  @@index([roleId])
-  @@index([permissionId])
-  @@map("role_permission")
-}
 
 // 角色菜单关联表 - 显式多对多关系
 model RoleMenu {
