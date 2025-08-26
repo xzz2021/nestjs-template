@@ -38,9 +38,9 @@ export class DepartmentController {
     return this.departmentService.delete(body.id);
   }
 
-  @Post('admin/batchUpsert')
-  @ApiOperation({ summary: '批量插入/更新部门' })
-  batchUpsert(@Body() data: UpsertDepartmentDto[]) {
-    return this.departmentService.batchUpsert(data);
-  }
+  // @Post('admin/batchUpsert')
+  // @ApiOperation({ summary: '批量插入/更新部门' })
+  // batchUpsert(@Body() data: UpsertDepartmentDto[]) {
+  //   return this.departmentService.batchUpsert(data);
+  // }
 }

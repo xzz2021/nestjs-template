@@ -54,11 +54,13 @@ model User {
   isDeleted    Boolean     @default(false) @map("is_deleted")
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
-  departmentId Int?        @map("department_id")
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+
 
   // 显式多对多关系
   roles UserRole[]
+
+  departments UserDepartment[]
 
   // 通知相关
   createdNotices   Notice[]
@@ -66,7 +68,6 @@ model User {
 
   @@index([phone])
   @@index([email])
-  @@index([departmentId])
   @@map("user")
 }
 
@@ -169,7 +170,7 @@ model RolePermission {
 model Department {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(50)
-  // code      String   @db.VarChar(50)
+  path      String   @db.VarChar(512)
   status    Boolean  @default(true)
   remark    String?  @db.VarChar(100)
   createdAt DateTime @default(now()) @map("created_at")
@@ -179,13 +180,28 @@ model Department {
   parent   Department? @relation("DepartmentSelf", fields: [parentId], references: [id], onDelete: SetNull)
 
   children Department[] @relation("DepartmentSelf")
-  users    User[]
+  users    UserDepartment[]
 
-  // 复合主键  parentId 和 name 一起查询  唯一约束
-  @@unique([parentId, name])
+  // 使用复合唯一约束，包括一个虚拟字段
+  @@unique([name, parentId], name: "unique_department_name_parent")
 
   @@map("department")
 }
+
+model UserDepartment {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  departmentId Int      @map("department_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // 当删除  某个 部门  或 用户时 需要 级联删除 用户部门关联表
+  user  User @relation( fields: [userId], references: [id], onDelete: Cascade) 
+  department  Department @relation( fields: [departmentId], references: [id], onDelete: Cascade) 
+
+  @@unique([userId, departmentId])
+
+} 
 
 model Menu {
   id        Int     @id @default(autoincrement())

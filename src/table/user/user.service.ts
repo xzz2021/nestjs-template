@@ -76,7 +76,11 @@ export class UserService {
             username,
             password,
             phone,
-            departmentId,
+            departments: {
+              connect: {
+                id: departmentId,
+              },
+            },
           },
           include: {
             roles: true,
@@ -103,7 +107,7 @@ export class UserService {
         data: {
           username,
           phone,
-          department: {
+          departments: {
             connect: departmentId ? { id: departmentId } : undefined,
           },
           roles: {
@@ -141,7 +145,7 @@ export class UserService {
           username: true,
           phone: true,
           status: true,
-          department: { select: { id: true, name: true } },
+          departments: { select: { id: true, department: { select: { id: true, name: true } } } },
           roles: true,
           createdAt: true,
         },
