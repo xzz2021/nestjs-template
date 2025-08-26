@@ -1,49 +1,67 @@
 import { Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
+import { CreateMenuDto, UpdateMenuDto } from './dto/menu.dto';
+// import { Prisma } from '@/prisma/client/postgresql';
 
 @Injectable()
 export class MenuService {
   constructor(private readonly pgService: PgService) {}
 
-  async create(createMenuDto: any) {
+  async create(createMenuDto: CreateMenuDto) {
+    const { parentId, meta, ...rest } = createMenuDto;
     const createStatement = {
-      data: createMenuDto,
+      data: {
+        ...rest,
+        parent: {
+          connect: parentId ? { id: parentId } : undefined,
+        },
+        meta: {
+          create: {
+            ...meta,
+          },
+        },
+      },
       select: { id: true },
     };
-    try {
-      const res = await this.pgService.menu.create(createStatement);
-      if (res?.id) {
-        return { code: 200, id: res.id };
-      }
-    } catch (error) {
-      console.log('🚀 ~ xzz: MenuService -> create -> error', error);
-      return { code: 400, error: error.message };
-    }
+
+    const res = await this.pgService.menu.create(createStatement);
+
+    return { id: res.id, message: '创建菜单成功' };
   }
 
-  findAll() {
-    return `This action returns all menu`;
-  }
-
-  async update(updateMenuDto: any) {
+  async update(updateMenuDto: UpdateMenuDto) {
     // 相当于合并新增与更新
-    const { id, parentId = null, ...rest } = updateMenuDto;
+    const { id, parentId = null, meta, ...rest } = updateMenuDto;
 
     const updateStatement = {
       where: { id },
       data: {
-        parentId: parentId === id ? null : parentId,
+        ...(parentId === null
+          ? {
+              parent: {
+                disconnect: true,
+              },
+            }
+          : {
+              parent: {
+                // 使用 parent 而不是 parentId
+                connect: {
+                  id: parentId,
+                },
+              },
+            }),
+        meta: {
+          update: {
+            ...meta,
+          },
+        },
         ...rest,
       },
+      select: { id: true },
     };
-    try {
-      const res = await this.pgService.menu.update(updateStatement);
-      if (res?.id) {
-        return { code: 200, id: res.id };
-      }
-    } catch (error) {
-      return { code: 400, message: error.message };
-    }
+    const res = await this.pgService.menu.update(updateStatement);
+
+    return { id: res?.id, message: '更新菜单成功' };
   }
 
   async remove(id: number) {
@@ -63,30 +81,84 @@ export class MenuService {
 
   async findMenuList() {
     const findModule = {
-      select: {
-        id: true,
-        name: true,
-        path: true,
-        redirect: true,
-        type: true,
-        component: true,
-        sort: true,
-        status: true,
-        parentId: true,
-        meta: true,
-        permissionList: {
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            // createdAt字段被排除
-          },
-        },
+      where: {
+        parentId: null,
       },
-      // orderBy: 'createdAt'
+      orderBy: { sort: 'asc' },
+      include: {
+        children: {
+          orderBy: { sort: 'asc' },
+          include: {
+            children: {
+              orderBy: { sort: 'asc' },
+              include: {
+                children: {
+                  orderBy: { sort: 'asc' },
+                  include: {
+                    children: {
+                      orderBy: { sort: 'asc' },
+                      include: {
+                        permissionList: true,
+                        meta: true,
+                      },
+                    },
+                    permissionList: true,
+                    meta: true,
+                  },
+                },
+                meta: true,
+                permissionList: true,
+              },
+            },
+            meta: true,
+            permissionList: true,
+          },
+          meta: true,
+          permissionList: true,
+        },
+        meta: true,
+        permissionList: true,
+      },
     };
     try {
-      const res = await this.pgService.menu.findMany(findModule);
+      const res = await this.pgService.menu.findMany({
+        where: {
+          parentId: null,
+        },
+        orderBy: [{ sort: 'asc' }],
+        include: {
+          children: {
+            orderBy: [{ sort: 'asc' }],
+            include: {
+              children: {
+                orderBy: [{ sort: 'asc' }],
+                include: {
+                  children: {
+                    orderBy: [{ sort: 'asc' }],
+                    include: {
+                      children: {
+                        orderBy: [{ sort: 'asc' }],
+                        include: {
+                          permissionList: true,
+                          meta: true,
+                        },
+                      },
+                      permissionList: true,
+                      meta: true,
+                    },
+                  },
+                  meta: true,
+                  permissionList: true,
+                },
+              },
+              meta: true,
+              permissionList: true,
+            },
+          },
+          meta: true,
+          permissionList: true,
+        },
+      });
       return { code: 200, list: res, message: '获取菜单成功' };
     } catch (error) {
       return { code: 500, message: '获取菜单失败' + error };

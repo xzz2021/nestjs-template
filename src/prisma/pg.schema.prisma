@@ -51,11 +51,9 @@ model User {
   wechatId   String?     @unique @map("wechat_id")
   wechatInfo WechatInfo? @relation(fields: [wechatId], references: [unionid])
 
-  isDeleted    Boolean     @default(false) @map("is_deleted")
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-
-
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // 显式多对多关系
   roles UserRole[]
@@ -70,8 +68,6 @@ model User {
   @@index([email])
   @@map("user")
 }
-
-
 
 model WechatInfo {
   id           Int      @id @default(autoincrement())
@@ -179,33 +175,32 @@ model Department {
   parentId Int?        @map("parent_id")
   parent   Department? @relation("DepartmentSelf", fields: [parentId], references: [id], onDelete: SetNull)
 
-  children Department[] @relation("DepartmentSelf")
+  children Department[]     @relation("DepartmentSelf")
   users    UserDepartment[]
 
   // 使用复合唯一约束，包括一个虚拟字段
   @@unique([name, parentId], name: "unique_department_name_parent")
-
   @@map("department")
 }
 
 model UserDepartment {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
   departmentId Int      @map("department_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // 当删除  某个 部门  或 用户时 需要 级联删除 用户部门关联表
-  user  User @relation( fields: [userId], references: [id], onDelete: Cascade) 
-  department  Department @relation( fields: [departmentId], references: [id], onDelete: Cascade) 
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, departmentId])
-
-} 
+  @@map("user_department")
+}
 
 model Menu {
   id        Int     @id @default(autoincrement())
-  name      String  @db.VarChar(50)
+  name      String  @unique @db.VarChar(50)
   path      String  @db.VarChar(100)
   redirect  String? @db.VarChar(100)
   type      Int? // 当type=1时说明是子组件 而不是目录  用于回显菜单类型
@@ -216,7 +211,12 @@ model Menu {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  meta           Meta?
+  // 必有的 1:1 关联关键点：非空 + 唯一
+  // metaId Int  @unique
+  // meta   Meta @relation(fields: [metaId], references: [id], onDelete: Cascade)
+
+  meta Meta?
+
   permissionList Permission[]
 
   // 显式多对多关系
@@ -235,7 +235,7 @@ model Meta {
   title      String? @db.VarChar(50)
   icon       String? @db.VarChar(50)
   affix      Boolean @default(false)
-  activeMenu String? @map("active_menu") @db.VarChar(50)
+  activeMenu Boolean @default(false) @map("active_menu")
   alwaysShow Boolean @default(false) @map("always_show")
   breadcrumb Boolean @default(true)
   canTo      Boolean @default(false) @map("can_to")
@@ -245,13 +245,17 @@ model Meta {
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  menuId    Int      @unique @map("menu_id")
-  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  // 添加反向关系，当Menu被删除时，Meta也会被删除
+  // 如果需要执行级联操作  必须在 被操作处 定义 关联字段  必须 @unique
+  menuId Int  @unique
+  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  // menuName String? @unique @map("menu_name")
+  // menu     Menu? @relation(fields: [menuName], references: [name], onDelete: Cascade)
 
   @@map("menu_meta")
 }
-
-
 
 // 角色菜单关联表 - 显式多对多关系
 model RoleMenu {

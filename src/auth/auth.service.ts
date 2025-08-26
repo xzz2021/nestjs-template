@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PgService } from '@/prisma/pg.service';
 import { LoginInfo, RegisterInfo } from './types';
@@ -61,11 +61,11 @@ export class AuthService {
     });
 
     if (!user) {
-      return { code: 400, message: '用户不存在' };
+      throw new BadRequestException('用户不存在');
     }
     const isPasswordValid = await verifyPayPassword(user.password, loginInfo.password);
     if (!isPasswordValid) {
-      return { code: 400, message: loginInfo.phone + '密码错误' };
+      throw new UnauthorizedException(loginInfo.phone + '密码错误');
     }
     const { password, ...result } = user;
     const ssoEnabled = this.configService.get<string>('SSO');
