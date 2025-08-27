@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { PermissionService } from './permission.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { CreatePermissionDto, UpdatePermissionDto, BatchPermissionDto } from './dto/permission.dto';
 
 @ApiTags('权限')
 @Controller('permission')
@@ -9,27 +10,25 @@ export class PermissionController {
 
   @Post('add')
   @ApiOperation({ summary: '创建权限' })
-  create(@Body() createPermissionListDto: any) {
+  create(@Body() createPermissionListDto: CreatePermissionDto) {
     return this.permissionService.create(createPermissionListDto);
   }
 
   @Post('batchCreate')
   @ApiOperation({ summary: '批量创建权限' })
-  batchCreate(@Body() obj: { menuId: number; path: string }) {
-    const { menuId, path } = obj;
-    if (!menuId || !path) return { code: 400, message: '参数不合法' };
-    return this.permissionService.batchCreate(menuId, path);
+  batchCreate(@Body() obj: BatchPermissionDto) {
+    return this.permissionService.batchCreate(obj);
   }
 
   @Post('update')
   @ApiOperation({ summary: '更新权限' })
-  update(@Body() updatePermissionListDto: any) {
+  update(@Body() updatePermissionListDto: UpdatePermissionDto) {
     return this.permissionService.update(updatePermissionListDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '删除权限' })
-  remove(@Param('id') id: string) {
-    return this.permissionService.remove(+id); //  +id是为了将数字id转换为string
+  remove(@Param('id') id: number) {
+    return this.permissionService.remove(id);
   }
 }

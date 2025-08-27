@@ -59,7 +59,7 @@ export const GLOBAL_VALIDATION_PIPE = new ValidationPipe({
   // 加上这两个才能看到详细错误
   enableDebugMessages: true,
   exceptionFactory: (errors: ValidationError[]) => {
-    console.log('errors', JSON.stringify(errors));
+    // console.log('errors', JSON.stringify(errors));
 
     const err = errors[errors.length - 1].constraints || {};
     const errMsg = Object.values(err)[0] || '数据类型不合法';

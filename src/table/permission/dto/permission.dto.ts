@@ -1,35 +1,56 @@
-import { Menu } from '@/prisma/dto/menu';
-import { RolePermission } from '@/prisma/dto/role_permission';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class PermissionDto {
-  @ApiProperty({ type: Number })
-  id: number;
-
   @ApiProperty({ type: String })
+  @IsNotEmpty()
+  @IsString()
   name: string;
 
   @ApiProperty({ type: String })
+  @IsNotEmpty()
+  @IsString()
   code: string;
 
   @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
   value?: string;
+}
 
+export class CreatePermissionDto extends PermissionDto {
   @ApiProperty({ type: String })
+  @IsNotEmpty()
+  @IsString()
   resource: string;
 
-  @ApiProperty({ type: Date })
-  createdAt: Date;
+  @ApiProperty({ type: Number })
+  @IsNotEmpty()
+  @IsNumber()
+  menuId: number;
+}
 
-  @ApiProperty({ type: Date })
-  updatedAt: Date;
+export class UpdatePermissionDto extends PermissionDto {
+  @ApiProperty({ type: Number })
+  @IsNotEmpty()
+  @IsNumber()
+  id: number;
+
+  @ApiProperty({ type: String })
+  @IsNotEmpty()
+  @IsString()
+  resource: string;
+}
+
+export class BatchPermissionDto {
+  @ApiProperty({ type: String })
+  @IsNotEmpty()
+  @IsString()
+  path: string;
 
   @ApiProperty({ type: Number })
+  @IsNotEmpty()
+  @IsNumber()
   menuId: number;
-
-  @ApiProperty({ type: () => Menu })
-  menu: Menu;
-
-  @ApiProperty({ isArray: true, type: () => RolePermission })
-  roles: RolePermission[];
 }

@@ -129,7 +129,7 @@ model UserRole {
 model Permission {
   id       Int     @id @default(autoincrement())
   name     String  @db.VarChar(50) // 名称可重复 code 必须唯一  配合控制器api 实现唯一性控制
-  code     String  @unique @db.VarChar(50) // 权限标识，例如 "add/update"
+  code     String  @db.VarChar(50) // 权限标识，例如 "add/update"
   value    String? @db.VarChar(50) // 权限值，可选
   resource String  @db.VarChar(50) // 资源(user/menu/dictionary)
   // type      String          @default("ACTION") // 使用字符串常量

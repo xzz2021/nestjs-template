@@ -22,7 +22,6 @@ export const batchCreatePermissionList = (menuId: number, resource: string) => {
     ...item,
     resource,
     menuId,
-    // name: (resource + '_' + item.code).toUpperCase(),
   }));
   return permissionList;
 };
