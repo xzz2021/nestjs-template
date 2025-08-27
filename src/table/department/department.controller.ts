@@ -1,12 +1,11 @@
 import { Controller, Get, Post, Body, Query, Delete } from '@nestjs/common';
 import { DepartmentService } from './department.service';
-import { CreateDepartmentDto, UpdateDepartmentDto, UpsertDepartmentDto } from './dto/department.dto';
+import { CreateDepartmentDto, UpdateDepartmentDto } from './dto/department.dto';
 import { Serialize } from '@/processor/decorator/serialize';
-import { Department1Entity } from './entities/department.entity';
 import { CheckPolicies } from '@/processor/decorator/casl.decorator';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DepartmentListResDto } from './dto/department.dto';
-
+@ApiTags('部门')
 @Controller('department')
 export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService) {}
@@ -33,7 +32,7 @@ export class DepartmentController {
   }
 
   @Delete('delete')
-  @ApiOperation({ summary: '删除部门' })
+  @ApiOperation({ summary: '删除部门', description: '删除部门详细说明' })
   delete(@Body() body: { id: number }) {
     return this.departmentService.delete(body.id);
   }

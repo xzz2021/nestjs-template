@@ -19,7 +19,7 @@ function swaggerAuth(username: string, password: string) {
 export function createSwagger(app: INestApplication) {
   console.log('=========已开启swagger=========');
   // Swagger 密码保护
-  app.use('/api-docs', swaggerAuth('admin', '123456')); // 设定用户名密码
+  app.use('/docs', swaggerAuth('admin', '123456')); // 设定用户名密码
   const config = new DocumentBuilder()
     .setTitle('后台管理')
     .setDescription('design by xzz2021')
@@ -54,5 +54,5 @@ export function createSwagger(app: INestApplication) {
     // ✅ 开启自动模式（核心）  // 这样dto中定义的属性即使没加ApiProperty也会自动生成
     autoTagControllers: true,
   });
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('docs', app, document);
 }

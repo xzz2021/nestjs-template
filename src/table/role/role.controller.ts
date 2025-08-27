@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Request } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IQueryParams } from '@/processor/utils/queryBuilder';
 import { TransformKeyPipe } from 'src/processor/pipe/validater';
+import { CreateRoleDto, IQueryParams, UpdateRoleDto } from './dto/role.dto';
 @ApiTags('角色')
 @Controller('role')
 export class RoleController {
@@ -10,19 +10,20 @@ export class RoleController {
 
   @Get('getRoleList')
   @ApiOperation({ summary: '获取角色列表' })
-  findAll(@Query() joinQueryParams: IQueryParams) {
-    return this.roleService.getRoleList(joinQueryParams);
+  findAll(@Query() params: IQueryParams) {
+    return this.roleService.getRoleList(params);
   }
 
   @Post('add')
-  @ApiOperation({ summary: '创建角色' })
-  create(@Body() createRoleDto: RoleDTO) {
-    return this.roleService.createRoleWithMenusAndPermissions2(createRoleDto);
+  @ApiOperation({ summary: '创建角色及菜单和权限' })
+  create(@Body() createRoleDto: CreateRoleDto) {
+    console.log('xzz2021: RoleController -> create -> createRoleDto', createRoleDto);
+    return this.roleService.createRoleWithMenusAndPermissions(createRoleDto);
   }
 
   @Post('update')
   @ApiOperation({ summary: '更新角色' })
-  update(@Body(new TransformKeyPipe('remark')) updateRoleDto: UpdateRoleDTO) {
+  update(@Body() updateRoleDto: UpdateRoleDto) {
     return this.roleService.update(updateRoleDto);
   }
 

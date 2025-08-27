@@ -1,76 +1,188 @@
 import { MenuItemsType } from '@/processor/utils/mergeMenusAndPermission';
 import { mergeMenusByRoles } from '@/processor/utils/mergeMenusAndPermission';
-import { executePagedQuery, IQueryParams } from '@/processor/utils/queryBuilder';
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
+import { CreateRoleDto, IQueryParams, UpdateRoleDto } from './dto/role.dto';
 
 @Injectable()
 export class RoleService {
   constructor(private readonly pgService: PgService) {}
 
-  async createRoleWithMenusAndPermissions(data: RoleDTO) {
-    const { menuIds, permissionIds, ...rest } = data;
-    try {
-      const res = await this.pgService.$transaction(async tx => {
-        // 1. 创建角色
-        const newRole = await tx.role.create({
-          data: rest,
-        });
-        // 2. 分配菜单
-        if (menuIds.length > 0) {
-          await tx.role.update({
-            where: { id: newRole.id },
-            data: {
-              menus: {
-                connect: menuIds.map(id => ({ id })),
-              },
-            },
-          });
-        }
-        // 3. 分配权限
-        if (permissionIds.length > 0) {
-          await tx.role.update({
-            where: { id: newRole.id },
-            data: {
-              permissions: {
-                connect: permissionIds.map(id => ({ id })),
-              },
-            },
-          });
-        }
-        return newRole;
-      });
-      return { code: 200, list: res, message: '创建角色成功' };
-    } catch (error) {
-      return { code: 400, message: error.message };
-    }
-  }
-
-  async createRoleWithMenusAndPermissions2(data: RoleDTO) {
+  async createRoleWithMenusAndPermissions(data: CreateRoleDto) {
     const { menuIds, permissionIds, code, ...rest } = data;
-    try {
-      // 1. 创建角色
-      const newRole = await this.pgService.role.create({
-        data: {
-          ...rest,
-          code: code.toUpperCase(),
-          menus: {
-            connect: menuIds.map(id => ({ id })),
-          },
-          permissions: {
-            connect: permissionIds.map(id => ({ id })),
-          },
+
+    // 幂等/查重
+    const exists = await this.pgService.role.findUnique({ where: { code } });
+    if (exists) throw new ConflictException(`角色编码已存在：${code}`);
+
+    // 去重，避免 @@unique 冲突 + 降低 createMany 的冲突可能
+    // const menuIds2 = Array.from(new Set(menuIds));
+    // const permissionIds2 = Array.from(new Set(permissionIds ?? []));
+
+    let validMenuIds: number[] = [];
+    const menus = await this.pgService.menu.findMany({
+      where: { id: { in: menuIds } },
+      select: { id: true },
+    });
+    validMenuIds = Array.from(new Set(menus.map(m => m.id)));
+    // 2) 如果有 permissionIds，则校验它们都属于这些菜单
+    let validPermIds: number[] = [];
+    if (permissionIds?.length) {
+      const perms = await this.pgService.permission.findMany({
+        where: {
+          id: { in: permissionIds },
+          menuId: { in: menuIds }, // 关键校验：权限必须挂在已选菜单下
         },
+        select: { id: true },
+      });
+      validPermIds = Array.from(new Set(perms.map(p => p.id)));
+    }
+
+    const res = await this.pgService.$transaction(async tx => {
+      // 3) 创建角色
+      const role = await tx.role.create({
+        data: { code, ...rest },
+        select: { id: true },
       });
 
-      return { code: 200, list: newRole, message: '创建角色成功' };
-    } catch (error) {
-      return { code: 400, message: error.message };
-    }
+      // 4) 角色-菜单 关联
+      await tx.roleMenu.createMany({
+        data: validMenuIds.map(menuId => ({ roleId: role.id, menuId })),
+        skipDuplicates: true, // 防止重复
+      });
+
+      // 5) 角色-权限 关联（只插入勾选的“部分权限”）
+      if (validPermIds.length) {
+        await tx.rolePermission.createMany({
+          data: validPermIds.map(permissionId => ({ roleId: role.id, permissionId })),
+          skipDuplicates: true,
+        });
+      }
+      return role;
+    });
+    /* 
+    上面transaction可以替换为 一次写入操作
+    const role = await tx.role.create({
+  data: {
+    name,
+    code,
+    status,
+    remark,
+
+    // 4) 角色-菜单：嵌套写入到显式多对多中间表 RoleMenu
+    menus: {
+      create: menuIds.map((menuId) => ({
+        menu: { connect: { id: menuId } }, // 连接到菜单
+      })),
+    },
+
+    // 5) 角色-权限：嵌套写入到显式多对多中间表 RolePermission
+    permissions: validPermIds.length
+      ? {
+          create: validPermIds.map((permissionId) => ({
+            permission: { connect: { id: permissionId } }, // 连接到权限
+          })),
+        }
+      : undefined,
+  },
+  select: { id: true, name: true, code: true, status: true, remark: true },
+});
+
+*/
+    return { message: '创建角色成功', id: res.id };
   }
 
   async getRoleList(searchParam: IQueryParams) {
-    return executePagedQuery(this.pgService.role, searchParam, '角色');
+    const { pageIndex, pageSize, status, ...rest } = searchParam;
+    const skip = (pageIndex - 1) * pageSize;
+    const take = pageSize;
+    // const newParams =
+    // 遍历rest 构造 contains 对象
+    const where = Object.entries(rest).reduce(
+      (acc, [key, value]) => {
+        if (value) {
+          acc[key] = { contains: value };
+        }
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+
+    where.status = status;
+
+    const roles = await this.pgService.role.findMany({
+      // where,
+      // skip,
+      // take,
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        status: true,
+        // 角色 -> 菜单（显式多对多：RoleMenu）
+        menus: {
+          select: {
+            menu: {
+              select: {
+                id: true,
+                name: true,
+                path: true,
+                sort: true,
+                parentId: true,
+              },
+            },
+          },
+          orderBy: { menuId: 'asc' },
+        },
+        // 角色 -> 权限（显式多对多：RolePermission），把权限带出 menuId
+        permissions: {
+          select: {
+            permission: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+                value: true,
+                menuId: true, // 关键：用于归并到对应菜单
+              },
+            },
+          },
+        },
+      },
+    });
+    const list = roles.map(role => {
+      // 建一个 Map<menuId, Permission[]>
+      const permsByMenu = new Map<number, any[]>();
+      for (const rp of role.permissions) {
+        const p = rp.permission;
+        if (!permsByMenu.has(p.menuId)) permsByMenu.set(p.menuId, []);
+        permsByMenu.get(p.menuId)!.push({
+          id: p.id,
+          name: p.name,
+          code: p.code,
+          value: p.value,
+        });
+      }
+
+      const menus = role.menus.map(rm => {
+        const m = rm.menu;
+        return {
+          ...m,
+          // 只挂该角色在该菜单下的权限
+          permissions: permsByMenu.get(m.id) ?? [],
+        };
+      });
+
+      return {
+        id: role.id,
+        name: role.name,
+        code: role.code,
+        status: role.status,
+        menus,
+      };
+    });
+    const total = await this.pgService.role.count();
+    return { list, total, message: '获取角色列表成功' };
   }
 
   getMenuByRoleId(roleId: number) {
@@ -167,194 +279,53 @@ export class RoleService {
     }
   }
 
-  // async getRoleMenuWithPermission(id: number) {
-  //   //  获取单个角色菜单及对应的权限
-  //   try {
-  //     // 1. role  --> menus  --> permissions
-  //     const roleData = await this.pgService.role.findUnique({
-  //       where: { id },
-  //       select: {
-  //         menus: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //             path: true,
-  //             component: true,
-  //             redirect: true,
-  //             type: true,
-  //             status: true,
-  //             sort: true,
-  //             meta: true,
-  //             parentId: true,
-  //             permissionList: {
-  //               where: { roles: { some: { id } } },
-  //               select: {
-  //                 code: true,
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     const newData = roleData?.menus.map(menu => {
-  //       const { meta, permissionList, ...rest } = menu;
-  //       if (!permissionList) return menu;
-  //       return {
-  //         ...rest,
-  //         meta: {
-  //           ...((meta as object) || {}),
-  //           permissions: permissionList.map(p => p.code),
-  //         },
-  //       };
-  //     });
-  //     return newData;
-  //   } catch {
-  //     return [];
-  //   }
-  // }
-
-  // async getRoleMenuWithPermission2(id: number) {
-  //   //  获取单个角色菜单及对应的权限
-  //   const start = Date.now();
-  //   try {
-  //     // 1. role  --> menus  --> permissions
-  //     const roleData = await this.pgService.role.findUnique({
-  //       where: { id },
-  //       select: {
-  //         menus: {
-  //           select: {
-  //             id: true,
-  //             meta: true,
-  //             permissionList: {
-  //               where: { roles: { some: { id } } },
-  //               select: {
-  //                 value: true,
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     const newData = roleData?.menus.map(menu => {
-  //       const { meta, permissionList, ...rest } = menu;
-  //       if (!permissionList) return menu;
-  //       return {
-  //         ...rest,
-  //         meta: {
-  //           ...(meta || {}),
-  //           permissions: permissionList.map(p => p.value),
-  //         },
-  //       };
-  //     });
-  //     const end = Date.now();
-  //     console.log('🚀 ~ RoleService ~ getRoleMenuWithPermission ~ end:', end - start);
-  //     return newData;
-  //   } catch {
-  //     return [];
-  //   }
-  // }
-
-  // async getRoleMenuWithPermission2display(id: number) {
-  //   const start = Date.now();
-  //   try {
-  //     const roleWithMenusAndPermissions = await this.pgService.role.findUnique({
-  //       where: { id },
-  //       select: {
-  //         id: true,
-  //         name: true,
-  //         status: true,
-  //         remark: true,
-  //         menus: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //             path: true,
-  //             component: true,
-  //             redirect: true,
-  //             type: true,
-  //             status: true,
-  //             sort: true,
-  //             meta: true,
-  //             parentId: true,
-  //             permissionList: {
-  //               select: {
-  //                 name: true,
-  //                 code: true,
-  //                 roles: {
-  //                   where: { id },
-  //                   select: { id: true },
-  //                 },
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     });
-  //     if (!roleWithMenusAndPermissions) return [];
-  //     // 整理权限名数组到每个菜单的 meta.permission 中
-  //     const result = roleWithMenusAndPermissions.menus.map(menu => {
-  //       const permissionNames = menu.permissionList.filter(p => p.roles.length > 0).map(p => p.code);
-
-  //       return {
-  //         ...menu,
-  //         meta: {
-  //           ...((menu?.meta as object) || {}),
-  //           permission: permissionNames,
-  //         },
-  //       };
-  //     });
-  //     const end = Date.now();
-  //     console.log('🚀 ~ RoleService ~ getRoleMenuWithPermission2display ~ end:', end - start);
-  //     return result;
-  //   } catch {
-  //     return [];
-  //   }
-  // }
-
-  async update(updateRoleDto: RoleDTO & { id: number }) {
+  async update(updateRoleDto: UpdateRoleDto) {
     const { id, menuIds, permissionIds, ...rest } = updateRoleDto;
-    try {
-      const res = await this.pgService.$transaction(async tx => {
-        // 1. 清空原有菜单和权限
-        // await tx.role.update({
-        //   where: { id },
-        //   data: {
-        //     menus: { set: [] },
-        //     permissions: { set: [] },
-        //   },
-        // });
-        // 2. 绑定新菜单
-        await tx.role.update({
-          where: { id },
-          data: {
-            ...rest,
+    const res = await this.pgService.$transaction(async tx => {
+      // 1. 清空原有菜单和权限  2. 绑定新菜单和权限
+      const res = await tx.role.update({
+        where: { id },
+        data: {
+          ...rest,
+          /*
+            隐式多对多时使用
             menus: {
               // 清理所有关联的菜单
               set: [],
               connect: menuIds.map(id => ({ id })),
             },
-            permissions: {
-              // 清理所有关联的权限
-              set: [],
-              connect: permissionIds.map(id => ({ id })),
-            },
+          */
+
+          //  显式多对多 使用set 清空 然后create 创建
+          menus: {
+            deleteMany: {}, // 清空所有旧关联
+            create: menuIds.map(menuId => ({
+              menu: { connect: { id: menuId } },
+            })),
           },
-        });
-        return true;
+          permissions: {
+            deleteMany: {}, // 清空所有旧关联
+            create: permissionIds.map(permissionId => ({
+              permission: { connect: { id: permissionId } },
+            })),
+          },
+        },
+        select: { id: true },
       });
-      if (res) {
-        return { code: 200, list: res, message: '更新角色成功' };
-      }
-      return { code: 400, message: '更新角色失败' };
-    } catch (error) {
-      console.log('🚀 ~ xzz:=======================e -> create -> error', error.message);
-      return { code: 400, error: error.message, message: '角色信息更新失败' };
-    }
+      return res;
+    });
+    return { id: res.id, message: '更新角色成功' };
   }
 
   async remove(id: number) {
+    const res = await this.pgService.role.delete({
+      where: { id },
+      select: { id: true },
+    });
+    return { id: res.id, message: '删除角色成功' };
+  }
+
+  async remove00(id: number) {
     try {
       // 删除角色 同时删除角色关联的菜单和权限
       const res = await this.pgService.$transaction([
