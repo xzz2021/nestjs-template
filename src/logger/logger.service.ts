@@ -1,22 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PgService } from '@/prisma/pg.service';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-// import { WsGateway } from '@/ws/ws.gateway';
-import { IQueryParams } from '@/processor/utils/queryBuilder';
-
-import { RequestLog } from '@/processor/types/common';
+// import { PgService } from '@/prisma/pg.service';
+// import { CACHE_MANAGER } from '@nestjs/cache-manager';
+// import { Cache } from 'cache-manager';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 @Injectable()
 export class LoggerService {
   constructor(
-    private readonly pgService: PgService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    // private readonly pgService: PgService,
+    // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(WINSTON_MODULE_NEST_PROVIDER as 'NestWinston') private readonly logger: Logger,
   ) {}
 
-  getLogList(searchParam: IQueryParams) {
+  getLogList(searchParam: any) {
     const newSearchParam = {
       ...searchParam,
       include: {

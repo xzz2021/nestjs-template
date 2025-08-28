@@ -3,7 +3,6 @@ import { GetWxQrcodeDto, GetAlipayQrcodeDto, WxPayBody, AlipayNotifyDto } from '
 import { PrismaService as pgService } from '@/prisma/prisma.service';
 import { WxPay } from './wxpay';
 import { Alipay } from './alipay';
-import { OrderStatus } from '@/processor/enum/db';
 
 @Injectable()
 export class PaymentService {
@@ -190,12 +189,12 @@ export class PaymentService {
     // const orderInfo = await this.pgService.orderInfo.findFirst({
     //   where: { order_number: _orderInfo.order_number },
     // });
-    const orderInfo = { order_number: 87347774654, status: OrderStatus.PAID }; // 伪代码
+    const orderInfo = { order_number: 87347774654, status: 'OrderStatus.PAID' }; // 伪代码
     if (!orderInfo) {
       return { status: false, message: '订单不存在' };
     }
     // 2. 轮询订单状态
-    if ((orderInfo.status as unknown as OrderStatus) == OrderStatus.PAID) {
+    if (orderInfo.status == 'OrderStatus.PAID') {
       return { status: true, message: '订单已支付' };
     }
     return { status: false, message: '订单正在核实中...' };

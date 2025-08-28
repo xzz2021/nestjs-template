@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Request } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { CreateRoleDto, IQueryParams, UpdateRoleDto } from './dto/role.dto';
+import { CreateRoleDto, QueryRoleParams, UpdateRoleDto } from './dto/role.dto';
 @ApiTags('角色')
 @Controller('role')
 export class RoleController {
@@ -9,7 +9,7 @@ export class RoleController {
 
   @Get('getRoleList')
   @ApiOperation({ summary: '获取角色列表,用于展示及分配权限' })
-  findAll(@Query() params: IQueryParams) {
+  findAll(@Query() params: QueryRoleParams) {
     return this.roleService.getRoleList(params);
   }
 

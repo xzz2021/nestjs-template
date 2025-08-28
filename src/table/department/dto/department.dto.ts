@@ -1,5 +1,5 @@
 // import { User } from '@/prisma/dto/user';
-import { IsIdNotEqualToParentIdConstraint } from '@/processor/pipe/validater';
+import { IsDateWithTransform, IsIdNotEqualToParentIdConstraint } from '@/processor/pipe/validater';
 import { ApiProperty, ApiPropertyOptional, IntersectionType, OmitType, PartialType, PickType } from '@nestjs/swagger';
 import { Exclude, Expose, plainToClass, Transform, Type } from 'class-transformer';
 import { IsArray, IsNotEmpty, IsOptional, MaxLength, Validate, ValidateIf, ValidateNested } from 'class-validator';
@@ -134,11 +134,12 @@ export class UpsertDepartmentDto {
 }
 
 export class DepartmentListResDto {
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
+  @IsDateWithTransform()
+  // @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
   createdAt: Date;
 
   // @Exclude()
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
+  @IsDateWithTransform()
   updatedAt: Date;
 
   // 重要！！！ 包含多层children的tree数据  自动应用深层转换
@@ -170,5 +171,21 @@ createBulk(
 ) {
   return 'This action adds new users';
 }
+
+
+
+  @ValidateNested({ each: false })
+
+
+
+
+验证关联数据存在性
+  @IsMenuExists({ message: '父级菜单不存在' })
+  @ValidateNested({ each: false })
+  parentId?: number;
+
+
+  
+
 
 */

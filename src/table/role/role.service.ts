@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { CreateRoleDto, IQueryParams, UpdateRoleDto } from './dto/role.dto';
+import { CreateRoleDto, QueryRoleParams, UpdateRoleDto } from './dto/role.dto';
 
 @Injectable()
 export class RoleService {
@@ -90,7 +90,7 @@ export class RoleService {
     return { message: '创建角色成功', id: res.id };
   }
 
-  async getRoleList(searchParam: IQueryParams) {
+  async getRoleList(searchParam: QueryRoleParams) {
     const { pageIndex, pageSize, status, ...rest } = searchParam;
     const skip = (pageIndex - 1) * pageSize;
     const take = pageSize;

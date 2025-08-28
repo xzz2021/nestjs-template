@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PgService } from '@/prisma/pg.service';
-import { LoginInfo, RegisterInfo } from './types';
+import { LoginInfo, RegisterInfo } from './dto/auth.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { resultDataType, UndiciHttpService } from '@/utils/http/undici.http.service';

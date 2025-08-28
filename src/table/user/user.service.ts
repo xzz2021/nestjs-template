@@ -4,7 +4,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UpdatePwdType, UpdateUserPwdType } from './types';
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
-import { IQueryParams, UpdateUserDto, updatePersonalInfo } from './dto/user.dto';
+import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo } from './dto/user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -46,7 +46,7 @@ export class UserService {
     // });
   }
 
-  async findByDepartmentId(searchParam: IQueryParams) {
+  async findByDepartmentId(searchParam: QueryUserParams) {
     // 此处查询 只批量返回一般数据   查询效率会更好    详细数据应当通过单个ip去查询处理
 
     const { id, pageIndex, pageSize, status, ...rest } = searchParam;
@@ -210,7 +210,7 @@ export class UserService {
     };
     return { data: shaped, message: '获取个人信息成功' };
   }
-  async updateInfo(updateUserinfoDto: updatePersonalInfo) {
+  async updateInfo(updateUserinfoDto: UpdatePersonalInfo) {
     // 用户更新自己的 一般信息
     const { id, ...updateData } = updateUserinfoDto;
     const res = await this.pgService.user.update({

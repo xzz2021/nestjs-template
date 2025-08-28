@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { DictionaryService } from './dictionary.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IQueryParams } from '@/processor/utils/queryBuilder';
 import { Public } from '@/processor/decorator/public.decorator';
 @ApiTags('字典')
 @Controller('dictionary')
@@ -19,8 +18,8 @@ export class DictionaryController {
 
   @Get('list')
   @ApiOperation({ summary: '获取字典列表' })
-  findBy(@Query() joinQueryParams: IQueryParams) {
-    return this.dictionaryService.findBy(joinQueryParams);
+  findBy(@Query() joinQueryParams: any) {
+    return [];
   }
 
   @Post('upsert')
@@ -46,8 +45,8 @@ export class DictionaryController {
 
   @Get('entry/list')
   @ApiOperation({ summary: '获取字典项列表' })
-  findEntryBy(@Query() joinQueryParams: IQueryParams) {
-    return this.dictionaryService.findEntryBy(joinQueryParams);
+  findEntryBy(@Query() params: any) {
+    return this.dictionaryService.findEntryBy(params);
   }
 
   @Get('all')

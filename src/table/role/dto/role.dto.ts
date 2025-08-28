@@ -35,7 +35,7 @@ export class CreateRoleDto {
   permissionIds: number[] = []; // 在已选菜单下勾选的“部分权限”
 }
 
-export class IQueryParams {
+export class QueryRoleParams {
   @IsInt()
   @IsOptional()
   @Type(() => Number)

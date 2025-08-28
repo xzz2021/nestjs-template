@@ -1,22 +1,22 @@
-generator client {
-  provider = "prisma-client-js"
-  output = "./client/mysql"
-}
+// generator client {
+//   provider = "prisma-client-js"
+//   output = "./client/mysql"
+// }
 
-datasource db {
-  provider = "mysql"
-  url      = env("MYSQL_DATABASE_URL")
-}
+// datasource db {
+//   provider = "mysql"
+//   url      = env("MYSQL_DATABASE_URL")
+// }
 
-model User2 {
-  id                Int                @id @default(autoincrement())
-  username          String             @db.VarChar(50)
-  password          String             @db.VarChar(255)
-  avatar            String?            @db.VarChar(255)
-  email             String?            @db.VarChar(50)
-  phone             String             @unique @db.Char(11)
+// model User2 {
+//   id                Int                @id @default(autoincrement())
+//   username          String             @db.VarChar(50)
+//   password          String             @db.VarChar(255)
+//   avatar            String?            @db.VarChar(255)
+//   email             String?            @db.VarChar(50)
+//   phone             String             @unique @db.Char(11)
 
 
-  @@index([phone])
-  @@map("user")
-}
+//   @@index([phone])
+//   @@map("user")
+// }

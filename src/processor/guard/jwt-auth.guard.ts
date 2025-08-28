@@ -2,6 +2,8 @@ import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/com
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '@/processor/decorator/public.decorator';
+
+//   配合   JwtStrategy 使用   JwtStrategy  注入到module里
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(private reflector: Reflector) {
@@ -36,12 +38,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     // ✅ 加工 user 对象：可以扩展更多字段或做权限检查
-    user.roles = user.roles || [];
-    user.extra = { checked: true };
+    // user.roles = user.roles || [];
+    // user.extra = { checked: true };
 
     // 可以在此设置给 request 对象
-    const req = context.switchToHttp().getRequest();
-    req.currentUser = user; // 自定义字段，控制器里可通过 req.currentUser 获取
+    // const req = context.switchToHttp().getRequest();
+    // req.currentUser = user; // 自定义字段，控制器里可通过 req.currentUser 获取
 
     return user;
   }

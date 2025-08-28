@@ -1,9 +1,6 @@
-import { Controller, Post, Body, UploadedFile, UseInterceptors, Get, StreamableFile, Header } from '@nestjs/common';
+import { Controller, Get, StreamableFile, Header } from '@nestjs/common';
 import { StaticfileService } from './staticfile.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { generateMulterConfigOfImg } from './multer.config';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { AttachmentStoragePath } from './type';
+import { ApiTags } from '@nestjs/swagger';
 import { createReadStream } from 'fs';
 import { join } from 'path';
 

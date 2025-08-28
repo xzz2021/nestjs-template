@@ -30,3 +30,25 @@ export class RegisterResDto {
   // @Transform(({ obj }) => obj.name + '111')
   // newName: string;
 }
+
+export class RegisterInfo {
+  username: string;
+  password: string;
+  phone: string;
+  avatar?: string;
+  wechatId?: string;
+  code?: string;
+}
+
+export class LoginInfo {
+  phone: string;
+  password: string;
+}
+
+export class WechatCodeResponse {
+  openid: string;
+  unionid: string;
+  access_token: string;
+  refresh_token: string;
+  errcode?: number;
+}

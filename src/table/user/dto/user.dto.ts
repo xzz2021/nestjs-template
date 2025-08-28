@@ -3,7 +3,7 @@ import { IsArray, IsBoolean, IsOptional, IsString, IsInt, IsNotEmpty, Max } from
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class IQueryParams {
+export class QueryUserParams {
   @IsInt()
   @IsOptional()
   @Type(() => Number)
@@ -104,7 +104,7 @@ export class UpdateUserDto extends UserDto {
   departments?: number[];
 }
 
-export class updatePersonalInfo extends UserDto {
+export class UpdatePersonalInfo extends UserDto {
   @ApiProperty({ type: Number })
   @IsInt()
   @IsNotEmpty()

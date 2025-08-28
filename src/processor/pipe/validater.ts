@@ -1,6 +1,6 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
 import { Transform } from 'class-transformer';
-import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments, IsBoolean, IsNumber } from 'class-validator';
+import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments, IsBoolean, IsNumber, IsDate } from 'class-validator';
 
 // 校验规则  需传入给 Validate装饰器  作为形参
 @ValidatorConstraint({ name: 'IsIdNotEqualToParentId', async: false })
@@ -43,5 +43,12 @@ export const IsNumberWithTransform = () => {
   return (target: object, propertyKey: string) => {
     Transform(item => Number(item.value))(target, propertyKey);
     IsNumber()(target, propertyKey);
+  };
+};
+
+export const IsDateWithTransform = () => {
+  return (target: object, propertyKey: string) => {
+    Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))(target, propertyKey);
+    IsDate()(target, propertyKey);
   };
 };

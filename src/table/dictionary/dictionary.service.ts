@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { executePagedQuery, IQueryParams } from '@/processor/utils/queryBuilder';
 @Injectable()
 export class DictionaryService {
   constructor(private readonly pgService: PgService) {}
@@ -33,14 +32,14 @@ export class DictionaryService {
     }
   }
 
-  async findBy(searchParam: IQueryParams) {
+  findBy(searchParam: any) {
     const newSearchParam = {
       include: {
         entries: true,
       },
       ...searchParam,
     };
-    return executePagedQuery(this.pgService.dictionary, newSearchParam, '字典');
+    return [];
   }
 
   async batchRemove(idList: number[]) {
@@ -145,7 +144,7 @@ export class DictionaryService {
     }
   }
 
-  async findEntryBy(searchParam: IQueryParams) {
+  findEntryBy(searchParam: any) {
     const { dictionaryId, ...rest } = searchParam;
     // 自包含字典项 查询时 自动生成children数据
 
@@ -155,7 +154,7 @@ export class DictionaryService {
       },
       ...rest,
     };
-    return executePagedQuery(this.pgService.dictionaryEntry, newSearchParam, '字典项');
+    return [];
   }
 
   async findAll() {
