@@ -190,7 +190,7 @@ export class RoleService {
   }
 
   //  登录瞬间获取菜单表和对应的权限值字符串数组
-  async findRoleMenu(userid: number): Promise<{ list?: any[]; message: string }> {
+  async findRoleMenu(userid: number) {
     // 1. 获取角色菜单 首先判断用户id, 管理员返回所有菜单
     // 2. 其他用户 获取用户角色id数组
 

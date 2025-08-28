@@ -11,7 +11,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, any> {
       map((data: any) => ({
         ...data,
         code: 200,
-        timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '),
+        timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
       })),
     );
   }

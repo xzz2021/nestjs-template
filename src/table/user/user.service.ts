@@ -4,7 +4,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UpdatePwdType, UpdateUserPwdType } from './types';
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
-import { IQueryParams, UpdateUserDto } from './dto/user.dto';
+import { IQueryParams, UpdateUserDto, updatePersonalInfo } from './dto/user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -50,7 +50,6 @@ export class UserService {
     // 此处查询 只批量返回一般数据   查询效率会更好    详细数据应当通过单个ip去查询处理
 
     const { id, pageIndex, pageSize, status, ...rest } = searchParam;
-    console.log('xzz2021: UserService -> findByDepartmentId -> searchParam', status);
     const skip = (pageIndex - 1) * pageSize;
     const take = pageSize;
     // const newParams =
@@ -104,7 +103,6 @@ export class UserService {
       skip: Number(skip),
       take: Number(take),
     };
-    console.log('xzz2021: UserService -> findByDepartmentId -> newQueryParams', newQueryParams);
 
     const rawlist = await this.pgService.user.findMany({
       ...newQueryParams,
@@ -158,10 +156,6 @@ export class UserService {
 
   async update(updateUserinfoDto: UpdateUserDto) {
     const { id, departments, roles, ...rest } = updateUserinfoDto;
-    // 需要先检查 roles 里的所有 id 项  是否存在 于role表 不存在的剔除  ??????????
-    // const roleList = await this.pgService.role.findMany({ where: { id: { in: roles } } });
-    // const validRoles = roles.filter((id: number) => roleList.some(role => role.id === id));
-
     const res = await this.pgService.user.update({
       where: { id },
       data: {
@@ -194,57 +188,39 @@ export class UserService {
       return { code: 400, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
-  async getUserInfo(queryParams: any) {
-    try {
-      const userInfo = await this.pgService.user.findUnique({
-        where: { id: +queryParams?.id },
-        select: {
-          id: true,
-          avatar: true,
-          username: true,
-          phone: true,
-          status: true,
-          departments: { select: { id: true, department: { select: { id: true, name: true } } } },
-          roles: true,
-          createdAt: true,
-        },
-      });
-      const result = {
-        ...userInfo,
-        roleList: userInfo?.roles,
-      };
-      delete result.roles;
-      // await this.cacheManager.set(cacheKey, result);
-      return { code: 200, userInfo: result, message: '获取个人信息成功' };
-    } catch (error) {
-      console.log(' ~ xzz: UserinfoService -> getUserInfo -> error', error);
-      return {
-        code: 400,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        message: '获取个人信息失败',
-      };
-    }
+  async getUserInfo(userId: number) {
+    const userInfo = await this.pgService.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        avatar: true,
+        username: true,
+        phone: true,
+        email: true,
+        createdAt: true,
+        departments: { select: { id: true, department: { select: { id: true, name: true } } } },
+        roles: { select: { id: true, role: { select: { id: true, name: true } } } },
+      },
+    });
+    const shaped = {
+      ...userInfo,
+      roles: userInfo?.roles.map(r => r.role),
+      departments: userInfo?.departments.map(d => d.department),
+      createdAt: userInfo?.createdAt.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
+    };
+    return { data: shaped, message: '获取个人信息成功' };
   }
-  async updateInfo(updateUserinfoDto: any) {
+  async updateInfo(updateUserinfoDto: updatePersonalInfo) {
     // 用户更新自己的 一般信息
-    try {
-      const { id, ...updateData } = updateUserinfoDto;
-      const res = await this.pgService.user.update({
-        where: { id },
-        data: updateData,
-        select: {
-          birthday: true,
-          gender: true,
-          email: true,
-          id: true,
-          username: true,
-        },
-      });
-      return { message: '更新个人信息成功', data: res };
-    } catch (error) {
-      console.log(' ~ xzz: UserinfoService -> updateInfo -> error', error);
-      return { code: 400, message: error instanceof Error ? error.message : 'Unknown error' };
-    }
+    const { id, ...updateData } = updateUserinfoDto;
+    const res = await this.pgService.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+      },
+    });
+    return { message: '更新个人信息成功', id: res.id };
   }
 
   async updatePassword(updatePasswordDto: UpdatePwdType) {

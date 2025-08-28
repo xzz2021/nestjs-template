@@ -33,7 +33,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     //  一定要返回数据 否则会截断
     response.status(status).json({
       code: 400,
-      timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '),
+      timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
       path,
       message: msg || message || '未捕获异常,请检查后端代码!',
       meta,

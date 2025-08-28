@@ -46,6 +46,11 @@ export class UserDto {
   @IsNotEmpty()
   username: string;
 
+  @ApiProperty({ type: String })
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
   @ApiPropertyOptional({ type: String })
   @IsString()
   @IsOptional()
@@ -60,11 +65,6 @@ export class UserDto {
   @IsString()
   @IsOptional()
   email?: string;
-
-  @ApiProperty({ type: String })
-  @IsString()
-  @IsNotEmpty()
-  phone: string;
 
   @ApiPropertyOptional({ type: String })
   @IsString()
@@ -102,4 +102,11 @@ export class UpdateUserDto extends UserDto {
   @Type(() => Number)
   @Transform(({ value }) => (Array.isArray(value) ? [...new Set(value)] : value))
   departments?: number[];
+}
+
+export class updatePersonalInfo extends UserDto {
+  @ApiProperty({ type: Number })
+  @IsInt()
+  @IsNotEmpty()
+  id: number;
 }

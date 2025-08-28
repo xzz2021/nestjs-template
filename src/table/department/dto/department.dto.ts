@@ -134,11 +134,11 @@ export class UpsertDepartmentDto {
 }
 
 export class DepartmentListResDto {
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '))
+  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
   createdAt: Date;
 
   // @Exclude()
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '))
+  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
   updatedAt: Date;
 
   // 重要！！！ 包含多层children的tree数据  自动应用深层转换

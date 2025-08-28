@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdatePwdType, UpdateUserPwdType } from './types';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IQueryParams, UpdateUserDto } from './dto/user.dto';
+import { IQueryParams, UpdateUserDto, updatePersonalInfo } from './dto/user.dto';
 @ApiTags('用户')
 @Controller('user')
 export class UserController {
@@ -22,17 +22,14 @@ export class UserController {
 
   @Get('detailInfo')
   @ApiOperation({ summary: '获取用户详情' })
-  detailInfo(@Query() joinQueryParams: IQueryParams, @Req() req: any) {
-    // 用户获取自己的信息  校验req.user
-    if (req.user.id !== +joinQueryParams.id) {
-      return { code: 400, message: '无权限获取他人信息' };
-    }
-    return this.userService.getUserInfo(joinQueryParams);
+  detailInfo(@Req() req: any) {
+    const userId = req.user.id;
+    return this.userService.getUserInfo(+userId);
   }
 
-  @Post('updateInfo')
-  @ApiOperation({ summary: '更新用户信息' })
-  updateInfo(@Body() updateUserinfo: any, @Req() req: any) {
+  @Post('updatePersonalInfo')
+  @ApiOperation({ summary: '用户更新自己的个人信息' })
+  updatePersonalInfo(@Body() updateUserinfo: updatePersonalInfo, @Req() req: any) {
     // 用户更新自己的信息  校验req.user
     if (req.user.id !== +updateUserinfo.id) {
       return { code: 400, message: '无权限更新他人信息' };

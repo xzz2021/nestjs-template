@@ -8,7 +8,7 @@ export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Get('getRoleList')
-  @ApiOperation({ summary: '获取角色列表' })
+  @ApiOperation({ summary: '获取角色列表,用于展示及分配权限' })
   findAll(@Query() params: IQueryParams) {
     return this.roleService.getRoleList(params);
   }
@@ -29,7 +29,7 @@ export class RoleController {
   // 用户登录瞬间  根据token获取用户信息  获取菜单 以及 权限  进行 去重合并
   //  此处有严重bug  如果返回数据不规则 前端会出现404 且无法清空数据重新登录  前端要优化
   @Get('getRoleMenu')
-  @ApiOperation({ summary: '获取角色菜单' })
+  @ApiOperation({ summary: '获取当前角色菜单及权限' })
   getMenu(@Request() req: any) {
     const { id } = req?.user as { id: number; phone: string };
     return this.roleService.findRoleMenu(+id);

@@ -38,7 +38,7 @@ export class Department1Entity {
 
   // @Exclude()   //  指定时区 转换
   @Expose()
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' '))
+  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
   updatedAt: Date;
 
   @Exclude()
