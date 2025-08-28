@@ -1,11 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { executePagedQuery, IQueryParams } from '@/processor/utils/queryBuilder';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UpdatePwdType, UpdateUserPwdType } from './types';
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
-
+import { IQueryParams, UpdateUserDto } from './dto/user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -24,39 +23,101 @@ export class UserService {
       },
     });
   }
-  async findByDepartmentId(joinQueryParams: IQueryParams) {
+
+  async getUsersOfDeptAndChildren(deptId: number) {
+    const depts = await this.pgService.department.findMany({ select: { id: true, parentId: true } });
+    const children = new Set<number>([deptId]);
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const d of depts) {
+        if (d.parentId && children.has(d.parentId) && !children.has(d.id)) {
+          children.add(d.id);
+          grew = true;
+        }
+      }
+    }
+    const deptIds = Array.from(children);
+    return deptIds;
+
+    // return this.pgService.user.findMany({
+    //   where: { departments: { some: { departmentId: { in: deptIds } } }, isDeleted: false, status: true },
+    //   distinct: ['id'],
+    // });
+  }
+
+  async findByDepartmentId(searchParam: IQueryParams) {
     // 此处查询 只批量返回一般数据   查询效率会更好    详细数据应当通过单个ip去查询处理
-    const { id, ...searchParam } = joinQueryParams;
+
+    const { id, pageIndex, pageSize, status, ...rest } = searchParam;
+    console.log('xzz2021: UserService -> findByDepartmentId -> searchParam', status);
+    const skip = (pageIndex - 1) * pageSize;
+    const take = pageSize;
+    // const newParams =
+    // 遍历rest 构造 contains 对象
+    const where = Object.entries(rest).reduce(
+      (acc, [key, value]) => {
+        if (value) {
+          acc[key] = { contains: value };
+        }
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+    where.status = status;
+    let ids: number[] = [];
+    if (id > 0) {
+      ids = await this.getUsersOfDeptAndChildren(+id);
+      where.departments = { some: { departmentId: { in: ids } } };
+    }
     //  同时查询 部门 角色 数据
     const newQueryParams = {
-      where: { departmentId: +id > 1 ? +id : undefined },
-      ...searchParam,
+      where,
       select: {
         id: true,
         username: true,
         phone: true,
+        avatar: true,
         status: true,
-        createdAt: true,
-        department: {
+        departments: {
           select: {
-            id: true,
-            name: true,
+            department: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
         roles: {
           select: {
-            id: true,
-            name: true,
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
-      orderBy: {
-        createdAt: 'asc' as const,
-      },
+      // orderBy: { createdAt: 'asc' },
+      skip: Number(skip),
+      take: Number(take),
     };
+    console.log('xzz2021: UserService -> findByDepartmentId -> newQueryParams', newQueryParams);
 
-    const res = await executePagedQuery(this.pgService.user, newQueryParams, '部门用户');
-    return res || { list: [], total: 0, message: '部门用户列表为空' };
+    const rawlist = await this.pgService.user.findMany({
+      ...newQueryParams,
+      distinct: ['id'],
+    });
+
+    const list = rawlist.map(u => ({
+      ...u,
+      departments: u.departments.map(d => d.department.id),
+      roles: u.roles.map(r => r.role.id), // 把 { role: {...} } 提取成 {...}
+    }));
+
+    return { list, total: 0, message: '部门用户列表查询成功' };
   }
 
   async addUser(addUserinfoDto: any) {
@@ -95,31 +156,29 @@ export class UserService {
     }
   }
 
-  async update(updateUserinfoDto: any) {
-    const { id, departmentId, roles, phone, username } = updateUserinfoDto;
+  async update(updateUserinfoDto: UpdateUserDto) {
+    const { id, departments, roles, ...rest } = updateUserinfoDto;
     // 需要先检查 roles 里的所有 id 项  是否存在 于role表 不存在的剔除  ??????????
     // const roleList = await this.pgService.role.findMany({ where: { id: { in: roles } } });
     // const validRoles = roles.filter((id: number) => roleList.some(role => role.id === id));
 
-    try {
-      const updatedUser = await this.pgService.user.update({
-        where: { id },
-        data: {
-          username,
-          phone,
-          departments: {
-            connect: departmentId ? { id: departmentId } : undefined,
-          },
-          roles: {
-            set: roles.map((id: number) => ({ id })),
-          },
+    const res = await this.pgService.user.update({
+      where: { id },
+      data: {
+        ...rest,
+        departments: {
+          deleteMany: {}, // 清空所有旧关联
+          //  如此操作 必须确保id数组是去重的  已在dto里进行处理
+          // 当更新用户信息时部门或角色id数组不变时 依然会删除表数据后新建  后期优化方案 是 做差异对比
+          create: departments?.map(id => ({ department: { connect: { id } } })),
         },
-      });
-      return { code: 200, message: '更新用户信息成功', id: updatedUser.id };
-    } catch (error) {
-      console.log(' ~ xzz: UserinfoService -> update -> error', error);
-      return { code: 400, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
+        roles: {
+          deleteMany: {}, // 清空所有旧关联
+          create: roles?.map(id => ({ role: { connect: { id } } })),
+        },
+      },
+    });
+    return { message: '更新用户信息成功', id: res.id };
   }
 
   async delete(ids: number[]) {

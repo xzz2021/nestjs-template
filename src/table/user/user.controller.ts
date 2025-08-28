@@ -1,11 +1,8 @@
-import { Body, Controller, Get, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { Express } from 'express';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { UserService } from './user.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { multerConfigForAvatar } from '@/staticfile/multer.config';
 import { UpdatePwdType, UpdateUserPwdType } from './types';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IQueryParams } from '@/processor/utils/queryBuilder';
+import { IQueryParams, UpdateUserDto } from './dto/user.dto';
 @ApiTags('用户')
 @Controller('user')
 export class UserController {
@@ -19,8 +16,8 @@ export class UserController {
 
   @Get('listByDepartmentId')
   @ApiOperation({ summary: '获取指定部门用户' })
-  findBy(@Query() joinQueryParams: IQueryParams) {
-    return this.userService.findByDepartmentId(joinQueryParams);
+  findBy(@Query() params: IQueryParams) {
+    return this.userService.findByDepartmentId(params);
   }
 
   @Get('detailInfo')
@@ -72,8 +69,8 @@ export class UserController {
 
   @Post('update')
   @ApiOperation({ summary: '更新用户' })
-  update(@Body() updateUserinfoDto: any) {
-    return this.userService.update(updateUserinfoDto);
+  update(@Body() updateData: UpdateUserDto) {
+    return this.userService.update(updateData);
   }
 
   @Post('delete')

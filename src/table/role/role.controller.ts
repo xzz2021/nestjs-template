@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Request } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { TransformKeyPipe } from 'src/processor/pipe/validater';
 import { CreateRoleDto, IQueryParams, UpdateRoleDto } from './dto/role.dto';
 @ApiTags('角色')
 @Controller('role')
@@ -32,7 +31,8 @@ export class RoleController {
   @Get('getRoleMenu')
   @ApiOperation({ summary: '获取角色菜单' })
   getMenu(@Request() req: any) {
-    return this.roleService.findRoleMenu(+req?.user?.id);
+    const { id } = req?.user as { id: number; phone: string };
+    return this.roleService.findRoleMenu(+id);
   }
 
   @Get('getMenuByRoleId')

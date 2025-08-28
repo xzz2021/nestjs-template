@@ -1,5 +1,3 @@
-import { MenuItemsType } from '@/processor/utils/mergeMenusAndPermission';
-import { mergeMenusByRoles } from '@/processor/utils/mergeMenusAndPermission';
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
 import { CreateRoleDto, IQueryParams, UpdateRoleDto } from './dto/role.dto';
@@ -195,88 +193,115 @@ export class RoleService {
   async findRoleMenu(userid: number): Promise<{ list?: any[]; message: string }> {
     // 1. 获取角色菜单 首先判断用户id, 管理员返回所有菜单
     // 2. 其他用户 获取用户角色id数组
-    try {
-      if (+userid === 1) {
-        const list = await this.getRoleMenuWithPermissionOfAdmin();
-        return { list, message: '获取管理员菜单成功' };
-      }
-      //  其他用户 先查询角色信息
-      const user = await this.pgService.user.findUnique({
-        where: { id: userid },
-        select: {
-          roles: { select: { id: true } },
-        },
-      });
 
-      const roleIds = user?.roles as Array<{ id: number }>;
-      console.log('🚀 ~ RoleService ~ findRoleMenu ~ roleIds:', roleIds);
-      if (!roleIds) {
-        return { list: [], message: '请联系管理员分配角色' };
-      }
-      // const rolesMenus = await Promise.all(roleIds.map(item => this.getRoleMenuWithPermission(+item.id)));
-      const rolesMenus = [];
-      const menuWithPermission = mergeMenusByRoles(rolesMenus.flat() as MenuItemsType[]);
-      if (menuWithPermission?.length === 0) {
-        return { list: [], message: '请联系管理员分配角色菜单' };
-      }
-
-      // 还需要判断   遍历整个数组  如果某个菜单项的父级不存在则删除当前项
-      // 1. 收集所有 id
-      const ids = new Set(menuWithPermission.map(m => m.id));
-
-      // 2. 过滤：只保留 parentId === null 或者 parentId 在 ids 里
-      const filtered = menuWithPermission.filter((m: any) => m.parentId === null || ids.has(m.parentId as number));
-      return { list: filtered, message: '菜单成功' };
-    } catch (error) {
-      return { list: [], message: error.message };
+    if (userid === 1) {
+      const list = await this.getRoleMenuWithPermissionOfAdmin();
+      return { list, message: '获取管理员菜单成功' };
     }
+    //  其他用户 先查询角色信息
+    const user = await this.pgService.user.findUnique({
+      where: { id: userid },
+      select: {
+        roles: { select: { id: true } },
+      },
+    });
+
+    const list = await this.getUserMenusWithMetaAndPermCodes(userid);
+    if (list.length === 0) {
+      return { list, message: '请联系管理员分配角色菜单' };
+    }
+
+    return { list, message: '获取用户菜单成功' };
   }
 
   async getRoleMenuWithPermissionOfAdmin() {
-    try {
-      const roleWithMenusAndPermissions = await this.pgService.menu.findMany({
-        where: { status: true },
-        select: {
-          id: true,
-          name: true,
-          meta: true,
-          path: true,
-          component: true,
-          redirect: true,
-          type: true,
-          status: true,
-          sort: true,
-          parentId: true,
-          permissionList: {
-            select: {
-              code: true,
-            },
+    const roleWithMenusAndPermissions = await this.pgService.menu.findMany({
+      where: { status: true },
+      select: {
+        id: true,
+        name: true,
+        meta: true,
+        path: true,
+        component: true,
+        redirect: true,
+        type: true,
+        status: true,
+        sort: true,
+        parentId: true,
+        permissionList: {
+          select: {
+            code: true,
           },
         },
-      });
-      if (!roleWithMenusAndPermissions) {
-        return [];
-      }
-      if (roleWithMenusAndPermissions.length === 0) {
-        return [];
-      }
-      // 整理权限名数组到每个菜单的 meta.permission 中
-      const result = roleWithMenusAndPermissions.map(menu => {
-        const { meta, permissionList, ...rest } = menu;
-        const permissionNames = permissionList.map(p => p.code);
-
-        return {
-          ...rest,
-          meta: {
-            ...((meta as object) || {}),
-            permissions: permissionNames,
-          },
-        };
-      });
-      return result;
-    } catch {
+      },
+    });
+    if (!roleWithMenusAndPermissions || roleWithMenusAndPermissions.length === 0) {
       return [];
     }
+    // 整理权限名数组到每个菜单的 meta.permission 中
+    const result = roleWithMenusAndPermissions.map(menu => {
+      const { meta, permissionList, ...rest } = menu;
+      const permissionNames = permissionList.map(p => p.code);
+
+      return {
+        ...rest,
+        meta: {
+          ...((meta as object) || {}),
+          permissions: permissionNames,
+        },
+      };
+    });
+    return result;
+  }
+
+  async getUserMenusWithMetaAndPermCodes(userId: number) {
+    // 1) 用户所属角色
+    const userRoles = await this.pgService.userRole.findMany({
+      where: { userId },
+      select: { roleId: true },
+    });
+    const roleIds = userRoles.map(r => r.roleId);
+    if (roleIds.length === 0) return [];
+
+    // 2) 这些角色拥有的所有权限 ID
+    const rolePerms = await this.pgService.rolePermission.findMany({
+      where: { roleId: { in: roleIds } },
+      select: { permissionId: true },
+    });
+    const ownedPermissionIds = rolePerms.map(rp => rp.permissionId);
+    // 如果没有任何权限，也仍然要把菜单查出来（有些系统菜单可见但无动作）
+    // 可按需早退：if (ownedPermissionIds.length === 0) …
+
+    // 3) 这些角色拥有的菜单（用 Menu.roles 反查，天然“去重”）
+    const menus = await this.pgService.menu.findMany({
+      where: {
+        roles: { some: { roleId: { in: roleIds } } },
+        status: true, // 只取启用的菜单（按需）
+        // isDeleted: false, // 如果你有软删字段，可加在这
+      },
+      include: {
+        meta: true,
+        // 只取“该用户通过其角色实际拥有的”且“属于此菜单”的权限
+        permissionList: {
+          where: ownedPermissionIds.length ? { id: { in: ownedPermissionIds } } : undefined,
+          select: { id: true, code: true, menuId: true },
+        },
+        // 如需树形可一起拿：children: true, parent: true
+      },
+      orderBy: { sort: 'asc' }, // 按你的排序字段
+    });
+
+    // 4) 把 permission.code 注入到对应菜单的 meta 里
+    const shaped = menus.map(m => {
+      const codes = m.permissionList.map(p => p.code);
+      const meta = m.meta ? { ...m.meta, permissionCodes: codes } : ({ permissionCodes: codes } as any); // 没有 meta 时给个最小壳；你也可以选择保持 null
+
+      // 若前端不需要原始 permissionList，可移除以减小 payload
+      const { permissionList, ...rest } = m;
+      return { ...rest, meta };
+    });
+
+    return shaped;
   }
 
   async update(updateRoleDto: UpdateRoleDto) {
@@ -323,32 +348,5 @@ export class RoleService {
       select: { id: true },
     });
     return { id: res.id, message: '删除角色成功' };
-  }
-
-  async remove00(id: number) {
-    try {
-      // 删除角色 同时删除角色关联的菜单和权限
-      const res = await this.pgService.$transaction([
-        // 清空菜单和权限的关联
-        this.pgService.role.update({
-          where: { id },
-          data: {
-            menus: { set: [] },
-            permissions: { set: [] },
-          },
-        }),
-        // 删除角色
-        this.pgService.role.delete({
-          where: { id },
-        }),
-      ]);
-      if (res) {
-        return { code: 200, message: '删除角色成功' };
-      }
-      return { code: 400, message: '删除角色失败' };
-    } catch (error) {
-      console.log('xzz2021: remove -> error', error.message);
-      return { code: 400, message: error.message };
-    }
   }
 }
