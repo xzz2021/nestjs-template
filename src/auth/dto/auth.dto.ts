@@ -40,8 +40,13 @@ export class RegisterInfo {
   code?: string;
 }
 
-export class LoginInfo {
+export class LoginInfoDto {
+  @IsString()
+  @IsNotEmpty()
   phone: string;
+
+  @IsString()
+  @IsNotEmpty()
   password: string;
 }
 

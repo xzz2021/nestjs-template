@@ -32,7 +32,7 @@ export class DepartmentService {
       // 3) 回填 path
       return tx.department.update({ where: { id: tag.id }, data: { path }, select: { id: true } });
     });
-    return { data: { id: res.id }, message: '添加部门成功' };
+    return { id: res.id, message: '添加部门成功' };
   }
 
   async findAll() {
@@ -79,7 +79,7 @@ export class DepartmentService {
       path = `${parent.path}/${id}`;
     }
     const res = await this.pgService.department.update({ where: { id }, data: { ...rest, parentId, path }, select: { id: true } });
-    return { data: { id: res.id }, message: '更新部门成功' };
+    return { id: res.id, message: '更新部门成功' };
   }
 
   async delete(id: number) {

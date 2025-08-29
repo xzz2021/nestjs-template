@@ -1,18 +1,18 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdatePwdType, UpdateUserPwdType } from './types';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo } from './dto/user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerConfigForAvatar } from '@/staticfile/multer.config';
+import { ConfigService } from '@nestjs/config';
 @ApiTags('用户')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
-
-  @Get()
-  @ApiOperation({ summary: '获取所有用户' })
-  findAll() {
-    return this.userService.findAll();
-  }
+  constructor(
+    private readonly userService: UserService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get('listByDepartmentId')
   @ApiOperation({ summary: '获取指定部门用户' })
@@ -83,6 +83,16 @@ export class UserController {
   @ApiOperation({ summary: '获取所有用户' })
   getAll() {
     return this.userService.getAll();
+  }
+
+  @Post('upload/avatar')
+  @ApiOperation({ summary: '上传用户头像' })
+  @UseInterceptors(FileInterceptor('file', multerConfigForAvatar))
+  uploadFile(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
+    const userId = (req.user.id as number) || 0;
+    const staticUrl = this.configService.get('STATIC_URL');
+    const avatarPath = staticUrl + '/static/avatar/' + req.user.phone + '/' + file.filename;
+    return this.userService.updateAvatar(avatarPath, userId);
   }
 
   @Post('updatePwd')

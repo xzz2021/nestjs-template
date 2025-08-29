@@ -1,16 +1,16 @@
-import { Controller, Get, StreamableFile, Header } from '@nestjs/common';
+import { Controller, Get, StreamableFile, Header, UploadedFile, UseInterceptors, Post } from '@nestjs/common';
 import { StaticfileService } from './staticfile.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { createReadStream } from 'fs';
 import { join } from 'path';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { generateMulterConfigOfImg, AttachmentStoragePath } from './multer.config';
 
 @ApiTags('静态文件')
 @Controller('file')
 export class StaticfileController {
   constructor(private readonly staticfileService: StaticfileService) {}
-
   //  流文件
-
   @Get('steamfile')
   //  形式为 直接下载
   getFile2(): StreamableFile {
@@ -29,5 +29,12 @@ export class StaticfileController {
     const file = createReadStream(join(process.cwd(), 'package.json'));
     // 设置文件名
     return new StreamableFile(file);
+  }
+
+  @Post('material/img')
+  @ApiOperation({ summary: '上传材料相应图片' })
+  @UseInterceptors(FileInterceptor('file', generateMulterConfigOfImg(AttachmentStoragePath.MATERIAL_IMG)))
+  uploadMaterialImg(@UploadedFile() file: Express.Multer.File) {
+    return this.staticfileService.uploadMaterialImg(file.filename);
   }
 }

@@ -1,6 +1,6 @@
 import { Controller, Post, Req, Body, Headers, HttpCode } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { UpsertPayPasswordDto, VerifyPayPasswordDto, GetWxQrcodeDto, GetAlipayQrcodeDto, WxPayBody, AlipayNotifyDto } from './dto/payment.dto';
+import { GetWxQrcodeDto, GetAlipayQrcodeDto, WxPayBody, AlipayNotifyDto } from './dto/payment.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { Public } from '@/processor/decorator/public.decorator';
 @Controller('payment')

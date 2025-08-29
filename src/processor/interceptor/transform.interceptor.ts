@@ -8,14 +8,15 @@ import { map } from 'rxjs/operators';
 export class TransformInterceptor<T> implements NestInterceptor<T, any> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      map((data: any) => ({
-        // const { list, message, ...rest } = data;
-        // list = transformList(list);
-
-        ...data,
-        code: 200,
-        timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
-      })),
+      map((data: any) => {
+        const { message, ...rest } = data;
+        return {
+          message,
+          data: rest, // 返回数据  一律用  data 包裹
+          code: 200,
+          timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
+        };
+      }),
     );
   }
 }

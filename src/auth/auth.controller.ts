@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginInfo, RegisterInfo } from './dto/auth.dto';
+import { LoginInfoDto, RegisterInfo } from './dto/auth.dto';
 import { Public } from '@/processor/decorator/public.decorator';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 // import { JwtRefreshAuthGuard } from '@/processor/guard/jwt-refresh.guard';
@@ -22,7 +22,7 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: '用户登录' })
-  login(@Body() loginInfo: LoginInfo) {
+  login(@Body() loginInfo: LoginInfoDto) {
     return this.authService.login(loginInfo);
   }
 

@@ -68,8 +68,8 @@ export const multerConfigForAvatar = {
       // console.log('✨ 🍰 ✨ xzz2021: file', file);
       // 获取前端传的完整 filename，例如：'avatar/2025/03/user123.jpg'
 
-      // 根目录（打包后的 static 目录）
-      const staticRoot = join(__dirname, '..', 'static/avatar');
+      // 根目录（打包后的 static 目录）  根目录
+      const staticRoot = join('static/avatar');
       // 拼接完整目录路径
       if (req?.user && 'phone' in req.user) {
         const targetDir = join(staticRoot, req.user.phone as string);
@@ -94,3 +94,9 @@ export const multerConfigForAvatar = {
     fileSize: 5 * 1024 * 1024, // 5MB
   },
 };
+
+export enum AttachmentStoragePath {
+  MATERIAL_IMG = 'static/material/img',
+  CART_IMG = 'static/cart/img',
+  CART_ATTACHMENT = 'static/cart/attachment',
+}

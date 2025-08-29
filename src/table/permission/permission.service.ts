@@ -17,7 +17,7 @@ export class PermissionService {
       select: { id: true },
     };
     const res = await this.pgService.permission.create(createStatement);
-    return { data: { id: res.id }, message: '创建权限成功' };
+    return { id: res.id, message: '创建权限成功' };
   }
 
   async batchCreate(obj: BatchPermissionDto) {

@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PgService } from '@/prisma/pg.service';
-import { LoginInfo, RegisterInfo } from './dto/auth.dto';
+import { LoginInfoDto, RegisterInfo } from './dto/auth.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { resultDataType, UndiciHttpService } from '@/utils/http/undici.http.service';
@@ -45,10 +45,10 @@ export class AuthService {
       },
     });
     // await this.cacheManager.del('register_' + phone);  // 删除缓存的 验证码
-    return { message: phone + '注册成功', data: res };
+    return { message: phone + '注册成功', res };
   }
 
-  async login(loginInfo: LoginInfo) {
+  async login(loginInfo: LoginInfoDto) {
     const user = await this.pgService.user.findUnique({
       where: { phone: loginInfo.phone },
       select: {
@@ -57,6 +57,10 @@ export class AuthService {
         phone: true,
         password: true,
         roles: true,
+        avatar: true,
+        email: true,
+        birthday: true,
+        gender: true,
       },
     });
 
@@ -76,10 +80,8 @@ export class AuthService {
     }
     return {
       message: user.username + '登录成功',
-      data: {
-        userinfo: result,
-        access_token: this.jwtService.sign(ssoEnabled ? { ...result, tokenVersion } : result),
-      },
+      userinfo: result,
+      access_token: this.jwtService.sign(ssoEnabled ? { ...result, tokenVersion } : result),
     };
   }
 

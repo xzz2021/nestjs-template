@@ -12,10 +12,6 @@ export class UserService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  findAll() {
-    return this.pgService.user.findMany();
-  }
-
   findOne(phone: string) {
     return this.pgService.user.findUnique({
       where: {
@@ -208,7 +204,7 @@ export class UserService {
       departments: userInfo?.departments.map(d => d.department),
       createdAt: userInfo?.createdAt.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
     };
-    return { data: shaped, message: '获取个人信息成功' };
+    return { userinfo: shaped, message: '获取个人信息成功' };
   }
   async updateInfo(updateUserinfoDto: UpdatePersonalInfo) {
     // 用户更新自己的 一般信息
@@ -297,5 +293,10 @@ export class UserService {
     const hashPassword = await hashPayPassword(password);
     const res = await this.pgService.user.update({ where: { phone }, data: { password: hashPassword } });
     return { code: 200, message: '更新密码成功', id: res.id };
+  }
+
+  async updateAvatar(avatarPath: string, userId: number) {
+    await this.pgService.user.update({ where: { id: userId }, data: { avatar: avatarPath } });
+    return { message: '更新头像成功', filePath: avatarPath };
   }
 }
