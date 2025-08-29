@@ -1,4 +1,4 @@
-import { batchCreatePermissionList } from '@/table/dictionary/utils';
+import { batchCreatePermissionList } from '@/table/permission/dto/utils';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
 import { CreatePermissionDto, UpdatePermissionDto, BatchPermissionDto } from './dto/permission.dto';

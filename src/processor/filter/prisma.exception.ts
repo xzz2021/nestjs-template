@@ -8,7 +8,7 @@ export const checkPrismaError = (exception: any) => {
       case 'P2002':
         return { msg: '数据已存在或复合主键冲突', meta: exception.message };
       case 'P2025':
-        return { msg: '记录未找到', meta: exception.message };
+        return { msg: '当前id记录未找到', meta: exception.message };
       case 'P2003':
         return { msg: '外键约束失败', meta: exception.message };
       case 'P2014':
@@ -36,7 +36,7 @@ export const checkPrismaError = (exception: any) => {
       case 'P2002':
         return { msg: '数据已存在或复合主键冲突', meta: exception.message || exception.toString() };
       case 'P2025':
-        return { msg: '记录未找到', meta: exception.message || exception.toString() };
+        return { msg: '当前id记录未找到', meta: exception.message || exception.toString() };
       case 'P2003':
         return { msg: '外键约束失败', meta: exception.message || exception.toString() };
       case 'P2014':

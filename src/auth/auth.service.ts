@@ -290,7 +290,7 @@ export class AuthService {
       avatar: data.avatar,
       wechatId: data.unionid,
     });
-    if (res?.data?.id) {
+    if (res?.res?.id) {
       const res2 = await this.login({ phone: data.phone, password: data.password });
       return res2;
     } else {
