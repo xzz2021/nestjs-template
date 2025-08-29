@@ -4,7 +4,7 @@ import { CreateDepartmentDto, UpdateDepartmentDto } from './dto/department.dto';
 import { Serialize } from '@/processor/decorator/serialize';
 import { CheckPolicies } from '@/processor/decorator/casl.decorator';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { DepartmentListResDto } from './dto/department.dto';
+import { DepartmentListResDto, DepartmentSeedDto } from './dto/department.dto';
 @ApiTags('部门')
 @Controller('department')
 export class DepartmentController {
@@ -37,9 +37,9 @@ export class DepartmentController {
     return this.departmentService.delete(body.id);
   }
 
-  // @Post('admin/batchUpsert')
-  // @ApiOperation({ summary: '批量插入/更新部门' })
-  // batchUpsert(@Body() data: UpsertDepartmentDto[]) {
-  //   return this.departmentService.batchUpsert(data);
-  // }
+  @Post('generateDepartmentSeed')
+  @ApiOperation({ summary: '生成部门种子数据' })
+  generateDepartmentSeed(@Body() data: DepartmentSeedDto[]) {
+    return this.departmentService.generateDepartmentSeed(data);
+  }
 }

@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { CreateRoleDto, QueryRoleParams, UpdateRoleDto } from './dto/role.dto';
+import { CreateRoleDto, QueryRoleParams, RoleSeedDto, UpdateRoleDto } from './dto/role.dto';
 
 @Injectable()
 export class RoleService {
@@ -117,6 +117,7 @@ export class RoleService {
         name: true,
         code: true,
         status: true,
+        remark: true,
         // 角色 -> 菜单（显式多对多：RoleMenu）
         menus: {
           select: {
@@ -294,7 +295,7 @@ export class RoleService {
     // 4) 把 permission.code 注入到对应菜单的 meta 里
     const shaped = menus.map(m => {
       const codes = m.permissionList.map(p => p.code);
-      const meta = m.meta ? { ...m.meta, permissionCodes: codes } : ({ permissionCodes: codes } as any); // 没有 meta 时给个最小壳；你也可以选择保持 null
+      const meta = m.meta ? { ...m.meta, permissions: codes } : ({ permissions: codes } as any); // 没有 meta 时给个最小壳；你也可以选择保持 null
 
       // 若前端不需要原始 permissionList，可移除以减小 payload
       const { permissionList, ...rest } = m;
@@ -348,5 +349,20 @@ export class RoleService {
       select: { id: true },
     });
     return { id: res.id, message: '删除角色成功' };
+  }
+
+  async generateRoleSeed(data: RoleSeedDto[]) {
+    // 创建或更新  如果当前项已存在相同的name 和code  则只更新当前项
+
+    const res = await this.pgService.$transaction(async tx => {
+      for (const role of data) {
+        await tx.role.upsert({
+          where: { code: role.code },
+          update: { ...role, id: undefined },
+          create: { ...role, id: undefined },
+        });
+      }
+    });
+    return { message: '生成角色种子数据成功', success: true };
   }
 }

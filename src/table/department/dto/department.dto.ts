@@ -24,28 +24,25 @@ export class DepartmentDto {
   @MaxLength(200, { message: '部门备注不能超过200个字符' })
   remark?: string;
 
-  @ApiProperty({ type: Boolean })
-  isDeleted: boolean;
-
   @ApiPropertyOptional({ type: Number })
   @IsOptional()
   parentId?: number;
 
-  @ApiProperty({ type: Date })
-  createdAt: Date;
+  // @ApiProperty({ type: Date })
+  // createdAt: Date;
 
-  @ApiProperty({ type: Date })
-  updatedAt: Date;
+  // @ApiProperty({ type: Date })
+  // updatedAt: Date;
 
-  @ApiPropertyOptional({ type: Date })
-  deletedAt?: Date;
+  // @ApiPropertyOptional({ type: Date })
+  // deletedAt?: Date;
 
-  @ApiPropertyOptional({ type: () => DepartmentDto, description: '父部门ID' })
-  @IsOptional()
-  parent?: DepartmentDto;
+  // @ApiPropertyOptional({ type: () => DepartmentDto, description: '父部门ID' })
+  // @IsOptional()
+  // parent?: DepartmentDto;
 
-  @ApiProperty({ isArray: true, type: () => DepartmentDto })
-  children: DepartmentDto[];
+  // @ApiProperty({ isArray: true, type: () => DepartmentDto })
+  // children: DepartmentDto[];
 }
 
 // export class UpdateDepartmentDto {
@@ -90,13 +87,8 @@ export class DepartmentDto {
 //   // @Validate(IsIdNotEqualToParentIdConstraint)
 //   // checkIdsNotEqual: boolean; // 这个字段是为了触发自定义验证器，可以省略其值
 // }
-//  移除指定键
-export class CreateDepartmentDto000 extends OmitType(DepartmentDto, ['id', 'createdAt', 'updatedAt', 'deletedAt']) {}
-
 export class CreateDepartmentDto extends PickType(DepartmentDto, ['name', 'status', 'remark', 'parentId'] as const) {}
 
-// 部分更新
-export class UpdateDepartmentDto00 extends PartialType(DepartmentDto) {}
 export class UpdateDepartmentDto extends PickType(DepartmentDto, ['id', 'name', 'status', 'remark', 'parentId'] as const) {
   // 限制id 不能等于 parentId
   @Validate(IsIdNotEqualToParentIdConstraint)
@@ -152,6 +144,15 @@ export class DepartmentListResDto {
     return value;
   })
   children: DepartmentListResDto[];
+}
+
+export class DepartmentSeedDto extends OmitType(DepartmentDto, ['id', 'parentId'] as const) {
+  @ApiProperty({ isArray: true, type: () => DepartmentSeedDto })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => DepartmentDto)
+  @IsOptional()
+  children: DepartmentSeedDto[];
 }
 
 /*

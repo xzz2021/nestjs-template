@@ -343,5 +343,6 @@ model DictionaryEntry {
   dictionary   Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
 
   @@index([code])
+  @@unique([code, dictionaryId])
   @@map("dictionary_entry")
 }

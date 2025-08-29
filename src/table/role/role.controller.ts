@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Request } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { CreateRoleDto, QueryRoleParams, UpdateRoleDto } from './dto/role.dto';
+import { CreateRoleDto, QueryRoleParams, RoleSeedDto, UpdateRoleDto } from './dto/role.dto';
 @ApiTags('角色')
 @Controller('role')
 export class RoleController {
@@ -46,5 +46,11 @@ export class RoleController {
   @ApiOperation({ summary: '删除角色' })
   remove(@Param('id') id: string) {
     return this.roleService.remove(+id);
+  }
+
+  @Post('generateRoleSeed')
+  @ApiOperation({ summary: '生成角色种子数据' })
+  generateDictionarySeed(@Body() data: RoleSeedDto[]) {
+    return this.roleService.generateRoleSeed(data);
   }
 }

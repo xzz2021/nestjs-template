@@ -3,7 +3,7 @@ import { DictionaryService } from './dictionary.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Public } from '@/processor/decorator/public.decorator';
 import { DeleteEntryDto, UpsertEntryDto } from './dto/entry.dto';
-import { DeleteDictionaryDto, UpsertDictionaryDto } from './dto/dictionary.dto';
+import { DeleteDictionaryDto, DictionarySeedArrayDto, DictionarySeedDto, UpsertDictionaryDto } from './dto/dictionary.dto';
 
 // 此模块可以作为范本
 @ApiTags('字典')
@@ -40,5 +40,12 @@ export class DictionaryController {
   @ApiOperation({ summary: '删除字典项' })
   deleteEntry(@Body() obj: DeleteEntryDto) {
     return this.dictionaryService.batchRemoveEntry(obj.ids);
+  }
+
+  @Post('generateDictionarySeed')
+  @ApiOperation({ summary: '生成字典种子数据' })
+  //  如果是数组  一定要用一个类包裹  否则不会进行校验过滤
+  generateDictionarySeed(@Body() data: DictionarySeedArrayDto) {
+    return this.dictionaryService.generateDictionarySeed(data);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { UpsertDictionaryDto } from './dto/dictionary.dto';
+import { DictionarySeedArrayDto, DictionarySeedDto, UpsertDictionaryDto } from './dto/dictionary.dto';
 import { UpsertEntryDto } from './dto/entry.dto';
 @Injectable()
 export class DictionaryService {
@@ -112,5 +112,38 @@ export class DictionaryService {
       console.log('🚀 ~ xzz: dictionaryService -> getAll -> error', error);
       return { code: 400, error: error.message };
     }
+  }
+
+  async generateDictionarySeed(data: DictionarySeedArrayDto) {
+    await this.pgService.$transaction(async tx => {
+      for (const dict of data.data) {
+        const { code, entries, ...rest } = dict;
+        const dictionary = await tx.dictionary.upsert({
+          where: { code: dict.code },
+          create: {
+            code: dict.code,
+            ...rest,
+          },
+          update: {
+            ...rest,
+          },
+        });
+        for (const e of dict.entries ?? []) {
+          await tx.dictionaryEntry.upsert({
+            where: { code_dictionaryId: { code: e.code, dictionaryId: dictionary.id } },
+            create: {
+              ...e,
+              dictionary: { connect: { id: dictionary.id } },
+            },
+            update: {
+              ...e,
+              dictionary: { connect: { id: dictionary.id } },
+            },
+          });
+        }
+      }
+    });
+
+    return { message: '新增字典成功', success: true };
   }
 }

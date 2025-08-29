@@ -1,7 +1,7 @@
 // dto/create-role.dto.ts
 import { IsArray, ArrayNotEmpty, IsBoolean, IsOptional, IsString, MaxLength, IsInt, IsNotEmpty } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 
 export class CreateRoleDto {
   @IsString()
@@ -69,3 +69,5 @@ export class UpdateRoleDto extends CreateRoleDto {
   @IsNotEmpty()
   id: number;
 }
+
+export class RoleSeedDto extends OmitType(CreateRoleDto, ['menuIds', 'permissionIds'] as const) {}

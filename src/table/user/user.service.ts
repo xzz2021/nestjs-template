@@ -74,6 +74,7 @@ export class UserService {
         phone: true,
         avatar: true,
         status: true,
+        createdAt: true,
         departments: {
           select: {
             department: {
@@ -107,6 +108,7 @@ export class UserService {
 
     const list = rawlist.map(u => ({
       ...u,
+      createdAt: u.createdAt.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
       departments: u.departments.map(d => d.department.id),
       roles: u.roles.map(r => r.role.id), // 把 { role: {...} } 提取成 {...}
     }));
