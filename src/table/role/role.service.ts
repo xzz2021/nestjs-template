@@ -8,15 +8,9 @@ export class RoleService {
 
   async createRoleWithMenusAndPermissions(data: CreateRoleDto) {
     const { menuIds, permissionIds, code, ...rest } = data;
-
     // 幂等/查重
     const exists = await this.pgService.role.findUnique({ where: { code } });
     if (exists) throw new ConflictException(`角色编码已存在：${code}`);
-
-    // 去重，避免 @@unique 冲突 + 降低 createMany 的冲突可能
-    // const menuIds2 = Array.from(new Set(menuIds));
-    // const permissionIds2 = Array.from(new Set(permissionIds ?? []));
-
     let validMenuIds: number[] = [];
     const menus = await this.pgService.menu.findMany({
       where: { id: { in: menuIds } },
@@ -148,6 +142,7 @@ export class RoleService {
           },
         },
       },
+      orderBy: { id: 'asc' },
     });
     const list = roles.map(role => {
       // 建一个 Map<menuId, Permission[]>
@@ -173,21 +168,12 @@ export class RoleService {
       });
 
       return {
-        id: role.id,
-        name: role.name,
-        code: role.code,
-        status: role.status,
+        ...role,
         menus,
       };
     });
     const total = await this.pgService.role.count();
     return { list, total, message: '获取角色列表成功' };
-  }
-
-  getMenuByRoleId(roleId: number) {
-    // 既包含包含菜单也包含权限列表和meta内真实权限
-    // const res = await this.getRoleMenuWithPermission(roleId);
-    return { code: 200, list: [], message: '获取菜单及对应权限成功' };
   }
 
   //  登录瞬间获取菜单表和对应的权限值字符串数组

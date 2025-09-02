@@ -2,9 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { UpdatePwdType, UpdateUserPwdType } from './types';
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
-import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo } from './dto/user.dto';
+import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo, UpdatePwdDto, AdminUpdatePwdDto, CreateUserDto } from './dto/user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -61,7 +60,7 @@ export class UserService {
     );
     where.status = status;
     let ids: number[] = [];
-    if (id > 0) {
+    if (id && id > 0) {
       ids = await this.getUsersOfDeptAndChildren(+id);
       where.departments = { some: { departmentId: { in: ids } } };
     }
@@ -113,43 +112,38 @@ export class UserService {
       roles: u.roles.map(r => r.role.id), // 把 { role: {...} } 提取成 {...}
     }));
 
-    return { list, total: 0, message: '部门用户列表查询成功' };
+    const total = await this.pgService.user.count({ where });
+
+    return { list, total, message: '部门用户列表查询成功' };
   }
 
-  async addUser(addUserinfoDto: any) {
-    const { departmentId, phone, username } = addUserinfoDto;
-    try {
-      // 1. 查询手机号 是否存在,  存在抛出异常提示
-      const isExit = await this.pgService.user.findFirst({ where: { phone } });
-      if (isExit?.id && phone) {
-        // return { code: 400, message: '手机号已存在,无法添加!' };
-        throw new Error('手机号已存在,无法添加!');
-      }
-      //  2.新增用户  默认密码123456
-      const password = await hashPayPassword('123456');
-      return await this.pgService.$transaction(async tx => {
-        const userSave = await tx.user.create({
-          data: {
-            username,
-            password,
-            phone,
-            departments: {
-              connect: {
-                id: departmentId,
-              },
-            },
-          },
-          include: {
-            roles: true,
-          },
-        });
-
-        return { code: 200, message: '新增用户成功', id: userSave.id };
-      });
-    } catch (error) {
-      console.log(' ~ xzz: UserinfoService -> addUser -> error', error);
-      return { code: 400, error: error instanceof Error ? error.message : 'Unknown error' };
+  async addUser(addUserinfoDto: CreateUserDto) {
+    const { departments, roles, phone, username } = addUserinfoDto;
+    // 1. 查询手机号 是否存在,  存在抛出异常提示
+    const isExit = await this.pgService.user.findFirst({ where: { phone } });
+    if (isExit?.id && phone) {
+      // return { code: 400, message: '手机号已存在,无法添加!' };
+      throw new Error('手机号已存在,无法添加!');
     }
+    //  2.新增用户  默认密码123456
+    const password = await hashPayPassword('123456');
+    return await this.pgService.$transaction(async tx => {
+      const userSave = await tx.user.create({
+        data: {
+          username,
+          password,
+          phone,
+          departments: {
+            create: departments?.map(id => ({ department: { connect: { id } } })),
+          },
+          roles: {
+            create: roles?.map(id => ({ role: { connect: { id } } })),
+          },
+        },
+      });
+
+      return { code: 200, message: '新增用户成功', id: userSave.id };
+    });
   }
 
   async update(updateUserinfoDto: UpdateUserDto) {
@@ -173,19 +167,18 @@ export class UserService {
     return { message: '更新用户信息成功', id: res.id };
   }
 
-  async delete(ids: number[]) {
-    try {
-      //  使用事务 删除用户 同时删除用户角色
-      const res = await this.pgService.$transaction([
-        ...ids.map(id => this.pgService.user.update({ where: { id }, data: { roles: { set: [] } } })),
-        ...ids.map(id => this.pgService.user.delete({ where: { id } })),
+  async batchDeleteUser(ids: number[]) {
+    //  使用事务 删除用户 同时删除用户角色及部门关联数据
+    const res = await this.pgService.$transaction(tx => {
+      return Promise.all([
+        ...ids.map(id => tx.userRole.deleteMany({ where: { userId: id } })),
+        ...ids.map(id => tx.user.delete({ where: { id } })),
+        ...ids.map(id => tx.userDepartment.deleteMany({ where: { userId: id } })),
       ]);
-      return { code: 200, message: '删除用户成功', count: res.length };
-    } catch (error) {
-      console.log(' ~ xzz: UserinfoService -> delete -> error', error);
-      return { code: 400, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
+    });
+    return { message: '删除用户成功', count: res.length };
   }
+
   async getUserInfo(userId: number) {
     const userInfo = await this.pgService.user.findUnique({
       where: { id: userId },
@@ -221,7 +214,7 @@ export class UserService {
     return { message: '更新个人信息成功', id: res.id };
   }
 
-  async updatePassword(updatePasswordDto: UpdatePwdType) {
+  async updatePassword(updatePasswordDto: UpdatePwdDto) {
     // 用户更新自己的密码
     try {
       const { id, password, newPassword } = updatePasswordDto;
@@ -240,30 +233,15 @@ export class UserService {
     }
   }
 
-  async getAll() {
-    const list = await this.pgService.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        phone: true,
-      },
-    });
-    return { code: 200, list, message: '获取所有用户成功' };
-  }
-
-  async resetPassword({ id, password, operateId }: { id: number; password: string; operateId: number }) {
-    console.log('xzz2021: UserService -> resetPassword -> operateId', operateId);
+  async resetPassword({ id, password, operateId }: AdminUpdatePwdDto & { operateId: number }) {
+    // console.log('xzz2021: UserService -> resetPassword -> operateId', operateId);
     // 此处需要自定义 校验操作人是否 有执行权限
     // const isAdmin = await this.pgService.user.findUnique({ where: { id: operateId } });
     // if (!isAdmin) return { code: 400, message: '没有权限' };
-    try {
-      const hashPassword = await hashPayPassword(password);
-      const res = await this.pgService.user.update({ where: { id }, data: { password: hashPassword } });
-      return { code: 200, message: '重置用户密码成功', id: res.id };
-    } catch (error: any) {
-      console.log(' ~ xzz: UserinfoService -> resetPassword -> error', error);
-      return { code: 400, message: error instanceof Error ? error.message : 'Unknown error' };
-    }
+
+    const hashPassword = await hashPayPassword(password);
+    const res = await this.pgService.user.update({ where: { id }, data: { password: hashPassword } });
+    return { message: '重置用户密码成功', id: res.id };
   }
 
   //  校验短信 或邮箱 验证码
@@ -282,19 +260,6 @@ export class UserService {
       console.log('🚀 ~ AuthService ~ checkSmsCode ~ error:', error);
       return { status: false, code: 400, message: '验证码校验错误, 请稍候重试!' };
     }
-  }
-
-  async updateUserPassword(updatePasswordDto: UpdateUserPwdType, phone: string) {
-    // 用户更新自己的密码
-    const { password, code } = updatePasswordDto;
-    const smskey = 'loginPassword_' + phone;
-    const isValidate = await this.checkSmsCode(smskey, code);
-    if (!isValidate.status) {
-      return isValidate;
-    }
-    const hashPassword = await hashPayPassword(password);
-    const res = await this.pgService.user.update({ where: { phone }, data: { password: hashPassword } });
-    return { code: 200, message: '更新密码成功', id: res.id };
   }
 
   async updateAvatar(avatarPath: string, userId: number) {

@@ -1,15 +1,38 @@
-import { Expose, Transform } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { Exclude } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
   @IsNotEmpty()
+  @ApiProperty({ type: String, example: 'xzz2025', description: '用户名' })
   username: string;
 
   @IsString()
   @IsNotEmpty()
+  @ApiProperty({ type: String, example: '112233', description: '密码' })
   password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '13077908822', description: '手机号' })
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '123456', description: '验证码' })
+  code: string;
+
+  // @ApiProperty({ type: String, example: '', description: '头像' })
+  @IsOptional()
+  @IsString()
+  avatar?: string;
+
+  // @ApiProperty({ type: String, example: '', description: '微信ID' })
+  @IsOptional()
+  @IsString()
+  wechatId?: string;
 }
 
 export class RegisterResDto {
@@ -31,22 +54,15 @@ export class RegisterResDto {
   // newName: string;
 }
 
-export class RegisterInfo {
-  username: string;
-  password: string;
-  phone: string;
-  avatar?: string;
-  wechatId?: string;
-  code?: string;
-}
-
 export class LoginInfoDto {
   @IsString()
   @IsNotEmpty()
+  @ApiProperty({ type: String, example: '13077908822', description: '手机号' })
   phone: string;
 
   @IsString()
   @IsNotEmpty()
+  @ApiProperty({ type: String, example: '112233', description: '密码' })
   password: string;
 }
 
@@ -56,4 +72,45 @@ export class WechatCodeResponse {
   access_token: string;
   refresh_token: string;
   errcode?: number;
+}
+
+export class SmsCodeDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '13077908822', description: '手机号' })
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: 'register', description: '类型' })
+  type: string;
+}
+
+export class SmsLoginDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '13077908822', description: '手机号' })
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '123456', description: '验证码' })
+  code: string;
+}
+
+export class SmsBindDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '13077908822', description: '手机号' })
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '112233', description: '密码' })
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: 'xzz2025', description: '用户名' })
+  username: string;
 }

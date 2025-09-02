@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
 import { DictionarySeedArrayDto, DictionarySeedDto, UpsertDictionaryDto } from './dto/dictionary.dto';
 import { UpsertEntryDto } from './dto/entry.dto';
@@ -55,8 +55,8 @@ export class DictionaryService {
     return { id: result.id, message: (id ? '更新' : '新增') + '字典成功' };
   }
   //  字典项管理
-  async upsertEntry(createdictionaryDto: UpsertEntryDto) {
-    const { id, dictionaryId, ...rest } = createdictionaryDto;
+  async upsertEntry(upsertEntryData: UpsertEntryDto) {
+    const { id, dictionaryId, ...rest } = upsertEntryData;
     if (!dictionaryId) {
       return { code: 400, message: '父级字典项不能为空' };
     }
@@ -84,34 +84,30 @@ export class DictionaryService {
     });
     const count = res?.count || 0;
     if (count > 0 && count === ids.length) return { count, message: '删除字典项成功' };
-    return { count, message: '删除字典项部分失败' };
+
+    throw new BadRequestException('删除字典项部分失败');
   }
 
   async findAll() {
-    try {
-      const res = await this.pgService.dictionary.findMany({
-        select: {
-          id: true,
-          name: true,
-          code: true,
-          sort: true,
-          status: true,
-          description: true,
-          entries: {
-            orderBy: {
-              sort: 'asc',
-            },
+    const res = await this.pgService.dictionary.findMany({
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        sort: true,
+        status: true,
+        description: true,
+        entries: {
+          orderBy: {
+            sort: 'asc',
           },
         },
-        orderBy: {
-          sort: 'asc',
-        },
-      });
-      return { list: res, message: '获取所有字典列表成功' };
-    } catch (error) {
-      console.log('🚀 ~ xzz: dictionaryService -> getAll -> error', error);
-      return { code: 400, error: error.message };
-    }
+      },
+      orderBy: {
+        sort: 'asc',
+      },
+    });
+    return { list: res, message: '获取所有字典列表成功' };
   }
 
   async generateDictionarySeed(data: DictionarySeedArrayDto) {
@@ -129,14 +125,15 @@ export class DictionaryService {
           },
         });
         for (const e of dict.entries ?? []) {
+          const { id, ...rest } = e;
           await tx.dictionaryEntry.upsert({
             where: { code_dictionaryId: { code: e.code, dictionaryId: dictionary.id } },
             create: {
-              ...e,
+              ...rest,
               dictionary: { connect: { id: dictionary.id } },
             },
             update: {
-              ...e,
+              ...rest,
               dictionary: { connect: { id: dictionary.id } },
             },
           });

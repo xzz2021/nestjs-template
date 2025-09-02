@@ -21,20 +21,20 @@ export class PermissionService {
   }
 
   async batchCreate(obj: BatchPermissionDto) {
-    const { menuId, path } = obj;
+    const { menuId } = obj;
     // 先判断菜单id是否存在
     const menu = await this.pgService.menu.findUnique({
       where: { id: Number(menuId) },
     });
-    if (!menu) return { code: 400, error: '创建失败，菜单不存在' };
-    const permissionList = batchCreatePermissionList(menuId, path);
+    if (!menu) throw new BadRequestException('创建失败，菜单不存在');
+    const permissionList = batchCreatePermissionList(menuId, menu.path);
 
     const res = await this.pgService.permission.createMany({
       data: permissionList,
       skipDuplicates: true, // 跳过重复的
     });
     if (res?.count > 0) {
-      return { count: res.count, messgae: '快速生成权限模版成功' };
+      return { count: res.count, message: '快速生成权限模版成功' };
     }
     throw new BadRequestException('模版数据已存在, 无需重复生成');
   }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { CreateMenuDto, MenuSeedArrayDto, UpdateMenuDto, SeedMenuDto } from './dto/menu.dto';
+import { CreateMenuDto, UpdateMenuDto, SeedMenuDto, MenuSortDto } from './dto/menu.dto';
 import { PrismaClient } from '@/prisma/client/postgresql';
 
 @Injectable()
@@ -165,7 +165,7 @@ export class MenuService {
     }
   }
 
-  async sortMenu(sortMenu: { id: number; sort: number }[]) {
+  async sortMenu(sortMenu: MenuSortDto[]) {
     try {
       const res = await this.pgService.$transaction(async tx => {
         for (const item of sortMenu) {
@@ -212,9 +212,9 @@ export class MenuService {
     }
   }
 
-  async generateMenuSeed(data: MenuSeedArrayDto) {
+  async generateMenuSeed(data: SeedMenuDto[]) {
     await this.pgService.$transaction(async (tx: PrismaClient) => {
-      for (const item of data.data) {
+      for (const item of data) {
         await this.processMenuData(item, tx);
       }
     });

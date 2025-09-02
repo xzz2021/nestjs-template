@@ -1,6 +1,6 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginInfoDto, RegisterInfo } from './dto/auth.dto';
+import { LoginInfoDto, RegisterDto, SmsBindDto, SmsCodeDto, SmsLoginDto } from './dto/auth.dto';
 import { Public } from '@/processor/decorator/public.decorator';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 // import { JwtRefreshAuthGuard } from '@/processor/guard/jwt-refresh.guard';
@@ -16,7 +16,7 @@ export class AuthController {
   @Post('register')
   @Serialize(RegisterResDto)
   @ApiOperation({ summary: '用户注册' })
-  create(@Body() createUserinfo: RegisterInfo) {
+  create(@Body() createUserinfo: RegisterDto) {
     return this.authService.create(createUserinfo);
   }
 
@@ -28,7 +28,7 @@ export class AuthController {
 
   @Post('getSmsCode')
   @ApiOperation({ summary: '获取短信验证码' })
-  getSmsCode(@Body() data: { phone: string; type: string }) {
+  getSmsCode(@Body() data: SmsCodeDto) {
     return this.authService.getSmsCode(data.phone, data.type);
   }
 
@@ -56,13 +56,13 @@ export class AuthController {
 
   @Post('sms/login')
   @ApiOperation({ summary: '短信登录' })
-  smsLogin(@Body() data: { phone: string; code: string }) {
+  smsLogin(@Body() data: SmsLoginDto) {
     return this.authService.smsLogin(data);
   }
 
   @Post('sms/bind')
   @ApiOperation({ summary: '短信绑定' })
-  smsBind(@Body() data: { phone: string; password: string; username: string }) {
+  smsBind(@Body() data: SmsBindDto) {
     return this.authService.smsBind(data);
   }
 

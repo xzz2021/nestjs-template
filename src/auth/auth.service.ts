@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PgService } from '@/prisma/pg.service';
-import { LoginInfoDto, RegisterInfo } from './dto/auth.dto';
+import { LoginInfoDto, RegisterDto, SmsBindDto, SmsLoginDto } from './dto/auth.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { resultDataType, UndiciHttpService } from '@/utils/http/undici.http.service';
@@ -25,7 +25,7 @@ export class AuthService {
     this.wxAppId = this.configService.get<string>('WX_APP_ID') || '';
   }
 
-  async create(createUserDto: RegisterInfo) {
+  async create(createUserDto: RegisterDto, checkCode: boolean = true): Promise<{ message: string; res?: { id: number } }> {
     const { phone, code, password, username } = createUserDto;
     const user = await this.isUserExist(phone);
     if (user) {
@@ -33,8 +33,11 @@ export class AuthService {
     }
 
     // 注册前需要请求验证码 请求时已经将验证码存入cache  此处比对验证码 是否正确
-    // const smsCheck = await this.smsService.checkSmsCode('register_' + phone, code as string);
-    // if (!smsCheck.status) return smsCheck;
+    if (checkCode) {
+      // if 是为了复用create方法
+      const smsCheck = await this.smsService.checkSmsCode('register_' + phone, code);
+      if (!smsCheck.status) return smsCheck;
+    }
 
     const hashedPassword = await hashPayPassword(password);
     const res = await this.pgService.user.create({
@@ -44,7 +47,7 @@ export class AuthService {
         password: hashedPassword,
       },
     });
-    // await this.cacheManager.del('register_' + phone);  // 删除缓存的 验证码
+    await this.cacheManager.del('register_' + phone); // 删除缓存的 验证码
     return { message: phone + '注册成功', res };
   }
 
@@ -109,7 +112,7 @@ export class AuthService {
     if (cachekey === 'register') {
       const user = await this.isUserExist(phone);
       if (user) {
-        return { code: 400, message: '用户已存在, 请直接登录!' };
+        throw new BadRequestException('用户已存在, 请直接登录!');
       }
     }
     return this.smsService.generateSmsCode(phone, cachekey);
@@ -283,19 +286,21 @@ export class AuthService {
 
     // 3.  如果用户不存在 正常流程注册帐号
 
-    const res = await this.create({
-      phone: data.phone,
-      username: data.username,
-      password: data.password,
-      avatar: data.avatar,
-      wechatId: data.unionid,
-    });
+    const res = await this.create(
+      {
+        phone: data.phone,
+        username: data.username,
+        password: data.password,
+        avatar: data.avatar,
+        wechatId: data.unionid,
+        code: '',
+      },
+      false,
+    );
     if (res?.res?.id) {
-      const res2 = await this.login({ phone: data.phone, password: data.password });
-      return res2;
-    } else {
-      return { code: 400, message: '绑定失败, 请重试!' };
+      return await this.login({ phone: data.phone, password: data.password });
     }
+    // return { code: 400, message: '绑定失败, 请重试!', res };
 
     // 4. 返回 正常流程登录  的数据
   }
@@ -326,11 +331,10 @@ export class AuthService {
   }
 
   //  短信登录
-  async smsLogin(data: { phone: string; code: string }) {
+  async smsLogin(data: SmsLoginDto) {
     const checkCode = await this.cacheManager.get('login_' + data.phone);
-    console.log('xzz2021: AuthService -> smsLogin -> checkCode', checkCode);
     if (checkCode != data.code) {
-      return { code: 400, message: '验证码错误, 请重新输入!' };
+      throw new BadRequestException('验证码错误, 请重新输入!');
     }
 
     // 如果验证码正确  则直接登录
@@ -341,27 +345,17 @@ export class AuthService {
       },
     });
     if (!user) {
-      return {
-        code: 200,
-        message: '用户手机号不存在, 需要进行绑定!',
-        userinfo: { phone: data.phone },
-      };
+      throw new BadRequestException('用户手机号不存在, 需要进行绑定!');
     }
 
     const { password, ...result } = user;
-    return {
-      code: 200,
-      message: user.username + '登录成功',
-      userinfo: result,
-      access_token: this.jwtService.sign(result),
-    };
+    return { message: user.username + '登录成功', userinfo: result, access_token: this.jwtService.sign(result) };
   }
 
-  async smsBind(data: { phone: string; password: string; username: string }) {
+  async smsBind(data: SmsBindDto) {
     //  1. 走正常注册流程
-    await this.create({ phone: data.phone, username: data.username, password: data.password });
-    const res = await this.login({ phone: data.phone, password: data.password });
-    return res;
+    await this.create({ ...data, code: '' }, false);
+    return await this.login({ phone: data.phone, password: data.password });
   }
 
   // refreshTokens(userId: number, _refreshToken: string) {

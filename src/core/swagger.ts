@@ -24,10 +24,6 @@ export function createSwagger(app: INestApplication) {
     .setTitle('后台管理')
     .setDescription('design by xzz2021')
     .setVersion('1.0')
-    // .addGlobalResponse({
-    //   status: 200,
-    //   description: '成功响应',
-    // })
     .addGlobalResponse({
       status: 400,
       description: '错误响应',
@@ -42,14 +38,33 @@ export function createSwagger(app: INestApplication) {
     })
     .addBearerAuth({
       description: 'Please enter token:',
-      name: 'Authorization',
-      bearerFormat: 'Bearer',
-      scheme: 'Bearer',
+      // name: 'Authorization',
+      // bearerFormat: 'bearer',
+      scheme: 'bearer',
       type: 'http',
-      in: 'Header',
     })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  document.security = [{ bearer: [] }]; //  给api请求添加token
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      docExpansion: 'list', // 展开所有操作，但折叠模型
+      defaultModelsExpandDepth: 3, // 模型展开深度
+      defaultModelExpandDepth: 3, // 模型属性展开深度
+      displayRequestDuration: true, // 显示请求持续时间
+      filter: true, // 启用过滤器
+      // defaultModelRendering: 'model',
+      // deepLinking: true,
+      showExtensions: true, // 显示扩展
+      showCommonExtensions: true, // 显示通用扩展
+      // tryItOutEnabled: true, // 启用"Try it out"功能
+      requestSnippetsEnabled: true, // 启用请求代码片段
+      syntaxHighlight: {
+        activate: true,
+        theme: 'agate', // 代码高亮主题
+      },
+      persistAuthorization: true, // 持久化授权信息
+    },
+  });
 }

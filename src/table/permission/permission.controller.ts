@@ -10,8 +10,8 @@ export class PermissionController {
 
   @Post('add')
   @ApiOperation({ summary: '创建权限' })
-  create(@Body() createPermissionListDto: CreatePermissionDto) {
-    return this.permissionService.create(createPermissionListDto);
+  create(@Body() data: CreatePermissionDto) {
+    return this.permissionService.create(data);
   }
 
   @Post('batchCreate')

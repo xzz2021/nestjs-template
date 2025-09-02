@@ -1,4 +1,5 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Public } from './processor/decorator/public.decorator';
 import { AppService } from './app.service';
 // import { MailService } from './utils/mail/mail.service';
@@ -11,6 +12,7 @@ import { AppService } from './app.service';
 
 */
 @Public()
+@ApiTags('App入口')
 @Controller()
 export class AppController {
   constructor(
@@ -32,12 +34,12 @@ export class AppController {
     return '2';
   }
 
-  @Get('test/:id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    //  如果需要对参数进行转换 可以使用内置的 pipe 管道
-    // 使用ParseIntPipe 管道 对id进行转换 如果转换失败 会抛出异常 并返回400状态码
-    return { number: id };
-  }
+  // @Get('test/:id')
+  // findOne(@Param('id', ParseIntPipe) id: number) {
+  //   //  如果需要对参数进行转换 可以使用内置的 pipe 管道
+  //   // 使用ParseIntPipe 管道 对id进行转换 如果转换失败 会抛出异常 并返回400状态码
+  //   return { number: id };
+  // }
 
   // @Get('mail')
   // sendMail() {

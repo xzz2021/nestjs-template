@@ -61,7 +61,6 @@ export class AliSmsService {
       return result;
     } catch (error) {
       return {
-        code: 400,
         message: '发送失败',
         error: error.message,
       };
@@ -73,16 +72,16 @@ export class AliSmsService {
     try {
       const cacheCode = await this.cacheManager.get(smskey);
       if (!cacheCode) {
-        return { status: false, code: 400, message: '验证码已过期, 请重新获取!' };
+        return { status: false, message: '验证码已过期, 请重新获取!' };
       }
       if (cacheCode != code) {
-        return { status: false, code: 400, message: '验证码错误, 请重新输入!' };
+        return { status: false, message: '验证码错误, 请重新输入!' };
       }
       await this.cacheManager.del(smskey);
-      return { status: true, code: 200, message: '验证码正确' };
+      return { status: true, message: '验证码正确' };
     } catch (error) {
       console.log('🚀 ~ AuthService ~ checkSmsCode ~ error:', error);
-      return { status: false, code: 400, message: '验证码校验错误, 请稍候重试!' };
+      return { status: false, message: '验证码校验错误, 请稍候重试!' };
     }
   }
 
@@ -95,14 +94,12 @@ export class AliSmsService {
     }
     // 随机生成6位数字 且首位不为0
     const newCode = Math.floor(Math.random() * 900000) + 100000;
-    try {
-      const res = await this.send({ code: newCode, phone });
-      if (res.code === 200) {
-        await this.cacheManager.set(cacheKeyName, newCode, 60000);
-      }
-      return res;
-    } catch (error) {
-      return { code: 400, message: '发送验证码失败', error: error.message };
+
+    const res = await this.send({ code: newCode, phone });
+    const isSuccess = res?.error ? false : true;
+    if (isSuccess) {
+      await this.cacheManager.set(cacheKeyName, newCode, 60000);
     }
+    return { message: isSuccess ? '发送验证码成功' : '发送验证码失败', res };
   }
 }

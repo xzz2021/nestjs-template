@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 import { DictionaryService } from './dictionary.service';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Public } from '@/processor/decorator/public.decorator';
 import { DeleteEntryDto, UpsertEntryDto } from './dto/entry.dto';
-import { DeleteDictionaryDto, DictionarySeedArrayDto, DictionarySeedDto, UpsertDictionaryDto } from './dto/dictionary.dto';
+import { DeleteDictionaryDto, DictionaryListDto, DictionarySeedArrayDto, UpsertDictionaryDto } from './dto/dictionary.dto';
 
 // 此模块可以作为范本
 @ApiTags('字典')
@@ -14,6 +14,7 @@ export class DictionaryController {
   @Get('list')
   @Public()
   @ApiOperation({ summary: '获取字典列表' })
+  @ApiResponse({ type: DictionaryListDto, isArray: true })
   findAll() {
     return this.dictionaryService.findAll();
   }
@@ -24,22 +25,22 @@ export class DictionaryController {
     return this.dictionaryService.upsertDictionary(upsertDictionaryDto);
   }
 
-  @Post('delete')
-  @ApiOperation({ summary: '删除字典' })
+  @Delete('delete')
+  @ApiOperation({ summary: '批量删除字典' })
   delete(@Body() obj: DeleteDictionaryDto) {
     return this.dictionaryService.batchRemove(obj.ids);
   }
 
   @Post('entry/upsert')
   @ApiOperation({ summary: '创建字典项' })
-  createEntry(@Body() upsertEntryDto: UpsertEntryDto) {
-    return this.dictionaryService.upsertEntry(upsertEntryDto);
+  createEntry(@Body() upsertEntryData: UpsertEntryDto) {
+    return this.dictionaryService.upsertEntry(upsertEntryData);
   }
 
-  @Post('entry/delete')
-  @ApiOperation({ summary: '删除字典项' })
-  deleteEntry(@Body() obj: DeleteEntryDto) {
-    return this.dictionaryService.batchRemoveEntry(obj.ids);
+  @Delete('entry/delete')
+  @ApiOperation({ summary: '批量删除字典项' })
+  deleteEntry(@Body() deleteEntryData: DeleteEntryDto) {
+    return this.dictionaryService.batchRemoveEntry(deleteEntryData.ids);
   }
 
   @Post('generateDictionarySeed')
