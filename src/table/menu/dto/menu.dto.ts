@@ -1,48 +1,80 @@
 import { IsIdNotEqualToParentIdConstraint } from '@/processor/pipe/validater';
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, Validate, IsNumber, IsObject, ValidateNested, IsArray, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, Validate, IsNumber, IsObject, ValidateNested, IsArray, IsString, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class MetaDto {
   @ApiPropertyOptional({ type: String })
   @IsNotEmpty({ message: '菜单标题不能为空' })
+  @IsString()
   title: string;
 
   @ApiPropertyOptional({ type: String })
   @IsOptional()
+  @IsString()
   icon?: string;
 
   @ApiPropertyOptional({ type: Boolean, default: false })
   @IsOptional()
+  @IsBoolean()
   affix?: boolean = false;
 
   @ApiPropertyOptional({ type: String, default: false })
   @IsOptional()
+  @IsBoolean()
   activeMenu?: boolean = false;
 
   @ApiPropertyOptional({ type: Boolean, default: false })
   @IsOptional()
+  @IsBoolean()
   alwaysShow?: boolean = false;
 
   @ApiPropertyOptional({ type: Boolean, default: true })
   @IsOptional()
+  @IsBoolean()
   breadcrumb?: boolean = true;
 
   @ApiPropertyOptional({ type: Boolean, default: false })
   @IsOptional()
+  @IsBoolean()
   canTo?: boolean = false;
 
   @ApiPropertyOptional({ type: Boolean, default: false })
   @IsOptional()
+  @IsBoolean()
   hidden?: boolean = false;
 
   @ApiPropertyOptional({ type: Boolean, default: false })
   @IsOptional()
+  @IsBoolean()
   noCache?: boolean = false;
 
   @ApiPropertyOptional({ type: Boolean, default: false })
   @IsOptional()
+  @IsBoolean()
   noTagsView?: boolean = false;
+}
+
+class PermissionDto {
+  @ApiProperty({ type: String })
+  @IsNotEmpty({ message: '权限名称不能为空' })
+  @IsString()
+  name: string;
+
+  @ApiProperty({ type: String })
+  @IsNotEmpty({ message: '权限代码不能为空' })
+  @IsString()
+  code: string;
+
+  @ApiProperty({ type: String })
+  @IsOptional()
+  @IsString()
+  value?: string;
+
+  @ApiProperty({ type: String })
+  @IsNotEmpty({ message: '权限资源不能为空' })
+  @IsString()
+  resource: string;
 }
 
 export class MenuDto {
@@ -53,14 +85,17 @@ export class MenuDto {
 
   @ApiProperty({ type: String })
   @IsNotEmpty({ message: '菜单名称不能为空' })
+  @IsString()
   name: string;
 
   @ApiProperty({ type: String })
   @IsNotEmpty({ message: '菜单路径不能为空' })
+  @IsString()
   path: string;
 
   @ApiProperty({ type: String })
   @IsNotEmpty({ message: '菜单组件不能为空' })
+  @IsString()
   component: string;
 
   // 嵌套对象验证 - 方式1：完整对象验证
@@ -80,6 +115,7 @@ export class MenuDto {
 
   @ApiPropertyOptional({ type: String })
   @IsOptional()
+  @IsString()
   redirect?: string;
 
   @ApiPropertyOptional({ type: Number })
@@ -94,6 +130,7 @@ export class MenuDto {
 
   @ApiProperty({ type: Boolean, default: true })
   @IsOptional()
+  @IsBoolean()
   status?: boolean = true;
 
   //   @ApiProperty({ type: Date })
@@ -111,6 +148,7 @@ export class MenuDto {
 
   @ApiPropertyOptional({ type: Number })
   @IsOptional()
+  @IsNumber()
   parentId?: number;
 
   //   @ApiPropertyOptional({ type: () => MenuDto })
@@ -127,4 +165,24 @@ export class UpdateMenuDto extends MenuDto {
   // 限制id 不能等于 parentId
   @Validate(IsIdNotEqualToParentIdConstraint)
   checkIdsNotEqual: boolean; // 这个字段是为了触发自定义验证器，可以省略其值
+}
+
+export class SeedMenuDto extends MenuDto {
+  @ApiPropertyOptional({ type: () => SeedMenuDto })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => SeedMenuDto)
+  children?: SeedMenuDto[];
+
+  @ApiPropertyOptional({ type: () => PermissionDto })
+  @IsOptional()
+  @ValidateNested({ each: false })
+  @Type(() => PermissionDto)
+  permissionList?: PermissionDto[];
+}
+export class MenuSeedArrayDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SeedMenuDto)
+  data: SeedMenuDto[];
 }

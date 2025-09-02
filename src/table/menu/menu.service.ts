@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { CreateMenuDto, UpdateMenuDto } from './dto/menu.dto';
-// import { Prisma } from '@/prisma/client/postgresql';
+import { CreateMenuDto, MenuSeedArrayDto, UpdateMenuDto, SeedMenuDto } from './dto/menu.dto';
+import { PrismaClient } from '@/prisma/client/postgresql';
 
 @Injectable()
 export class MenuService {
@@ -180,5 +180,44 @@ export class MenuService {
     } catch (error) {
       return { code: 500, message: '排序失败' + error };
     }
+  }
+
+  async processMenuData(data: SeedMenuDto, tx: PrismaClient) {
+    const { name, path, meta, permissionList, children, ...rest } = data;
+    const menu = await tx.menu.upsert({
+      where: { name, path },
+      create: { name, path, ...rest },
+      update: { name, path, ...rest },
+    });
+    if (meta) {
+      await tx.meta.upsert({
+        where: { menuId: menu.id },
+        create: { ...meta, menuId: menu.id },
+        update: { ...meta, menuId: menu.id },
+      });
+    }
+    if (permissionList) {
+      for (const permission of permissionList) {
+        await tx.permission.upsert({
+          where: { menuId_code: { menuId: menu.id, code: permission.code } },
+          create: { ...permission, menuId: menu.id },
+          update: { ...permission, menuId: menu.id },
+        });
+      }
+    }
+    if (children) {
+      for (const child of children) {
+        await this.processMenuData(child, tx);
+      }
+    }
+  }
+
+  async generateMenuSeed(data: MenuSeedArrayDto) {
+    await this.pgService.$transaction(async (tx: PrismaClient) => {
+      for (const item of data.data) {
+        await this.processMenuData(item, tx);
+      }
+    });
+    return { message: '生成菜单种子数据成功' };
   }
 }

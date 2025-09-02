@@ -50,9 +50,6 @@ export function createSwagger(app: INestApplication) {
     })
     .build();
 
-  const document = SwaggerModule.createDocument(app, config, {
-    // ✅ 开启自动模式（核心）  // 这样dto中定义的属性即使没加ApiProperty也会自动生成
-    autoTagControllers: true,
-  });
+  const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 }

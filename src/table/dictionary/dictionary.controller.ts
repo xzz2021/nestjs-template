@@ -44,7 +44,11 @@ export class DictionaryController {
 
   @Post('generateDictionarySeed')
   @ApiOperation({ summary: '生成字典种子数据' })
-  //  如果是数组  一定要用一个类包裹  否则不会进行校验过滤
+  /*  如果是数组  一定要用一个类包裹  否则不会进行校验过滤
+                 也可以手动转换   未实测
+  const dto = plainToInstance(DictionarySeedDto, data, {
+  });
+  */
   generateDictionarySeed(@Body() data: DictionarySeedArrayDto) {
     return this.dictionaryService.generateDictionarySeed(data);
   }

@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { CreateMenuDto, UpdateMenuDto } from './dto/menu.dto';
+import { CreateMenuDto, MenuSeedArrayDto, UpdateMenuDto } from './dto/menu.dto';
 
 @ApiTags('菜单')
 @Controller('menu')
@@ -36,5 +36,11 @@ export class MenuController {
   @ApiOperation({ summary: '排序菜单' })
   sort(@Body() sortMenu: { id: number; sort: number }[]) {
     return this.menuService.sortMenu(sortMenu);
+  }
+
+  @Post('generateMenuSeed')
+  @ApiOperation({ summary: '生成菜单种子数据' })
+  generateMenuSeed(@Body() data: MenuSeedArrayDto) {
+    return this.menuService.generateMenuSeed(data);
   }
 }

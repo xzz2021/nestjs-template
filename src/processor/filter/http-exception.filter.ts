@@ -3,9 +3,11 @@
 //  dto的错误也会走向这里
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 
+// 启用后不会再报错 而是返回定义好的数据
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
+    // console.log('----------------------------', exception);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const status = exception.getStatus();

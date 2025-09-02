@@ -62,7 +62,9 @@ export const GLOBAL_VALIDATION_PIPE = new ValidationPipe({
     // console.log('errors', JSON.stringify(errors));
 
     const err = errors[errors.length - 1].constraints || {};
-    const errMsg = Object.values(err)[0] || '数据类型不合法';
+    console.log('err: ', JSON.stringify(err));
+
+    const errMsg = Object.values(err)[0] || 'DTO校验失败: 数据类型不合法';
 
     // 使用 Map 进行错误消息转换
     let cnErrMsg = errMsg;

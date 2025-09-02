@@ -1,10 +1,9 @@
 // import { User } from '@/prisma/dto/user';
 import { IsDateWithTransform, IsIdNotEqualToParentIdConstraint } from '@/processor/pipe/validater';
 import { ApiProperty, ApiPropertyOptional, IntersectionType, OmitType, PartialType, PickType } from '@nestjs/swagger';
-import { Exclude, Expose, plainToClass, Transform, Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsOptional, MaxLength, Validate, ValidateIf, ValidateNested } from 'class-validator';
-// import { PickType } from '@nestjs/mapped-types';
-// import { Department } from '@/prisma/dto/department';
+import { plainToClass, Transform, Type } from 'class-transformer';
+import { IsArray, IsNotEmpty, IsOptional, MaxLength, Validate, ValidateNested } from 'class-validator';
+
 export class DepartmentDto {
   @ApiProperty({ type: Number })
   @IsNotEmpty({ message: '部门ID不能为空' })
