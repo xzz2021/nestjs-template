@@ -8,6 +8,7 @@ export class ScheduleService {
   constructor(
     private schedulerRegistry: SchedulerRegistry,
     @InjectQueue('xzztest') private queue: Queue,
+    @InjectQueue('log-queue') private logQueue: Queue,
   ) {}
 
   @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
@@ -72,5 +73,11 @@ export class ScheduleService {
   // @Cron(CronExpression.EVERY_10_SECONDS)
   backupDb() {
     console.log('xzz2021: ScheduleService -> backupDb -> 执行');
+  }
+
+  async addUserOperationLog(data: any) {
+    // console.log('xzz2021: ScheduleService -> addUserOperationLog -> data:', data);
+    // 添加用户 操作日志 包含 成功和失败的
+    await this.logQueue.add('user-operation', data);
   }
 }

@@ -1,11 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { ScheduleController } from './schedule.controller';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
-import { ScheduleConsumer } from './consumer';
+import { LogQueueConsumer, ScheduleConsumer } from './consumer';
 import { ConfigService } from '@nestjs/config';
 
+@Global()
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -21,17 +22,18 @@ import { ConfigService } from '@nestjs/config';
     //  一个队列就是一个任务分类
     BullModule.registerQueue(
       {
-        name: 'xzztest',
+        name: 'log-queue',
         defaultJobOptions: {
           removeOnComplete: true,
         },
       },
       {
-        name: 'xzztest2',
+        name: 'xzztest',
       },
     ),
   ],
   controllers: [ScheduleController],
-  providers: [ScheduleService, ScheduleConsumer],
+  providers: [ScheduleService, ScheduleConsumer, LogQueueConsumer],
+  exports: [ScheduleService],
 })
 export class ScheduleTaskModule {}

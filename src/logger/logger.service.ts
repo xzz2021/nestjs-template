@@ -1,30 +1,67 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, LoggerService } from '@nestjs/common';
 // import { PgService } from '@/prisma/pg.service';
 // import { CACHE_MANAGER } from '@nestjs/cache-manager';
 // import { Cache } from 'cache-manager';
-import { Logger } from 'winston';
+import { debug, Logger } from 'winston';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { PgService } from '@/prisma/pg.service';
+import { DeleteLogDto, QueryLogParams } from './dto/logger.dto';
+import { buildPrismaWhere } from '@/processor/utils/object';
 @Injectable()
-export class LoggerService {
+export class LogService implements LoggerService {
   constructor(
     // private readonly pgService: PgService,
     // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(WINSTON_MODULE_NEST_PROVIDER as 'NestWinston') private readonly logger: Logger,
+
+    private readonly pgService: PgService,
   ) {}
 
-  getLogList(searchParam: any) {
+  log(message: string, context?: string) {
+    this.logger.info(message, context);
+  }
+
+  error(message: string, trace?: string) {
+    this.logger.error(message, trace);
+  }
+
+  warn(message: string, context?: string) {
+    this.logger.warn(message, context);
+  }
+
+  debug(message: string, context?: string) {
+    this.logger.debug(message, context);
+  }
+
+  // async addUserOperationLog(data: any) {
+  //   // 添加用户 操作日志 包含 成功和失败的
+  //   await this.logQueue.add('user-operation', data);
+  // }
+
+  async getUserOperationLogList(searchParam: QueryLogParams) {
+    // console.log('xzz2021: LogServic==================~ searchParam:');
+    const { where, skip, take } = buildPrismaWhere(searchParam);
     const newSearchParam = {
-      ...searchParam,
+      where,
+      skip,
+      take,
       include: {
         user: {
           select: {
             username: true,
+            phone: true,
           },
         },
       },
       orderBy: { id: 'desc' as const },
     };
-    // 将日志写入数据库
+    const list = await this.pgService.userOperationLog.findMany({
+      ...newSearchParam,
+    });
+    const total = await this.pgService.userOperationLog.count({
+      where,
+    });
+    return { list, total, message: '获取日志列表成功' };
   }
 
   /*
@@ -78,5 +115,12 @@ export class LoggerService {
 
   createDebugLog(msgObj: any) {
     this.logger.debug(msgObj);
+  }
+
+  async deleteUserOperationLog(obj: DeleteLogDto) {
+    await this.pgService.userOperationLog.deleteMany({
+      where: { id: { in: obj.ids } },
+    });
+    return { message: '删除用户操作日志成功' };
   }
 }

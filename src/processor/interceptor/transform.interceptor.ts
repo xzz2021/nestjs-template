@@ -8,7 +8,12 @@ import { map } from 'rxjs/operators';
 export class TransformInterceptor<T> implements NestInterceptor<T, any> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
+      // 对所有响应数据进行包装
       map((data: any) => {
+        // 如果返回的是文件流 则不记录日志
+        if (data instanceof ReadableStream) {
+          return data;
+        }
         const { message, ...rest } = data;
         return {
           message,

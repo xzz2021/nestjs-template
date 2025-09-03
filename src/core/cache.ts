@@ -38,7 +38,7 @@ async function chooseCache(config: ConfigService) {
   const useRedis = toBoolean(config.get('USE_REDIS'));
 
   // 统一 TTL（毫秒）
-  const ttl = 500;
+  const ttl = 1000;
 
   if (!useRedis) {
     // 内置内存缓存：什么都不配就是内存

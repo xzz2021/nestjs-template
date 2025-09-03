@@ -97,7 +97,7 @@ export class RoleSeedArrayDto {
 
 //  返回list 数据格式
 
-class MenuListDto extends PickType(MenuDto, ['id', 'name', 'path', 'sort', 'parentId'] as const) {
+class RoleMenuListDto extends PickType(MenuDto, ['id', 'name', 'path', 'sort', 'parentId'] as const) {
   @ApiProperty({ type: PermissionDto, isArray: true, description: '权限列表' })
   permissions: PermissionDto[];
 }
@@ -106,11 +106,11 @@ export class RoleListDto extends PickType(CreateRoleDto, ['name', 'code', 'statu
   @ApiProperty({ type: Number, description: '角色ID', example: 1 })
   id: number;
 
-  @ApiProperty({ type: MenuListDto, isArray: true })
-  menus: MenuListDto[];
+  @ApiProperty({ type: RoleMenuListDto, isArray: true })
+  menus: RoleMenuListDto[];
 }
 
-export class ListRes {
+export class RoleListRes {
   @ApiProperty({ type: Number, description: '总条数', example: 10 })
   total: number;
 

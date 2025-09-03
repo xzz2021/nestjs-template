@@ -166,20 +166,15 @@ export class MenuService {
   }
 
   async sortMenu(sortMenu: MenuSortDto[]) {
-    try {
-      const res = await this.pgService.$transaction(async tx => {
-        for (const item of sortMenu) {
-          await tx.menu.update({
-            where: { id: item.id },
-            data: { sort: item.sort },
-          });
-        }
-        return { code: 200, message: '排序成功' };
-      });
-      return res;
-    } catch (error) {
-      return { code: 500, message: '排序失败' + error };
-    }
+    await this.pgService.$transaction(async tx => {
+      for (const item of sortMenu) {
+        await tx.menu.update({
+          where: { id: item.id },
+          data: { sort: item.sort },
+        });
+      }
+    });
+    return { message: '菜单排序成功' };
   }
 
   async processMenuData(data: SeedMenuDto, tx: PrismaClient) {

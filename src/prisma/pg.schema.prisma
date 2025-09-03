@@ -64,6 +64,8 @@ model User {
   createdNotices   Notice[]
   noticeRecipients NoticeRecipient[]
 
+  operationLogs UserOperationLog[]
+
   @@index([phone])
   @@index([email])
   @@map("user")
@@ -345,4 +347,35 @@ model DictionaryEntry {
   @@index([code])
   @@unique([code, dictionaryId])
   @@map("dictionary_entry")
+}
+
+
+model UserOperationLog {
+  id        Int     @id @default(autoincrement())
+  userId    Int?     @map("user_id") 
+  ip        String  @db.VarChar(50)
+  userAgent String  @db.VarChar(150) @map("user_agent")
+  method    String  @db.VarChar(10) 
+  requestUrl String  @db.VarChar(150) @map("request_url")
+  status    String  @db.VarChar(10) @map("status")
+
+  responseMsg String? @db.VarChar(50) @map("response_msg")
+  detailInfo   Json?   @map("detail_info")
+  createdAt DateTime @default(now()) @map("created_at")
+  duration  Int  
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("user_operation_log")
+}
+
+model SystemLog {
+  id        Int     @id @default(autoincrement())
+  level     String  @db.VarChar(50)
+  service   String  @db.VarChar(50)
+  message   String  @db.VarChar(50)
+  duration  Int    
+  context   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("system_log")
 }

@@ -15,12 +15,13 @@ import { JwtAuthGuard } from '@/processor/guard/jwt-auth.guard';
 // import { DynamicThrottlerGuard } from '@/processor/guard/throttler.guard';
 import { ClsModule } from 'nestjs-cls';
 import { WinstonLoggerModule } from '@/logger/winston.module';
-import { RequestLogInterceptor } from '@/processor/interceptor/log';
+import { OperationLogInterceptor } from '@/processor/interceptor/operation.log.interceptor';
 import { AllExceptionsFilter } from '@/processor/filter/all-exceptions.filter';
 import { WsModule } from '@/ws/ws.module';
 import { CACHE_MODULE } from './cache';
 import { TransformInterceptor } from '@/processor/interceptor/transform.interceptor';
 import { HttpExceptionFilter } from '@/processor/filter/http-exception.filter';
+import { ScheduleTaskModule } from '@/schedule/schedule.module';
 
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
@@ -61,6 +62,8 @@ export const CORE_MODULE = [
   //     limit: 100,
   //   },
   // ]),
+  ScheduleTaskModule,
+
   PrismaModule,
   HttpModule,
   AuthModule,
@@ -125,6 +128,11 @@ export class AppController {
   },
   {
     provide: APP_INTERCEPTOR,
+    useClass: OperationLogInterceptor,
+    multi: true,
+  }, // 全局启用日志拦截器
+  {
+    provide: APP_INTERCEPTOR,
     useClass: TransformInterceptor,
     multi: true,
   },
@@ -150,15 +158,13 @@ export class AppController {
     provide: APP_FILTER,
     useClass: AllExceptionsFilter,
   },
-  {
-    provide: APP_FILTER,
-    useClass: HttpExceptionFilter,
-  },
+  // {
+  //   provide: APP_FILTER,
+  //   useClass: HttpExceptionFilter,
+  // },
   //  管道 校验器 其实可以对单个特殊接口的输入数据进行颗粒度控制
   // {
   //   provide: APP_PIPE,
   //   useClass: ValidationPipe,
   // },
-
-  // { provide: APP_INTERCEPTOR, useClass: RequestLogInterceptor }, // 全局启用日志拦截器
 ];

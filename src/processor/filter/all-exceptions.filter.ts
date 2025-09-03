@@ -1,18 +1,22 @@
 //  这里是捕获所未知异常  无法拿到源信息
 // 如果需要源信息   后期考虑 实现return next.handle().pipe() 来捕获
 
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Logger, Inject } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { checkPrismaError } from './prisma.exception';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 //  捕获 HttpException 异常 或 HttpException 子类 异常
 @Catch() // @Catch()参数留空  表示 捕获所有异常
 export class AllExceptionsFilter implements ExceptionFilter {
+  constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) {}
   catch(exception: unknown, host: ArgumentsHost) {
+    const start = Date.now();
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
+    // console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
     const request = ctx.getRequest<Request>();
+
     const path = request.url;
     // ✅ 忽略 favicon.ico 请求
     if (path === 'favicon.ico') {
@@ -20,23 +24,35 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
     let status = 400;
     let message = 'Internal server error';
-
+    let metaData = {};
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       message = exception.message;
+      metaData = exception.getResponse();
     } else if (exception instanceof Error) {
       message = exception.message;
     }
 
     const { msg, meta } = checkPrismaError(exception) || {};
 
+    this.logger.error({
+      timestamp: new Date().toISOString(),
+      // method: request.method,
+      // url: request.url,
+      // status,
+      // message,
+      stack: exception instanceof Error ? exception.stack : null,
+      context: 'AllExceptionsFilter',
+      info: `${request.url.split('?')[0]}, ${request.method} ${Date.now() - start}ms`,
+    });
+
     //  一定要返回数据 否则会截断
     response.status(status).json({
-      code: 400,
-      timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
+      code: status || 400,
+      timestamp: new Date(),
       path,
       message: msg || message || '未捕获异常,请检查后端代码!',
-      meta,
+      meta: metaData || meta,
     });
   }
   // //  对正常返回数据进行处理

@@ -1,5 +1,6 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
+import { PgService } from '@/prisma/pg.service';
 
 //
 //  需要在全局 模块   生命周期 中 处理 成功和 失败的  任务   进行retry 或者 移除   否则会有冗余数据在 redis 数据库中
@@ -28,6 +29,32 @@ export class ScheduleConsumer extends WorkerHost {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     return {};
+  }
+}
+
+@Processor('log-queue')
+export class LogQueueConsumer extends WorkerHost {
+  constructor(private pgService: PgService) {
+    super();
+  }
+
+  async process(job: Job) {
+    // console.log('xzz2021: LogQueueConsumer ~ process ~ job:', job);
+    const { name, data } = job;
+    if (name === 'user-operation') {
+      // console.log('xzz2021: LogQueueConsumer ~ process ~ data:', data);
+      // const { userId, ...rest } = data;
+      try {
+        await this.pgService.userOperationLog.create({
+          data: {
+            ...data,
+          },
+        });
+      } catch (error) {
+        console.log('xzz2021: LogQueueConsumer ~ process ~ error:', error);
+      }
+      return { success: true };
+    }
   }
 }
 

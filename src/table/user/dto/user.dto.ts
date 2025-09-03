@@ -116,7 +116,7 @@ export class UpdatePersonalInfo extends UserDto {
   id: number;
 }
 
-export class ListRes {
+export class UserListRes {
   @ApiProperty({ type: Number, description: '总条数', example: 10 })
   total: number;
 

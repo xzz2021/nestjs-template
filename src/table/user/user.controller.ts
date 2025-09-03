@@ -5,7 +5,7 @@ import {
   QueryUserParams,
   UpdateUserDto,
   UpdatePersonalInfo,
-  ListRes,
+  UserListRes,
   UpdatePwdDto,
   AdminUpdatePwdDto,
   CreateUserDto,
@@ -24,7 +24,7 @@ export class UserController {
 
   @Get('listByDepartmentId')
   @ApiOperation({ summary: '获取指定部门用户, 包含角色和部门id数组, 用于分配角色和部门' })
-  @ApiResponse({ type: ListRes })
+  @ApiResponse({ type: UserListRes })
   findBy(@Query() params: QueryUserParams) {
     return this.userService.findByDepartmentId(params);
   }

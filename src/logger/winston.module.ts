@@ -2,7 +2,7 @@ import { Module, Global } from '@nestjs/common';
 import * as winston from 'winston';
 import { WinstonModule, utilities } from 'nest-winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import { LoggerService } from './logger.service';
+import { LogService } from './logger.service';
 import { LoggerController } from './logger.controller';
 @Global()
 @Module({
@@ -77,7 +77,7 @@ import { LoggerController } from './logger.controller';
     }),
   ],
   controllers: [LoggerController],
-  providers: [LoggerService],
-  exports: [LoggerService],
+  providers: [LogService],
+  exports: [LogService],
 })
 export class WinstonLoggerModule {}
