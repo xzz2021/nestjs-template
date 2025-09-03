@@ -27,17 +27,15 @@ export class OperationLogInterceptor implements NestInterceptor {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger,
   ) {}
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const start = Date.now();
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<RequestWithUser>();
-    const response = ctx.getResponse<Response>();
+    // const response = ctx.getResponse<Response>();
     const { method, url, ip = '未知', headers, user } = request;
+    //  注意所有public接口 是没有user的
+    // console.log('xzz2021: OperationLogInterceptor -> request:', user);
     const userAgent = headers['user-agent'] ?? '';
     const userId = user?.id ?? null;
-
-    //  登录接口要做单独处理 ,  因为此时还没有用户身份  只能通过request.body 获取用户信息  假定登陆者
-
-    //  获取当前上下文
-    const start = Date.now();
 
     return next.handle().pipe(
       //  tap 是rxjs 的 操作符 用于在流中进行操作  类似于finally

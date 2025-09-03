@@ -23,7 +23,7 @@ export class CreateRoleDto {
   @IsString()
   @MaxLength(100)
   @ApiProperty({ type: String, description: '角色备注', example: '管理员备注说明' })
-  remark?: string;
+  remark?: string = '';
 
   @IsArray()
   @ArrayNotEmpty({ message: '分配的菜单不能为空' }) // 数组不能为空

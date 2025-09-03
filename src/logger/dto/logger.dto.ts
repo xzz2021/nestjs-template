@@ -64,6 +64,11 @@ export class QueryLogParams {
   @IsOptional()
   @ApiPropertyOptional({ type: String, description: '请求URL' })
   requestUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({ type: String, description: '日期范围' })
+  dateRange?: string;
 }
 
 export class DeleteLogDto {

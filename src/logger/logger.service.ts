@@ -41,6 +41,7 @@ export class LogService implements LoggerService {
   async getUserOperationLogList(searchParam: QueryLogParams) {
     // console.log('xzz2021: LogServic==================~ searchParam:');
     const { where, skip, take } = buildPrismaWhere(searchParam);
+    // console.log('xzz2021: LogService -> getUserOperationLogList -> where:', where);
     const newSearchParam = {
       where,
       skip,

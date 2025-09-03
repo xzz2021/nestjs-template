@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Exclude, plainToClass, Transform, Type } from 'class-transformer';
 import { IsString, IsNotEmpty, IsOptional, IsNumber, IsBoolean, IsArray, ValidateNested } from 'class-validator';
 import { DictionaryEntryDto } from './entry.dto';
+import { IsDateWithTransform } from '@/processor/pipe/validater';
 
 export class DictionaryDto {
   @ApiProperty({ type: String, description: '字典名称', example: '字典名称' })
@@ -22,7 +23,7 @@ export class DictionaryDto {
   @ApiPropertyOptional({ type: String, description: '字典描述', example: '字典描述' })
   @IsString()
   @IsOptional()
-  description?: string;
+  description?: string = '';
 
   @ApiProperty({ type: Boolean, description: '字典状态', example: true })
   @IsBoolean()
@@ -46,9 +47,17 @@ export class DeleteDictionaryDto {
   ids: number[];
 }
 
+class DictionaryEntryList {
+  @Exclude()
+  updatedAt: Date;
+
+  @IsDateWithTransform()
+  createdAt: Date;
+}
 export class DictionaryListDto extends UpsertDictionaryDto {
-  @ApiProperty({ type: DictionaryEntryDto, isArray: true, description: '字典项' })
-  entries?: DictionaryEntryDto[];
+  @ApiProperty({ type: DictionaryEntryList, isArray: true, description: '字典项' })
+  @Transform(({ value }) => (value ? value.map((item: any) => plainToClass(DictionaryEntryList, item, { excludeExtraneousValues: false })) : []))
+  entries?: DictionaryEntryList[];
 }
 
 export class DictionarySeedDto extends DictionaryDto {

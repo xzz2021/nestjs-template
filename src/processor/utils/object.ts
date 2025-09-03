@@ -2,7 +2,7 @@ interface BuildPrismaWhereParams {
   pageIndex: number;
   pageSize: number;
   status?: string;
-  dateRange?: [string, string];
+  dateRange?: [string, string] | string;
   [key: string]: any;
 }
 
@@ -11,8 +11,14 @@ export const buildPrismaWhere = (params: BuildPrismaWhereParams) => {
   const skip = (Number(pageIndex) - 1) * Number(pageSize);
   const take = Number(pageSize);
   const where: any = { status: status ?? undefined };
-  if (dateRange && dateRange.length === 2) {
-    const [start, end] = dateRange;
+  if (dateRange) {
+    let newRange;
+    if (typeof dateRange === 'string') {
+      newRange = JSON.parse(dateRange);
+    } else {
+      newRange = dateRange;
+    }
+    const [start, end] = newRange as [string, string];
     where.createdAt = {
       gte: new Date(start),
       lte: new Date(end),

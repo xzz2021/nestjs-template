@@ -4,6 +4,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Public } from '@/processor/decorator/public.decorator';
 import { DeleteEntryDto, UpsertEntryDto } from './dto/entry.dto';
 import { DeleteDictionaryDto, DictionaryListDto, DictionarySeedArrayDto, UpsertDictionaryDto } from './dto/dictionary.dto';
+import { Serialize } from '@/processor/decorator/serialize';
 
 // 此模块可以作为范本
 @ApiTags('字典')
@@ -14,6 +15,7 @@ export class DictionaryController {
   @Get('list')
   @Public()
   @ApiOperation({ summary: '获取字典列表' })
+  @Serialize(DictionaryListDto)
   @ApiResponse({ type: DictionaryListDto, isArray: true })
   findAll() {
     return this.dictionaryService.findAll();
@@ -34,6 +36,8 @@ export class DictionaryController {
   @Post('entry/upsert')
   @ApiOperation({ summary: '创建字典项' })
   createEntry(@Body() upsertEntryData: UpsertEntryDto) {
+    console.log('xzz2021: DictionaryController -> upsertDictionary -> upsertEntryData:', upsertEntryData);
+
     return this.dictionaryService.upsertEntry(upsertEntryData);
   }
 

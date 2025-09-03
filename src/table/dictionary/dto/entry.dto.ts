@@ -32,7 +32,8 @@ export class DictionaryEntryDto {
   @ApiPropertyOptional({ type: String, description: '字典项描述', example: '字典项描述' })
   @IsString()
   @IsOptional()
-  description?: string;
+  //  如果没有传值 自动设置为''
+  description?: string = '';
 }
 
 export class UpsertEntryDto extends DictionaryEntryDto {

@@ -26,7 +26,7 @@ export class DepartmentDto {
   @IsOptional()
   @MaxLength(200, { message: '部门备注不能超过200个字符' })
   @IsString()
-  remark?: string;
+  remark?: string = '';
 
   @ApiPropertyOptional({ type: Number, description: '父部门ID', example: null })
   @IsOptional()

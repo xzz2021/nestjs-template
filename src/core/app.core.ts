@@ -20,8 +20,9 @@ import { AllExceptionsFilter } from '@/processor/filter/all-exceptions.filter';
 import { WsModule } from '@/ws/ws.module';
 import { CACHE_MODULE } from './cache';
 import { TransformInterceptor } from '@/processor/interceptor/transform.interceptor';
-import { HttpExceptionFilter } from '@/processor/filter/http-exception.filter';
+// import { HttpExceptionFilter } from '@/processor/filter/http-exception.filter';
 import { ScheduleTaskModule } from '@/schedule/schedule.module';
+// import { DynamicThrottlerGuard } from '@/processor/guard/throttler.guard';
 
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
@@ -100,11 +101,13 @@ export const GLOBAL_GUARD = [
   //   useClass: DynamicThrottlerGuard,
   // },
   {
-    //  全局缓存所有端点  无论什么请求
+    //  全局缓存所有 get 端点 ?????
     provide: APP_INTERCEPTOR,
     useClass: CacheInterceptor, //  自定义 处理  HttpCacheInterceptor
     multi: true,
-    /*
+  },
+
+  /*
     内置的缓存拦截器  CacheInterceptor  可以应用在 不同层级上
 @Controller()
 @UseInterceptors(CacheInterceptor)
@@ -125,7 +128,6 @@ export class AppController {
 
 
     */
-  },
   {
     provide: APP_INTERCEPTOR,
     useClass: OperationLogInterceptor,
@@ -158,7 +160,7 @@ export class AppController {
     provide: APP_FILTER,
     useClass: AllExceptionsFilter,
   },
-  // {
+  // {  // 有全局拦截器后 可以合并处理http异常  HttpExceptionFilter是冗余的
   //   provide: APP_FILTER,
   //   useClass: HttpExceptionFilter,
   // },
