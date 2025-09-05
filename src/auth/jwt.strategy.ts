@@ -21,34 +21,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  validate(payload: any) {
     // 此处用于返回需要挂载到 所有走jwtguard的接口中 使用 @Request  req.user  的数据
-    const { id, username, phone, roleIds, tokenVersion } = payload;
-
-    /*
-
-    //  登录时检查  或者  每次都检查???????     或者维护一张userid 黑名单?
-    // 此处校验是为了解决  token依旧有效  但数据库清除了当前用户   导致的bug
-    const user = await this.prismaClient.user.findUnique({ where: { id, status: 1 } }); // 查数据库
-    if (!user) {
-      throw new UnauthorizedException('用户不存在或已被删除');
-    }
-
-    */
-
-    const sso = this.configService.get<string>('SSO');
-    // console.log('tokenVersion', tokenVersion);
-    // console.log('sso', sso);
-    // 判断是否开启单点登录
-    if (sso == 'true' && tokenVersion) {
-      // 从payload解析出tokenVersion 校验 不一致 则说明 token 无效
-      const tokenVersionKey = 'tokenVersion_' + phone;
-      const tokenVersionCache = await this.cacheManager.get(tokenVersionKey);
-      if (tokenVersionCache != tokenVersion) {
-        throw new UnauthorizedException('用户已在其他地方登录,tokenVersion 不一致');
-      }
-    }
-
-    return { id, username, phone, roleIds };
+    return payload;
   }
 }

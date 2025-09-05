@@ -6,7 +6,7 @@ import { TokenService } from '@/auth/token.service';
 
 //   配合   JwtStrategy 使用   JwtStrategy  注入到module里
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class TokenGuard extends AuthGuard('token') {
   constructor(
     private reflector: Reflector,
     private readonly tokenService: TokenService,
@@ -16,17 +16,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    // console.log('xzz2021: JwtAuthGuard -> canActivate:', request);
     // 允许对 `/static/` 开头的资源访问
     if (request.url.startsWith('/static')) {
       return true;
     }
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);
     // 先跑 JWT 校验（签名/过期/解析 payload）
-    if (isPublic) {
-      return true;
-    }
-    const ok = (await super.canActivate(context)) as boolean;
+    const ok = isPublic || ((await super.canActivate(context)) as boolean);
     if (!ok) return false;
     const user = request.user;
     const userId = user?.sub as number;
@@ -43,8 +39,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     // 2) 仍在该用户的会话列表中（避免已被逐出的旧会话继续访问）
     const list = await this.tokenService.listSessions(userId);
-    console.log('xzz2021: JwtAuthGuard -> canActivate -> list:', list);
-    console.log('xzz2021: JwtAuthGuard -> canActivate -> jti:', jti);
     if (!list.includes(jti)) {
       throw new UnauthorizedException('token not active');
     }

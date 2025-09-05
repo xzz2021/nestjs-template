@@ -9,6 +9,7 @@ import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption
 import { AliSmsService } from '@/utils/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
 import { LockoutService } from './lockout.service';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     private readonly smsService: AliSmsService,
     private readonly configService: ConfigService,
     private readonly lockout: LockoutService,
+    private readonly tokenService: TokenService,
   ) {
     this.wxAppSecret = this.configService.get<string>('WX_APP_SECRET') || '';
     this.wxAppId = this.configService.get<string>('WX_APP_ID') || '';
@@ -86,16 +88,11 @@ export class AuthService {
 
       // 移除密码字段，避免返回给前端
       const { password, ...result } = user;
-      const ssoEnabled = this.configService.get<string>('SSO');
-      let tokenVersion = 1;
-      if (ssoEnabled == 'true') {
-        // console.log('ssoEnabled', ssoEnabled);
-        tokenVersion = await this.updateTokenVersion(user.phone);
-      }
+      const access_token = await this.tokenService.signToken(user.id, result);
       return {
         message: user.username + '登录成功',
         userinfo: result,
-        access_token: this.jwtService.sign(ssoEnabled ? { ...result, tokenVersion } : result),
+        access_token,
       };
     }
   }

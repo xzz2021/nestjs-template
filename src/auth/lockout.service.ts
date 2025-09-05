@@ -34,10 +34,10 @@ export class LockoutService {
 
   // 建议从 ConfigService 注入；此处保留默认值，亦支持构造时覆盖
   private readonly config: LockoutConfig = {
-    windowSec: 15 * 60 * 1000,
+    windowSec: 15 * 60, // 后期改进  滑动窗口
     threshold: 5,
-    baseLockSec: 5 * 60 * 1000,
-    maxLockSec: 12 * 60 * 60 * 1000,
+    baseLockSec: 5 * 60,
+    maxLockSec: 12 * 60 * 60,
     ipThreshold: 20,
   };
 
@@ -58,14 +58,13 @@ export class LockoutService {
    */
   async ensureNotLocked(user: LockoutUser) {
     const cached = await this.cacheManager.get(this.lockKey(user.id));
-    console.log('xzz2021: LockoutService -> cached:', cached);
     if (cached && Number(cached) > Date.now()) {
       throw new ForbiddenException('账号已锁定，请稍后再试');
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      const ttl = Math.ceil((+user.lockedUntil - Date.now()) / 1000);
-      await this.cacheManager.set(this.lockKey(user.id), String(+user.lockedUntil), ttl);
+      const ttl = Math.ceil(+user.lockedUntil - Date.now()) / 1000;
+      await this.cacheManager.set(this.lockKey(user.id), String(+user.lockedUntil), ttl * 1000);
       throw new ForbiddenException('账号已锁定，请稍后再试');
     }
   }
@@ -75,22 +74,20 @@ export class LockoutService {
    * 若达到阈值并且用户存在，则执行锁定
    */
   async onFail(phone: string, ip: string, user?: LockoutUser) {
-    console.log('xzz2021: LockoutService -> onFail:', phone, ip, user);
+    // console.log('xzz2021: LockoutService -> onFail:', phone, ip, user);
     const { windowSec, threshold, ipThreshold } = this.config;
 
     // 账号维度 - 修复计数逻辑
     const acctKey = this.failAcctKey(phone);
     const acctCnt = ((await this.cacheManager.get(acctKey)) as number) || 0;
-    console.log('xzz2021: LockoutService -> acctCnt:', acctCnt);
     const newAcctCnt = acctCnt + 1;
-    await this.cacheManager.set(acctKey, newAcctCnt, windowSec);
-    console.log('xzz2021: LockoutService -> newAcctCnt:', newAcctCnt);
+    await this.cacheManager.set(acctKey, newAcctCnt, windowSec * 1000);
 
     // IP维度 - 修复计数逻辑
     const ipKey = this.failIpKey(ip);
     const ipCnt = ((await this.cacheManager.get(ipKey)) as number) || 0;
     const newIpCnt = ipCnt + 1;
-    await this.cacheManager.set(ipKey, newIpCnt, windowSec);
+    await this.cacheManager.set(ipKey, newIpCnt, windowSec * 1000);
 
     // DB 失败计数
     if (user) {
@@ -110,7 +107,7 @@ export class LockoutService {
         data: { lockedUntil, lockLevel: { increment: 1 } },
       });
 
-      await this.cacheManager.set(this.lockKey(user.id), String(+lockedUntil), nextLockSec);
+      await this.cacheManager.set(this.lockKey(user.id), String(+lockedUntil), nextLockSec * 1000);
     }
   }
 
@@ -121,7 +118,6 @@ export class LockoutService {
     await this.cacheManager.del(this.failAcctKey(phone));
     await this.cacheManager.del(this.failIpKey(ip));
     await this.cacheManager.del(this.lockKey(user.id));
-
     await this.pgService.user.update({
       where: { id: user.id },
       data: {

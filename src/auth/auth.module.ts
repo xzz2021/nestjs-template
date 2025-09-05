@@ -8,6 +8,7 @@ import { JwtRefreshStrategy } from './jwt.refresh.strategy';
 import { SmsModule } from '@/utils/sms/sms.module';
 import { ConfigService } from '@nestjs/config';
 import { LockoutService } from './lockout.service';
+import { TokenService } from './token.service';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { LockoutService } from './lockout.service';
     SmsModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LockoutService, JwtStrategy, JwtRefreshStrategy],
-  exports: [AuthService, LockoutService],
+  providers: [AuthService, LockoutService, TokenService, JwtStrategy, JwtRefreshStrategy],
+  exports: [AuthService, LockoutService, TokenService],
 })
 export class AuthModule {}
