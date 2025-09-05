@@ -5,8 +5,8 @@ import { Transform, Type } from 'class-transformer';
 
 export class MetaDto {
   @ApiPropertyOptional({ type: String, description: '菜单标题', example: '菜单标题' })
-  @IsNotEmpty({ message: '菜单标题不能为空' })
   @IsString()
+  @IsNotEmpty({ message: '菜单标题不能为空' })
   title: string;
 
   @ApiPropertyOptional({ type: String, description: '菜单图标', example: '菜单图标' })
@@ -57,19 +57,19 @@ export class MetaDto {
 
 export class PermissionDto {
   @ApiProperty({ type: Number, description: '权限ID', example: 1 })
-  @IsNotEmpty({ message: '权限ID不能为空' })
-  @IsNumber()
+  // @IsNumber()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty({ message: '权限ID不能为空' })
   id: number;
 
   @ApiProperty({ type: String, description: '权限名称', example: '新增' })
-  @IsNotEmpty({ message: '权限名称不能为空' })
   @IsString()
+  @IsNotEmpty({ message: '权限名称不能为空' })
   name: string;
 
   @ApiProperty({ type: String, description: '权限代码', example: 'add' })
-  @IsNotEmpty({ message: '权限代码不能为空' })
   @IsString()
+  @IsNotEmpty({ message: '权限代码不能为空' })
   code: string;
 
   @ApiProperty({ type: String, description: '权限值', example: '12' })
@@ -78,8 +78,8 @@ export class PermissionDto {
   value?: string;
 
   @ApiProperty({ type: String, description: '权限资源', example: 'menu' })
-  @IsNotEmpty({ message: '权限资源不能为空' })
   @IsString()
+  @IsNotEmpty({ message: '权限资源不能为空' })
   resource: string;
 }
 
@@ -87,34 +87,34 @@ export class PermissionNoIdDto extends OmitType(PermissionDto, ['id'] as const) 
 
 export class MenuDto {
   @ApiProperty({ type: Number, description: '菜单ID', example: 1 })
-  @IsNotEmpty({ message: '菜单ID不能为空' })
-  @IsNumber()
+  // @IsNumber()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty({ message: '菜单ID不能为空' })
   id: number;
 
   @ApiProperty({ type: String, description: '菜单名称', example: '菜单管理' })
-  @IsNotEmpty({ message: '菜单名称不能为空' })
   @IsString()
+  @IsNotEmpty({ message: '菜单名称不能为空' })
   name: string;
 
   @ApiProperty({ type: String, description: '菜单路径', example: 'menu' })
-  @IsNotEmpty({ message: '菜单路径不能为空' })
   @IsString()
+  @IsNotEmpty({ message: '菜单路径不能为空' })
   path: string;
 
   @ApiProperty({ type: String, description: '菜单组件', example: '组件' })
-  @IsNotEmpty({ message: '菜单组件不能为空' })
   @IsString()
+  @IsNotEmpty({ message: '菜单组件不能为空' })
   component: string;
 
   // 嵌套对象验证 - 方式1：完整对象验证
 
   @ApiPropertyOptional({ type: () => MetaDto, description: '元数据' })
-  @IsNotEmpty({ message: '菜单元数据不能为空' })
   @IsObject({ message: 'meta必须是对象' })
   //  @ValidateNested({ each: true }) 数组用 true  对象 用false
   @ValidateNested({ each: false })
   @Type(() => MetaDto)
+  @IsNotEmpty({ message: '菜单元数据不能为空' })
   // @Type(() => MetaDto) 的作用：
   // 1. 将普通对象转换为 MetaDto 实例
   // 2. 确保 class-transformer 能正确处理嵌套对象
@@ -157,8 +157,8 @@ export class MenuDto {
 
   @ApiPropertyOptional({ type: Number, description: '父级菜单ID', example: null })
   @IsOptional()
+  // @IsNumber()
   @Transform(({ value }) => (value ? Number(value) : undefined))
-  @IsNumber()
   parentId?: number;
 
   //   @ApiPropertyOptional({ type: () => MenuDto })
@@ -172,15 +172,15 @@ export class MenuDto {
 
 export class MenuSortDto {
   @ApiProperty({ type: Number, description: '菜单ID', example: 1 })
-  @IsNotEmpty({ message: '菜单ID不能为空' })
-  @IsNumber()
+  // @IsNumber()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty({ message: '菜单ID不能为空' })
   id: number;
 
   @ApiProperty({ type: Number, description: '菜单排序', example: 1 })
-  @IsNotEmpty({ message: '菜单排序不能为空' })
-  @IsNumber()
+  // @IsNumber()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty({ message: '菜单排序不能为空' })
   sort: number;
 }
 

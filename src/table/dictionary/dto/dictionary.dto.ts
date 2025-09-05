@@ -33,17 +33,17 @@ export class DictionaryDto {
 
 export class UpsertDictionaryDto extends DictionaryDto {
   @ApiProperty({ type: Number, description: '字典ID', example: 1 })
-  @IsNumber()
-  @IsOptional()
+  // @IsNumber()
   @Transform(({ value }) => (value ? Number(value) : undefined))
+  @IsOptional()
   id?: number;
 }
 
 export class DeleteDictionaryDto {
   @ApiProperty({ type: Number, isArray: true, description: '字典ID数组', example: [1, 2, 3] })
+  @Transform(({ value }) => (Array.isArray(value) ? [...new Set(value)].map(Number) : value))
   @IsArray()
   @IsNotEmpty()
-  @Transform(({ value }) => (Array.isArray(value) ? [...new Set(value)].map(Number) : value))
   ids: number[];
 }
 
@@ -62,11 +62,11 @@ export class DictionaryListDto extends UpsertDictionaryDto {
 
 export class DictionarySeedDto extends DictionaryDto {
   @ApiProperty({ type: DictionaryEntryDto, isArray: true, description: '字典项' })
-  @IsArray()
   @IsOptional()
   // 检查entries内部的每一项 过滤多余字段
-  @ValidateNested({ each: true })
   @Type(() => DictionaryEntryDto)
+  @ValidateNested({ each: true })
+  @IsArray()
   entries?: DictionaryEntryDto[];
 }
 

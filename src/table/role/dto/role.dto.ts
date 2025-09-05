@@ -4,25 +4,27 @@ import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional, OmitType, PickType } from '@nestjs/swagger';
 import { MenuDto, PermissionDto, MetaDto } from '@/table/menu/dto/menu.dto';
 export class CreateRoleDto {
-  @IsString()
-  @MaxLength(50)
   @ApiProperty({ type: String, description: '角色名称', example: '管理员' })
+  @MaxLength(50)
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
+  @ApiProperty({ type: String, description: '角色编码', example: 'admin' })
   @IsString()
   @MaxLength(50)
-  @ApiProperty({ type: String, description: '角色编码', example: 'admin' })
+  @IsNotEmpty()
   code: string;
 
+  @ApiProperty({ type: Boolean, description: '角色状态', example: true })
   @IsOptional()
   @IsBoolean()
-  @ApiProperty({ type: Boolean, description: '角色状态', example: true })
   status?: boolean;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
   @ApiProperty({ type: String, description: '角色备注', example: '管理员备注说明' })
+  @IsOptional()
+  @MaxLength(100)
+  @IsString()
   remark?: string = '';
 
   @IsArray()
@@ -42,32 +44,33 @@ export class CreateRoleDto {
 }
 
 export class QueryRoleParams {
-  @IsInt()
+  @ApiPropertyOptional({ type: Number, description: '页码', default: 1 })
   @IsOptional()
   @Type(() => Number)
-  @ApiPropertyOptional({ type: Number, description: '页码', default: 1 })
+  @IsInt()
   pageIndex: number = 1;
 
-  @IsInt()
-  @IsOptional()
-  @Type(() => Number)
   @ApiPropertyOptional({ type: Number, description: '每页条数', default: 10 })
+  @Type(() => Number)
+  @IsOptional()
+  @IsInt()
   pageSize: number = 10;
 
-  @IsString()
   @IsOptional()
   @ApiPropertyOptional({ type: String, description: '角色名称' })
+  @IsString()
   name?: string;
 
+  @ApiPropertyOptional({ type: String, description: '角色编码' })
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional({ type: String, description: '角色编码' })
   code?: string;
 
-  @IsBoolean()
-  @Transform(({ value }) => value === 'true') //  在query中拿到的数据?pageIndex=1&pageSize=10&status=true都是序列化后的字符
   @ApiPropertyOptional({ type: Boolean, description: '角色状态', default: true })
-  status: boolean = true;
+  // @IsBoolean()
+  @IsOptional()
+  @Transform(({ value }) => value === 'true') //  在query中拿到的数据?pageIndex=1&pageSize=10&status=true都是序列化后的字符
+  status?: boolean;
 }
 
 export class UpdateRoleDto extends CreateRoleDto {
@@ -79,19 +82,19 @@ export class UpdateRoleDto extends CreateRoleDto {
 }
 export class DeleteRoleDto {
   @ApiProperty({ type: Number, description: '角色ID', example: 1 })
+  @Transform(({ value }) => Number(value))
   @IsInt()
   @IsNotEmpty()
-  @Transform(({ value }) => Number(value))
   id: number;
 }
 
 export class RoleSeedDto extends OmitType(CreateRoleDto, ['menuIds', 'permissionIds'] as const) {}
 
 export class RoleSeedArrayDto {
-  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => RoleSeedDto)
   @ApiProperty({ type: RoleSeedDto, isArray: true })
+  @IsArray()
   data: RoleSeedDto[];
 }
 

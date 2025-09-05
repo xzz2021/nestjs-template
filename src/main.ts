@@ -98,6 +98,14 @@ async function bootstrap() {
   });
 
 
+    // 允许跨域
+  app.enableCors({
+    origin: '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // 明确允许方法
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'], // 按需配置允许的请求头
+  })
+
 
   //  前端Axios 示例
   function getCsrfToken() {
@@ -110,6 +118,9 @@ axios.post('/api/resource', data, {
   headers: { 'X-CSRF-TOKEN': getCsrfToken() },
   withCredentials: true,
 });
+
+  app.useStaticAssets({ root: path.join(__dirname, '..', 'public') })
+
   */
   app.useGlobalPipes(GLOBAL_VALIDATION_PIPE); // 全局类转换校验  定义了dto的会自动转换
   const port = process.env.PORT ?? 3000;

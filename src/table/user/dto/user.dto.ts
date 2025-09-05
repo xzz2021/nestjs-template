@@ -4,25 +4,25 @@ import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 
 export class QueryUserParams {
-  @IsInt()
+  // @IsInt()
   @IsOptional()
   @Type(() => Number)
   @ApiPropertyOptional({ type: Number, description: '部门id, 不传则查询所有用户' })
   @Transform(({ value }) => (value ? Number(value) : undefined))
   id?: number;
 
-  @IsInt()
   @IsOptional()
   @Type(() => Number)
   @ApiPropertyOptional({ type: Number, description: '页码', default: 1 })
+  @IsInt()
   pageIndex: number = 1;
 
-  @IsInt()
   @IsOptional()
   @Type(() => Number)
   @ApiPropertyOptional({ type: Number, description: '每页条数', default: 10 })
   @Max(100)
   @Transform(({ value }) => Number(value) || 10)
+  @IsInt()
   pageSize: number = 10;
 
   @IsString()
@@ -85,9 +85,9 @@ export class UserDto {
 
 export class UpdateUserDto extends UserDto {
   @ApiProperty({ type: Number, description: '用户ID', example: 1 })
+  @Transform(({ value }) => Number(value))
   @IsInt()
   @IsNotEmpty()
-  @Transform(({ value }) => Number(value))
   id: number;
 
   //  生成时传递的是id数组
@@ -111,8 +111,8 @@ export class CreateUserDto extends OmitType(UpdateUserDto, ['id']) {}
 export class UpdatePersonalInfo extends UserDto {
   @ApiProperty({ type: Number, description: '用户ID', example: 1 })
   @IsInt()
-  @IsNotEmpty()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty()
   id: number;
 }
 
@@ -127,8 +127,8 @@ export class UserListRes {
 export class UpdatePwdDto {
   @ApiProperty({ type: Number, description: '用户ID', example: 1 })
   @IsInt()
-  @IsNotEmpty()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty()
   id: number;
 
   @ApiProperty({ type: String, description: '旧密码', example: '123456' })
@@ -144,9 +144,9 @@ export class UpdatePwdDto {
 
 export class AdminUpdatePwdDto {
   @ApiProperty({ type: Number, description: '用户ID', example: 1 })
+  @Transform(({ value }) => Number(value))
   @IsInt()
   @IsNotEmpty()
-  @Transform(({ value }) => Number(value))
   id: number;
 
   @ApiProperty({ type: String, description: '新密码', example: '123456' })
@@ -158,8 +158,8 @@ export class AdminUpdatePwdDto {
 export class BatchDeleteUserDto {
   @ApiProperty({ type: Number, isArray: true, description: '用户ID', example: [1, 2] })
   @IsArray()
+  @Transform(({ value }) => (Array.isArray(value) ? [...new Set(value)].map(Number) : value))
   @IsNotEmpty()
   @Type(() => Number)
-  @Transform(({ value }) => (Array.isArray(value) ? [...new Set(value)].map(Number) : value))
   ids: number[];
 }

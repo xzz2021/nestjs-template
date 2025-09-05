@@ -4,17 +4,18 @@ import { ApiProperty, ApiPropertyOptional, IntersectionType, OmitType, PartialTy
 import { plainToClass, Transform, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Validate, ValidateNested } from 'class-validator';
 
+//  需要注意校验器是从下往上执行的,  所以类型限定装饰器应该放最下面
 export class DepartmentDto {
   @ApiProperty({ type: Number, description: '部门ID', example: 0 })
-  @IsNumber()
   @IsNotEmpty()
+  // @IsNumber()
   @Transform(({ value }) => Number(value))
   id: number;
 
   @ApiProperty({ type: String, description: '部门名称', example: '设计部' })
+  @MaxLength(50, { message: '部门名称不能超过50个字符' })
   @IsString()
   @IsNotEmpty({ message: '部门名称不能为空' })
-  @MaxLength(50, { message: '部门名称不能超过50个字符' })
   name: string;
 
   @ApiProperty({ type: Boolean, description: '部门状态', default: true, example: true })
@@ -133,22 +134,27 @@ export class UpsertDepartmentDto {
     description: '子部门',
     example: [{ name: '设计部', status: true, remark: '部门备注', parentId: 1 }],
   })
-  @IsArray()
-  @ValidateNested({ each: true })
   @Type(() => UpsertDepartmentDto)
+  @ValidateNested({ each: true })
+  @IsArray()
   @IsOptional()
   children?: UpsertDepartmentDto[];
 
   @ApiProperty({ type: String })
-  @IsNotEmpty()
+  @MaxLength(50, { message: '部门名称不能超过50个字符' })
+  @IsString()
+  @IsNotEmpty({ message: '部门名称不能为空' })
   name: string;
 
   @ApiProperty({ type: Boolean })
   @IsOptional()
+  @IsBoolean()
   status?: boolean;
 
   @ApiPropertyOptional({ type: String })
   @IsOptional()
+  @MaxLength(200, { message: '部门备注不能超过200个字符' })
+  @IsString()
   remark?: string;
 }
 

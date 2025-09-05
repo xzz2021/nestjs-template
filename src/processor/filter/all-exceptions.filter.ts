@@ -1,7 +1,7 @@
 //  这里是捕获所未知异常  无法拿到源信息
 // 如果需要源信息   后期考虑 实现return next.handle().pipe() 来捕获
 
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Logger, Inject } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Logger, Inject, NotFoundException } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { checkPrismaError } from './prisma.exception';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -17,7 +17,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
     const request = ctx.getRequest<Request>();
 
-    const path = request.url;
+    const path = request.url.split('?')[0];
     // ✅ 忽略 favicon.ico 请求
     if (path === 'favicon.ico') {
       return response.status(204).send(); // No Content
@@ -32,6 +32,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else if (exception instanceof Error) {
       message = exception.message;
     }
+    if (exception instanceof NotFoundException) {
+      status = exception.getStatus();
+      message = `接口不存在: ${path}`;
+      // throw new NotFoundException();
+    }
 
     const { msg, meta } = checkPrismaError(exception) || {};
 
@@ -41,9 +46,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       // url: request.url,
       // status,
       // message,
-      stack: exception instanceof Error ? exception.stack : null,
+      stack: exception instanceof Error ? exception.stack?.slice(0, 30) : null,
       context: 'AllExceptionsFilter',
-      info: `${request.url.split('?')[0]}, ${request.method} ${Date.now() - start}ms`,
+      info: `${path}, ${request.method} ${Date.now() - start}ms`,
     });
 
     //  一定要返回数据 否则会截断

@@ -379,3 +379,19 @@ model SystemLog {
 
   @@map("system_log")
 }
+
+
+model File {
+  id         Int      @id @default(autoincrement())
+  name   String   @db.VarChar(255)
+  mimeType String  @db.VarChar(50)
+  path      String  @db.VarChar(255)
+  extension  String?  @db.VarChar(20)
+  sha256     String   @unique @db.Char(64)
+  size       Int
+  url        String   @db.VarChar(255)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([extension])
+  @@map("file")
+}

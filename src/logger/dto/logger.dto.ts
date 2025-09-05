@@ -69,13 +69,19 @@ export class QueryLogParams {
   @IsOptional()
   @ApiPropertyOptional({ type: String, description: '日期范围' })
   dateRange?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({ type: String, description: '响应消息' })
+  responseMsg?: string;
 }
 
 export class DeleteLogDto {
   @ApiProperty({ type: Number, isArray: true, description: '日志ID数组', example: [1, 2, 3] })
+  @Transform(({ value }) => (Array.isArray(value) ? [...new Set(value)].map(Number) : value))
   @IsArray()
   @IsNotEmpty()
-  @Transform(({ value }) => (Array.isArray(value) ? [...new Set(value)].map(Number) : value))
+  @Type(() => Number)
   ids: number[];
 }
 

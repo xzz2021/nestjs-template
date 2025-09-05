@@ -30,11 +30,4 @@ export class StaticfileController {
     // 设置文件名
     return new StreamableFile(file);
   }
-
-  @Post('material/img')
-  @ApiOperation({ summary: '上传材料相应图片' })
-  @UseInterceptors(FileInterceptor('file', generateMulterConfigOfImg(AttachmentStoragePath.MATERIAL_IMG)))
-  uploadMaterialImg(@UploadedFile() file: Express.Multer.File) {
-    return this.staticfileService.uploadMaterialImg(file.filename);
-  }
 }

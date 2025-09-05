@@ -1,4 +1,4 @@
-import { ValidationPipe, BadRequestException, ValidationError } from '@nestjs/common';
+import { ValidationPipe, BadRequestException, ValidationError, UnprocessableEntityException } from '@nestjs/common';
 
 // 错误消息映射表
 const ERROR_MAP = new Map([
@@ -61,19 +61,24 @@ export const GLOBAL_VALIDATION_PIPE = new ValidationPipe({
   exceptionFactory: (errors: ValidationError[]) => {
     // console.log('errors', JSON.stringify(errors));
 
-    const err = errors[errors.length - 1].constraints || {};
-    console.log('err: ', JSON.stringify(err));
+    // const err = errors[errors.length - 1].constraints || {};
+    // console.log('err: ', JSON.stringify(err));
 
-    const errMsg = Object.values(err)[0] || 'DTO校验失败: 数据类型不合法';
+    // const errMsg = Object.values(err)[0] || 'DTO校验失败: 数据类型不合法';
 
     // 使用 Map 进行错误消息转换
-    let cnErrMsg = errMsg;
-    for (const [key, value] of ERROR_MAP) {
-      if (cnErrMsg.includes(key)) {
-        cnErrMsg = cnErrMsg.replace(key, value);
-      }
-    }
+    const cnErrMsg = errors.map(e => {
+      const rule = Object.keys(e.constraints!)[0];
+      const msg = e.constraints![rule];
+      return msg || 'DTO校验失败: 数据类型不合法';
+    })[0];
+    // for (const [key, value] of ERROR_MAP) {
+    //   if (cnErrMsg.includes(key)) {
+    //     cnErrMsg = cnErrMsg.replace(key, value);
+    //   }
+    // }
 
-    return new BadRequestException(cnErrMsg);
+    // return new BadRequestException(cnErrMsg);
+    return new UnprocessableEntityException(cnErrMsg);
   },
 });

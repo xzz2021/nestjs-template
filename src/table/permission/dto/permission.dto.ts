@@ -4,13 +4,13 @@ import { Transform } from 'class-transformer';
 
 export class PermissionDto {
   @ApiProperty({ type: String, description: '权限名称', example: '新增' })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   name: string;
 
   @ApiProperty({ type: String, description: '权限代码', example: 'add' })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   code: string;
 
   @ApiPropertyOptional({ type: String, description: '权限值', example: '12' })
@@ -21,34 +21,34 @@ export class PermissionDto {
 
 export class CreatePermissionDto extends PermissionDto {
   @ApiProperty({ type: String, description: '权限资源', example: 'menu' })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   resource: string;
 
   @ApiProperty({ type: Number, description: '菜单ID', example: 1 })
-  @IsNotEmpty()
-  @IsNumber()
+  // @IsNumber()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty()
   menuId: number;
 }
 
 export class UpdatePermissionDto extends PermissionDto {
   @ApiProperty({ type: Number, description: '权限ID', example: 1 })
-  @IsNotEmpty()
-  @IsNumber()
+  // @IsNumber()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty()
   id: number;
 
   @ApiProperty({ type: String, description: '权限资源', example: 'menu' })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   resource: string;
 }
 
 export class BatchPermissionDto {
   @ApiProperty({ type: Number, description: '菜单ID', example: 1 })
-  @IsNotEmpty()
-  @IsNumber()
+  // @IsNumber()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty()
   menuId: number;
 }

@@ -43,6 +43,7 @@ export function createSwagger(app: INestApplication) {
       scheme: 'bearer',
       type: 'http',
     })
+    // .addServer(`http://127.0.0.1:3000`, 'Base URL')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

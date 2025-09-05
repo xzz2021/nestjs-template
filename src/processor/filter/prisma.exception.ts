@@ -46,6 +46,6 @@ export const checkPrismaError = (exception: any) => {
     }
   }
 
-  console.log('🚀 ~ checkPrismaError ~ 未检测到 Prisma 错误');
+  // console.log('🚀 ~ checkPrismaError ~ 未检测到 Prisma 错误');
   return null;
 };
