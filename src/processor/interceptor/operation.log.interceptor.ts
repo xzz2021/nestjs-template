@@ -31,7 +31,7 @@ export class OperationLogInterceptor implements NestInterceptor {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<RequestWithUser>();
     // const response = ctx.getResponse<Response>();
-    const { method, url, ip = '未知', headers, user } = request;
+    const { method, url, ip, headers, user } = request;
     //  注意所有public接口 是没有user的
     // console.log('xzz2021: OperationLogInterceptor -> request:', user);
     const userAgent = headers['user-agent'] ?? '';
@@ -57,7 +57,7 @@ export class OperationLogInterceptor implements NestInterceptor {
           userId,
           // target: url,
           method,
-          ip: extractIP(ip),
+          ip: extractIP(ip ?? ''),
           userAgent: userAgent,
           requestUrl: url,
           responseMsg: data?.message,
@@ -84,7 +84,7 @@ export class OperationLogInterceptor implements NestInterceptor {
         const logData = {
           userId,
           method,
-          ip: extractIP(ip),
+          ip: extractIP(ip ?? ''),
           userAgent: userAgent,
           requestUrl: url,
           responseMsg: err?.message,

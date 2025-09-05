@@ -8,6 +8,7 @@ import { resultDataType, UndiciHttpService } from '@/utils/http/undici.http.serv
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
 import { AliSmsService } from '@/utils/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
+import { LockoutService } from './lockout.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
     private readonly httpService: UndiciHttpService,
     private readonly smsService: AliSmsService,
     private readonly configService: ConfigService,
+    private readonly lockout: LockoutService,
   ) {
     this.wxAppSecret = this.configService.get<string>('WX_APP_SECRET') || '';
     this.wxAppId = this.configService.get<string>('WX_APP_ID') || '';
@@ -51,7 +53,7 @@ export class AuthService {
     return { message: phone + '注册成功', res };
   }
 
-  async login(loginInfo: LoginInfoDto) {
+  async login(loginInfo: LoginInfoDto, ip: string) {
     const user = await this.pgService.user.findUnique({
       where: { phone: loginInfo.phone },
       select: {
@@ -64,28 +66,38 @@ export class AuthService {
         email: true,
         birthday: true,
         gender: true,
+        lockedUntil: true,
       },
     });
 
-    if (!user) {
-      throw new BadRequestException('用户不存在');
+    if (user) {
+      //  校验锁定状态
+      await this.lockout.ensureNotLocked(user);
+
+      // 比对密码（无用户也走失败分支以防枚举）
+      const ok = user ? await verifyPayPassword(user.password, loginInfo.password) : false;
+      if (!ok) {
+        await this.lockout.onFail(loginInfo.phone, ip, user ?? undefined);
+        throw new UnauthorizedException('账号或密码错误');
+      }
+
+      // 成功：复位锁定状态
+      await this.lockout.onSuccess(loginInfo.phone, ip, user);
+
+      // 移除密码字段，避免返回给前端
+      const { password, ...result } = user;
+      const ssoEnabled = this.configService.get<string>('SSO');
+      let tokenVersion = 1;
+      if (ssoEnabled == 'true') {
+        // console.log('ssoEnabled', ssoEnabled);
+        tokenVersion = await this.updateTokenVersion(user.phone);
+      }
+      return {
+        message: user.username + '登录成功',
+        userinfo: result,
+        access_token: this.jwtService.sign(ssoEnabled ? { ...result, tokenVersion } : result),
+      };
     }
-    const isPasswordValid = await verifyPayPassword(user.password, loginInfo.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException(loginInfo.phone + ': 账号或密码错误');
-    }
-    const { password, ...result } = user;
-    const ssoEnabled = this.configService.get<string>('SSO');
-    let tokenVersion = 1;
-    if (ssoEnabled == 'true') {
-      // console.log('ssoEnabled', ssoEnabled);
-      tokenVersion = await this.updateTokenVersion(user.phone);
-    }
-    return {
-      message: user.username + '登录成功',
-      userinfo: result,
-      access_token: this.jwtService.sign(ssoEnabled ? { ...result, tokenVersion } : result),
-    };
   }
 
   async isUserExist(phone: string) {
@@ -276,7 +288,7 @@ export class AuthService {
             password: hashedPassword,
           },
         });
-        const res2 = await this.login({ phone: data.phone, password: data.password });
+        const res2 = await this.login({ phone: data.phone, password: data.password }, '');
         return res2;
       } catch (error) {
         console.log(error);
@@ -298,7 +310,7 @@ export class AuthService {
       false,
     );
     if (res?.res?.id) {
-      return await this.login({ phone: data.phone, password: data.password });
+      return await this.login({ phone: data.phone, password: data.password }, '');
     }
     // return { code: 400, message: '绑定失败, 请重试!', res };
 
@@ -355,7 +367,7 @@ export class AuthService {
   async smsBind(data: SmsBindDto) {
     //  1. 走正常注册流程
     await this.create({ ...data, code: '' }, false);
-    return await this.login({ phone: data.phone, password: data.password });
+    return await this.login({ phone: data.phone, password: data.password }, '');
   }
 
   // refreshTokens(userId: number, _refreshToken: string) {

@@ -48,16 +48,25 @@ model User {
   birthday   String?
   gender     String?     @default("OTHER")
   status     Boolean     @default(true)
-  wechatId   String?     @unique @map("wechat_id")
-  wechatInfo WechatInfo? @relation(fields: [wechatId], references: [unionid])
+
+
+  failedLoginCount Int     @default(0) @map("failed_login_count")
+  lockLevel        Int     @default(0) @map("lock_level")
+  lockedUntil      DateTime? @map("locked_until") 
+  lastLoginAt      DateTime? @map("last_login_at")
+  lastLoginIp      String? @map("last_login_ip")
+
 
   isDeleted Boolean  @default(false) @map("is_deleted")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  wechatId   String?     @unique @map("wechat_id")
+  wechatInfo WechatInfo? @relation(fields: [wechatId], references: [unionid])
+
   // 显式多对多关系
   roles UserRole[]
-
+  
   departments UserDepartment[]
 
   // 通知相关
