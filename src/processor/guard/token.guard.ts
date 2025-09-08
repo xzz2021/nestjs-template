@@ -17,7 +17,7 @@ export class TokenGuard extends AuthGuard('token') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     // 允许对 `/static/` 开头的资源访问
-    if (request.url.startsWith('/static')) {
+    if (request.url.startsWith('/static/')) {
       return true;
     }
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);
@@ -34,7 +34,7 @@ export class TokenGuard extends AuthGuard('token') {
 
     // 1) 黑名单校验：被撤销/踢下线的会话直接 401
     if (await this.tokenService.isBlacklisted(jti)) {
-      throw new UnauthorizedException('Token revoked');
+      throw new UnauthorizedException('Token 已失效');
     }
 
     // 2) 仍在该用户的会话列表中（避免已被逐出的旧会话继续访问）

@@ -46,22 +46,18 @@ export class MailService {
   async sendCode(mailInfo: MailInfo) {
     const htmlContent = mailInfo.html ?? CodeTemplate.replace('AAAAAA', mailInfo.text ?? '');
 
-    try {
-      const result = await this.transporter.sendMail({
-        // from: this.mailConfig.auth.user,
-        from: this.mailConfig.sender,
-        to: mailInfo.to,
-        subject: mailInfo.subject,
-        html: htmlContent,
-      });
+    const result = await this.transporter.sendMail({
+      // from: this.mailConfig.auth.user,
+      from: this.mailConfig.sender,
+      to: mailInfo.to,
+      subject: mailInfo.subject,
+      html: htmlContent,
+    });
 
-      return { code: 200, message: '发送成功', data: result };
-    } catch (error) {
-      return {
-        code: 500,
-        message: '发送失败',
-        data: error.message,
-      };
-    }
+    // this.cacheManager.set(to, code, { ttl: 60 * 5 });
+
+    return { message: '发送成功', data: result };
   }
+
+  // async checkCode(to, code) {}
 }

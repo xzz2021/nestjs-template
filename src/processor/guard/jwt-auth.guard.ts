@@ -18,7 +18,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const request = context.switchToHttp().getRequest();
     // console.log('xzz2021: JwtAuthGuard -> canActivate:', request);
     // 允许对 `/static/` 开头的资源访问
-    if (request.url.startsWith('/static')) {
+    if (request.url.startsWith('/static/')) {
       return true;
     }
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);
@@ -27,6 +27,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
     const ok = (await super.canActivate(context)) as boolean;
+
     if (!ok) return false;
     const user = request.user;
     const userId = user?.sub as number;
@@ -38,16 +39,22 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     // 1) 黑名单校验：被撤销/踢下线的会话直接 401
     if (await this.tokenService.isBlacklisted(jti)) {
-      throw new UnauthorizedException('Token revoked');
+      throw new UnauthorizedException('Token 已失效');
     }
 
     // 2) 仍在该用户的会话列表中（避免已被逐出的旧会话继续访问）
     const list = await this.tokenService.listSessions(userId);
-    console.log('xzz2021: JwtAuthGuard -> canActivate -> list:', list);
-    console.log('xzz2021: JwtAuthGuard -> canActivate -> jti:', jti);
+    // console.log('xzz2021: JwtAuthGuard -> canActivate -> list:', list);
+    // console.log('xzz2021: JwtAuthGuard -> canActivate -> jti:', jti);
     if (!list.includes(jti)) {
       throw new UnauthorizedException('token not active');
     }
+
+    // 更新用户在线状态
+    // await this.pgService.user.update({
+    //   where: { id: userId },
+    //   data: { isOnline: true },
+    // });
 
     return true;
 

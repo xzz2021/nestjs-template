@@ -59,7 +59,8 @@ export class LockoutService {
   async ensureNotLocked(user: LockoutUser) {
     const cached = await this.cacheManager.get(this.lockKey(user.id));
     if (cached && Number(cached) > Date.now()) {
-      throw new ForbiddenException('账号已锁定，请稍后再试');
+      const timeLeft = Math.ceil((Number(cached) - Date.now()) / 1000);
+      throw new ForbiddenException(`账号已锁定，请${timeLeft}秒后再试`);
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
@@ -126,6 +127,19 @@ export class LockoutService {
         lockedUntil: null,
         lastLoginAt: new Date(),
         lastLoginIp: ip,
+      },
+    });
+  }
+
+  async unlockUser(id: number) {
+    await this.cacheManager.del(this.lockKey(id));
+    await this.pgService.user.update({
+      where: { id },
+      data: {
+        lockedUntil: null,
+        lockLevel: 0,
+        failedLoginCount: 0,
+        lastLoginAt: new Date(),
       },
     });
   }

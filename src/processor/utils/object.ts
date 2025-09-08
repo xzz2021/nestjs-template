@@ -1,4 +1,4 @@
-interface BuildPrismaWhereParams {
+export interface BuildPrismaWhereParams {
   pageIndex: number;
   pageSize: number;
   status?: string;

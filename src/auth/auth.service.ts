@@ -388,4 +388,18 @@ export class AuthService {
   //     refreshToken: newRefreshToken,
   //   };
   // }
+
+  async forceLogout(id: number) {
+    // await this.pgService.user.update({ where: { id }, data: { isDeleted: true } });
+    await this.tokenService.kickOthers(id);
+
+    return { message: '强制用户下线成功', id };
+  }
+
+  async unlock(id: number) {
+    //  移除redis限制   重置数据库锁定信息
+    await this.lockout.unlockUser(id);
+
+    return { message: '解锁用户成功', id };
+  }
 }

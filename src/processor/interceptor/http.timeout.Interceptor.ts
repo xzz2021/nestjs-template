@@ -4,12 +4,14 @@ import { catchError, timeout } from 'rxjs/operators';
 
 @Injectable()
 export class TimeoutInterceptor implements NestInterceptor {
+  constructor(private readonly time: number = 10000) {}
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      timeout(10000),
+      timeout(this.time),
       catchError(err => {
         if (err instanceof TimeoutError) {
-          return throwError(() => new RequestTimeoutException());
+          return throwError(() => new RequestTimeoutException('请求超时'));
         }
         return throwError(() => err);
       }),

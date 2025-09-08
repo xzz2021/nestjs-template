@@ -67,11 +67,13 @@ export const GLOBAL_VALIDATION_PIPE = new ValidationPipe({
     // const errMsg = Object.values(err)[0] || 'DTO校验失败: 数据类型不合法';
 
     // 使用 Map 进行错误消息转换
-    const cnErrMsg = errors.map(e => {
-      const rule = Object.keys(e.constraints!)[0];
-      const msg = e.constraints![rule];
-      return msg || 'DTO校验失败: 数据类型不合法';
-    })[0];
+    const cnErrMsg = errors
+      .map(e => {
+        const rule = Object.keys(e.constraints!)[0];
+        const msg = e.constraints![rule];
+        return msg || 'DTO校验失败: 数据类型不合法';
+      })
+      .join(',');
     // for (const [key, value] of ERROR_MAP) {
     //   if (cnErrMsg.includes(key)) {
     //     cnErrMsg = cnErrMsg.replace(key, value);

@@ -4,6 +4,9 @@ import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nes
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+/**
+ * 统一处理接口请求与响应结果
+ */
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, any> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -15,6 +18,8 @@ export class TransformInterceptor<T> implements NestInterceptor<T, any> {
           return data;
         }
         const { message, ...rest } = data;
+        // return new ResOp(HttpStatus.OK, data ?? null)
+
         return {
           message,
           data: rest, // 返回数据  一律用  data 包裹

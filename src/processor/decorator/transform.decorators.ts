@@ -24,6 +24,32 @@ export function Trim(): PropertyDecorator {
   });
 }
 
+export function ToNumber(): PropertyDecorator {
+  return Transform((params: { value: string[] | string }) => {
+    if (Array.isArray(params.value)) {
+      return params.value.map(v => Number(v));
+    }
+
+    return Number(params.value);
+  });
+}
+
+export function ToInt(): PropertyDecorator {
+  return Transform((params: { value: string }) => {
+    const newNumber = Number(params.value);
+
+    if (Number.isNaN(newNumber)) {
+      return params.value;
+    }
+
+    if (newNumber % 1 === 0) {
+      return newNumber;
+    }
+
+    return Math.floor(newNumber);
+  });
+}
+
 export function ToBoolean(): PropertyDecorator {
   return Transform(
     (params: { value: any }) => {

@@ -15,13 +15,17 @@ import { TokenService } from './token.service';
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        // global: true,
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '3d'), // 默认 7 天
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        // console.log(configService.get<string>('JWT_SECRET'));
+        // console.log(configService.get<string>('JWT_EXPIRES_IN', '3d'));
+        return {
+          // global: true,
+          secret: configService.get<string>('JWT_SECRET'),
+          signOptions: {
+            expiresIn: configService.get<string>('JWT_EXPIRES_IN', '3d'), // 默认 7 天
+          },
+        };
+      },
     }),
     SmsModule,
   ],

@@ -74,12 +74,6 @@ export const sfApi = () => {
   };
 };
 
-export const redis = registerAs('redis', () => ({
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT,
-  url: process.env.REDIS_HOST + ':' + process.env.REDIS_PORT,
-}));
-
 export const moduleFactory = () => {
   return {
     WS: process.env.WS === 'true',

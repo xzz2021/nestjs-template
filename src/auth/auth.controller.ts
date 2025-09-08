@@ -7,6 +7,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Serialize } from '@/processor/decorator/serialize';
 import { RegisterResDto } from './dto/auth.dto';
 import { extractIP } from '@/processor/utils/string';
+import { ForceLogoutDto } from './dto/auth.dto';
 
 @Public()
 @ApiTags('帐号权限')
@@ -73,4 +74,16 @@ export class AuthController {
   //   const { userId, refreshToken } = req['body'] as { userId: number; refreshToken: string };
   //   return this.authService.refreshTokens(userId, refreshToken);
   // }
+
+  @Post('forceLogout')
+  @ApiOperation({ summary: '强制用户下线' })
+  forceLogout(@Body() body: ForceLogoutDto) {
+    return this.authService.forceLogout(body.id);
+  }
+
+  @Post('unlock')
+  @ApiOperation({ summary: '解锁用户' })
+  unlock(@Body() body: ForceLogoutDto) {
+    return this.authService.unlock(body.id);
+  }
 }

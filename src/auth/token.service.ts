@@ -22,7 +22,7 @@ export class TokenService {
     lockMaxWaitMs: 300, // 最多等待拿锁 300ms
   };
   private maxSessions: number;
-
+  private JWT_SECRET: string;
   constructor(
     private readonly jwt: JwtService,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
@@ -30,6 +30,7 @@ export class TokenService {
   ) {
     const ssoCount = this.configService.get<string>('SSO_COUNT') || '2';
     this.maxSessions = Number(ssoCount);
+    this.JWT_SECRET = this.configService.get<string>('JWT_SECRET') || '';
   }
 
   // —— 注意：不同 store 的 TTL 单位不同。大多数 redis-store 用“秒”，memory-store 用“毫秒”。
@@ -116,7 +117,7 @@ export class TokenService {
     const nowSec = Math.floor(Date.now() / 1000);
     const exp = nowSec + this.cfg.ttlSec;
 
-    const token = await this.jwt.signAsync({ sub: userId, ...extraPayload }, { secret: process.env.JWT_SECRET, expiresIn: this.cfg.ttlSec, jwtid: jti });
+    const token = await this.jwt.signAsync({ sub: userId, ...extraPayload }, { secret: this.JWT_SECRET, expiresIn: this.cfg.ttlSec, jwtid: jti });
 
     // 记录 jti 的 exp（撤销时可直接查）
     await this.cache.set(this.jtiKey(jti), String(exp), this.sToStoreTtl(this.cfg.ttlSec));
@@ -210,7 +211,7 @@ export class TokenService {
     return { ok: true };
   }
 
-  async kickOthers(userId: number, currentJti: string) {
+  async kickOthers(userId: number, currentJti?: string) {
     await this.revokeAll(userId, currentJti);
     return { ok: true };
   }

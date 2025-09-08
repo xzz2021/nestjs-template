@@ -23,6 +23,7 @@ import { TransformInterceptor } from '@/processor/interceptor/transform.intercep
 // import { HttpExceptionFilter } from '@/processor/filter/http-exception.filter';
 import { ScheduleTaskModule } from '@/schedule/schedule.module';
 // import { DynamicThrottlerGuard } from '@/processor/guard/throttler.guard';
+import { TimeoutInterceptor } from '@/processor/interceptor/http.timeout.Interceptor';
 
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
@@ -79,6 +80,22 @@ export const CORE_MODULE = [
     },
   }),
   /*
+  ClsModule.forRoot({
+    global: true,
+    // https://github.com/Papooch/nestjs-cls/issues/92
+    interceptor: {
+      mount: true,
+      setup: (cls, context) => {
+        const req = context.switchToHttp().getRequest<FastifyRequest<{ Params: { id?: string } }>>()
+        if (req.params?.id && req.body) {
+          // 供自定义参数验证器(UniqueConstraint)使用
+          cls.set('operateId', Number.parseInt(req.params.id))
+        }
+      },
+    },
+  }),
+  */
+  /*
   用法
   private readonly cls: ClsService,
   this.cls.get('userId');
@@ -128,16 +145,12 @@ export class AppController {
 
 
     */
-  {
-    provide: APP_INTERCEPTOR,
-    useClass: OperationLogInterceptor,
-    multi: true,
-  }, // 全局启用日志拦截器
-  {
-    provide: APP_INTERCEPTOR,
-    useClass: TransformInterceptor,
-    multi: true,
-  },
+  { provide: APP_INTERCEPTOR, useClass: OperationLogInterceptor }, // 全局启用日志拦截器
+  { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+
+  { provide: APP_INTERCEPTOR, useFactory: () => new TimeoutInterceptor() }, // 全局超时拦截器  默认10000ms
+
+  // { provide: APP_INTERCEPTOR, useClass: IdempotenceInterceptor },
 
   {
     // 全局JWT token校验

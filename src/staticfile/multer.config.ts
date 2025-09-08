@@ -1,7 +1,7 @@
 import { diskStorage } from 'multer';
 import path, { join } from 'path';
 import * as fs from 'fs';
-import { STATIC_FILE_ROOT_PATH } from 'src/core/server.static';
+import { STATIC_FILE_ROOT_PATH } from '@/core/server.static';
 
 // 修复文件名
 function fixFileName(originalname: string): string {
@@ -29,6 +29,31 @@ export const multerConfig = {
       }
     },
   }),
+};
+
+export const generateMulterConfig = (directory: string = 'file/test') => {
+  return {
+    storage: diskStorage({
+      destination: (_req, _file, cb) => {
+        // 如果你不想保存文件，可以提供一个空的目录
+        const uploadPath = join(STATIC_FILE_ROOT_PATH, directory);
+        // 检查目录是否存在，如果不存在就创建
+        if (!fs.existsSync(uploadPath)) {
+          fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+      },
+      filename: (_req, file, cb) => {
+        // 文件名使用时间戳和原始文件扩展名
+        const filename = fixFileName(file.originalname);
+        if (fs.existsSync(join(STATIC_FILE_ROOT_PATH, directory, filename))) {
+          cb(null, Date.now() + '-' + filename);
+        } else {
+          cb(null, filename);
+        }
+      },
+    }),
+  };
 };
 
 const img_type = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
@@ -94,9 +119,3 @@ export const multerConfigForAvatar = {
     fileSize: 5 * 1024 * 1024, // 5MB
   },
 };
-
-export enum AttachmentStoragePath {
-  MATERIAL_IMG = 'static/material/img',
-  CART_IMG = 'static/cart/img',
-  CART_ATTACHMENT = 'static/cart/attachment',
-}

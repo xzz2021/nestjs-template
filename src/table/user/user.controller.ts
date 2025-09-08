@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, UseInterceptors, UploadedFile, BadRequestException, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, BadRequestException, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
@@ -11,8 +11,6 @@ import {
   CreateUserDto,
   BatchDeleteUserDto,
 } from './dto/user.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { multerConfigForAvatar } from '@/staticfile/multer.config';
 import { ConfigService } from '@nestjs/config';
 @ApiTags('用户')
 @Controller('user')
@@ -86,13 +84,9 @@ export class UserController {
     return this.userService.batchDeleteUser(deleteUserData.ids);
   }
 
-  @Post('upload/avatar')
-  @ApiOperation({ summary: '用户上传更新自己的头像' })
-  @UseInterceptors(FileInterceptor('file', multerConfigForAvatar))
-  uploadFile(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
-    const userId = (req.user.id as number) || 0;
-    const staticUrl = this.configService.get('STATIC_URL');
-    const avatarPath = staticUrl + '/static/avatar/' + req.user.phone + '/' + file.filename;
-    return this.userService.updateAvatar(avatarPath, userId);
+  @Get('list')
+  @ApiOperation({ summary: '按条件获取所有用户' })
+  allList(@Query() params: QueryUserParams) {
+    return this.userService.findAll(params);
   }
 }

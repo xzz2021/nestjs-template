@@ -7,9 +7,8 @@ import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLeng
 //  需要注意校验器是从下往上执行的,  所以类型限定装饰器应该放最下面
 export class DepartmentDto {
   @ApiProperty({ type: Number, description: '部门ID', example: 0 })
-  @IsNotEmpty()
-  // @IsNumber()
   @Transform(({ value }) => Number(value))
+  @IsNotEmpty()
   id: number;
 
   @ApiProperty({ type: String, description: '部门名称', example: '设计部' })

@@ -4,6 +4,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
 import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo, UpdatePwdDto, AdminUpdatePwdDto, CreateUserDto } from './dto/user.dto';
+import { buildPrismaWhere, BuildPrismaWhereParams } from '@/processor/utils/object';
 @Injectable()
 export class UserService {
   constructor(
@@ -262,8 +263,22 @@ export class UserService {
     }
   }
 
-  async updateAvatar(avatarPath: string, userId: number) {
-    await this.pgService.user.update({ where: { id: userId }, data: { avatar: avatarPath } });
-    return { message: '更新头像成功', filePath: avatarPath };
+  async findAll(searchParam: QueryUserParams) {
+    // 此处查询 只批量返回一般数据   查询效率会更好    详细数据应当通过单个ip去查询处理
+    const { where, skip, take } = buildPrismaWhere(searchParam as BuildPrismaWhereParams);
+    // console.log('xzz2021: LogService -> getUserOperationLogList -> where:', where);
+    const newSearchParam = {
+      where,
+      skip,
+      take,
+      orderBy: { id: 'desc' as const },
+    };
+    const list = await this.pgService.user.findMany({
+      ...newSearchParam,
+    });
+    const total = await this.pgService.user.count({
+      where,
+    });
+    return { list, total, message: '获取日志列表成功' };
   }
 }

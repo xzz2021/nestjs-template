@@ -14,8 +14,9 @@ import { ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         connection: {
-          host: configService.get('REDIS_HOST'),
-          port: configService.get('REDIS_PORT'),
+          // host: configService.get('REDIS_HOST'),
+          // port: configService.get('REDIS_PORT'),
+          url: configService.get('REDIS_URL'),
         },
       }),
     }),

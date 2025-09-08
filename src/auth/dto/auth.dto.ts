@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { Exclude } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
@@ -113,4 +113,12 @@ export class SmsBindDto {
   @IsNotEmpty()
   @ApiProperty({ type: String, example: 'xzz2025', description: '用户名' })
   username: string;
+}
+
+export class ForceLogoutDto {
+  @ApiProperty({ type: Number, description: '用户ID', example: 1 })
+  @IsInt()
+  @Transform(({ value }) => Number(value))
+  @IsNotEmpty()
+  id: number;
 }

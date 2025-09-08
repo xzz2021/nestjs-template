@@ -45,9 +45,12 @@ async function chooseCache(config: ConfigService) {
     return { ttl };
   }
 
+  const REDIS_URL = config.get<string>('REDIS_URL') ?? '';
+  if (!REDIS_URL) {
+    return { ttl };
+  }
   // --- Redis 分支 ---
-  const raw = config.get<string>('REDIS_URL') ?? '';
-  const redisUrl = raw.startsWith('redis://') ? raw : `redis://${raw}`;
+  const redisUrl = REDIS_URL.startsWith('redis://') ? REDIS_URL : `redis://${REDIS_URL}`;
   const store = new KeyvRedis(redisUrl);
 
   // 启动前做一次“可用性探测”，并设置超时，避免挂起
