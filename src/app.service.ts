@@ -1,22 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cache } from '@nestjs/cache-manager';
 import { ModuleRef } from '@nestjs/core';
 import { UndiciHttpService } from './utils/http/undici.http.service';
-
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 @Injectable() // @Injectable() 装饰器将 AppService 类声明为可由 Nest IoC 容器管理的类。  放入容器  自动管理 实现单例 全局只 new 一次
 export class AppService {
+  private readonly redis: Redis;
   constructor(
     private readonly configService: ConfigService,
-    private readonly cacheManager: Cache,
+    private readonly redisService: RedisService,
     private readonly moduleRef: ModuleRef,
     private readonly http: UndiciHttpService,
-  ) {}
+  ) {
+    this.redis = this.redisService.getOrThrow();
+  }
   async getHello(): Promise<string> {
     console.log(this.configService.get('PORT'));
     console.log(this.configService.get('JWT_SECRET'));
     // console.log(this.configService.get('aliPayKey'));
-    await this.cacheManager.set('aaaa', 'reyrteyrty');
+    await this.redis.set('aaaa', 'reyrteyrty');
     return 'Hello World!';
   }
 

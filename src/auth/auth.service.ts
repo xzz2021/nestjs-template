@@ -2,31 +2,35 @@ import { BadRequestException, ConflictException, Inject, Injectable, Unauthorize
 import { JwtService } from '@nestjs/jwt';
 import { PgService } from '@/prisma/pg.service';
 import { LoginInfoDto, RegisterDto, SmsBindDto, SmsLoginDto } from './dto/auth.dto';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { resultDataType, UndiciHttpService } from '@/utils/http/undici.http.service';
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
 import { AliSmsService } from '@/utils/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
 import { LockoutService } from './lockout.service';
 import { TokenService } from './token.service';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
+import { SseService } from '@/utils/sse/sse.service';
 
 @Injectable()
 export class AuthService {
+  private readonly redis: Redis;
   private wxAppSecret: string;
   private wxAppId: string;
   constructor(
     private readonly pgService: PgService,
     private readonly jwtService: JwtService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly redisService: RedisService,
     private readonly httpService: UndiciHttpService,
     private readonly smsService: AliSmsService,
     private readonly configService: ConfigService,
     private readonly lockout: LockoutService,
     private readonly tokenService: TokenService,
+    private readonly sseService: SseService,
   ) {
     this.wxAppSecret = this.configService.get<string>('WX_APP_SECRET') || '';
     this.wxAppId = this.configService.get<string>('WX_APP_ID') || '';
+    this.redis = this.redisService.getOrThrow();
   }
 
   async create(createUserDto: RegisterDto, checkCode: boolean = true): Promise<{ message: string; res?: { id: number } }> {
@@ -51,7 +55,7 @@ export class AuthService {
         password: hashedPassword,
       },
     });
-    await this.cacheManager.del('register_' + phone); // 删除缓存的 验证码
+    await this.redis.del('register_' + phone); // 删除缓存的 验证码
     return { message: phone + '注册成功', res };
   }
 
@@ -104,18 +108,18 @@ export class AuthService {
     return !!user;
   }
 
-  async updateTokenVersion(phone: string) {
-    const tokenVersionKey = 'tokenVersion_' + phone;
-    const tokenVersion = (await this.cacheManager.get(tokenVersionKey)) as number;
-    const newTokenVersion = tokenVersion ? tokenVersion + 1 : 1;
-    await this.cacheManager.set(
-      tokenVersionKey,
-      newTokenVersion,
-      //  过期时间与token的过期时间一致
-      this.configService.get<number>('TOKEN_VERSION_EXPIRES_IN', 1000 * 60 * 60 * 24 * 3),
-    );
-    return newTokenVersion;
-  }
+  // async updateTokenVersion(phone: string) {
+  //   const tokenVersionKey = 'tokenVersion_' + phone;
+  //   const tokenVersion = (await this.redis.get(tokenVersionKey)) as number;
+  //   const newTokenVersion = tokenVersion ? tokenVersion + 1 : 1;
+  //   await this.redis.set(
+  //     tokenVersionKey,
+  //     newTokenVersion,
+  //     //  过期时间与token的过期时间一致
+  //     this.configService.get<number>('TOKEN_VERSION_EXPIRES_IN', 1000 * 60 * 60 * 24 * 3),
+  //   );
+  //   return newTokenVersion;
+  // }
 
   async getSmsCode(phone: string, cachekey: string) {
     if (cachekey === 'register') {
@@ -264,7 +268,7 @@ export class AuthService {
 
   async wechatBind(data: { phone: string; password: string; smsCode: string; unionid: string; username: string; avatar: string }) {
     // 1. 校验 验证码
-    const code = await this.cacheManager.get('bind_' + data.phone);
+    const code = await this.redis.get('bind_' + data.phone);
     if (code !== data.smsCode) {
       return { code: 400, message: '验证码错误, 请重新输入!' };
     }
@@ -341,7 +345,7 @@ export class AuthService {
 
   //  短信登录
   async smsLogin(data: SmsLoginDto) {
-    const checkCode = await this.cacheManager.get('login_' + data.phone);
+    const checkCode = await this.redis.get('login_' + data.phone);
     if (checkCode != data.code) {
       throw new BadRequestException('验证码错误, 请重新输入!');
     }
@@ -390,8 +394,9 @@ export class AuthService {
   // }
 
   async forceLogout(id: number) {
-    // await this.pgService.user.update({ where: { id }, data: { isDeleted: true } });
     await this.tokenService.kickOthers(id);
+    await this.sseService.removeOnlineUser(id);
+    this.sseService.sendToClients(id, { type: 'focusLogOut' });
 
     return { message: '强制用户下线成功', id };
   }
@@ -399,7 +404,14 @@ export class AuthService {
   async unlock(id: number) {
     //  移除redis限制   重置数据库锁定信息
     await this.lockout.unlockUser(id);
-
     return { message: '解锁用户成功', id };
+  }
+
+  /**
+   * 验证Token是否正确,如果正确则返回所属用户对象
+   * @param token
+   */
+  async verifyAccessToken(token: string): Promise<any> {
+    return this.jwtService.verifyAsync(token);
   }
 }

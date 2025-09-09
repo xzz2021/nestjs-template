@@ -54,7 +54,7 @@ export class MailService {
       html: htmlContent,
     });
 
-    // this.cacheManager.set(to, code, { ttl: 60 * 5 });
+    // this.redis.set(to, code, { ttl: 60 * 5 });
 
     return { message: '发送成功', data: result };
   }

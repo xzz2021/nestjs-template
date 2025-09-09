@@ -60,7 +60,7 @@
    > Joi验证器: `joi`  
    > 自定义环境变量: `cross-env`  
    > 缓存功能: `@nestjs/cache-manager` `cache-manager`  
-   > redis缓存: `@keyv/redis`  
+   > redis缓存: `@liaoliaots/nestjs-redis` `ioredis`
    > 接口文档: `@nestjs/swagger` `basic-auth` `@types/basic-auth`  
    > 静态资源托管及文件上传: `@nestjs/serve-static` `@types/multer`  
    > 任务和队列: `@nestjs/schedule` `cron` `@nestjs/bullmq` `bullmq`  

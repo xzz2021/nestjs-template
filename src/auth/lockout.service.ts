@@ -1,8 +1,8 @@
 // src/auth/lockout/lockout.service.ts
 import { Injectable, ForbiddenException, Inject } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 
 export interface LockoutConfig {
   windowSec: number; // 失败计数窗口
@@ -27,10 +27,13 @@ function addSeconds(date: Date | number, seconds: number): Date {
 
 @Injectable()
 export class LockoutService {
+  private readonly redis: Redis;
   constructor(
     private readonly pgService: PgService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+    private readonly redisService: RedisService,
+  ) {
+    this.redis = this.redisService.getOrThrow();
+  }
 
   // 建议从 ConfigService 注入；此处保留默认值，亦支持构造时覆盖
   private readonly config: LockoutConfig = {
@@ -57,7 +60,7 @@ export class LockoutService {
    * 未通过会直接抛 ForbiddenException
    */
   async ensureNotLocked(user: LockoutUser) {
-    const cached = await this.cacheManager.get(this.lockKey(user.id));
+    const cached = await this.redis.get(this.lockKey(user.id));
     if (cached && Number(cached) > Date.now()) {
       const timeLeft = Math.ceil((Number(cached) - Date.now()) / 1000);
       throw new ForbiddenException(`账号已锁定，请${timeLeft}秒后再试`);
@@ -65,7 +68,7 @@ export class LockoutService {
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const ttl = Math.ceil(+user.lockedUntil - Date.now()) / 1000;
-      await this.cacheManager.set(this.lockKey(user.id), String(+user.lockedUntil), ttl * 1000);
+      await this.redis.set(this.lockKey(user.id), String(+user.lockedUntil), 'EX', ttl);
       throw new ForbiddenException('账号已锁定，请稍后再试');
     }
   }
@@ -80,15 +83,15 @@ export class LockoutService {
 
     // 账号维度 - 修复计数逻辑
     const acctKey = this.failAcctKey(phone);
-    const acctCnt = ((await this.cacheManager.get(acctKey)) as number) || 0;
+    const acctCnt = Number((await this.redis.get(acctKey)) || 0);
     const newAcctCnt = acctCnt + 1;
-    await this.cacheManager.set(acctKey, newAcctCnt, windowSec * 1000);
+    await this.redis.set(acctKey, newAcctCnt, 'EX', windowSec);
 
     // IP维度 - 修复计数逻辑
     const ipKey = this.failIpKey(ip);
-    const ipCnt = ((await this.cacheManager.get(ipKey)) as number) || 0;
+    const ipCnt = Number((await this.redis.get(ipKey)) || 0);
     const newIpCnt = ipCnt + 1;
-    await this.cacheManager.set(ipKey, newIpCnt, windowSec * 1000);
+    await this.redis.set(ipKey, newIpCnt, 'EX', windowSec);
 
     // DB 失败计数
     if (user) {
@@ -108,7 +111,7 @@ export class LockoutService {
         data: { lockedUntil, lockLevel: { increment: 1 } },
       });
 
-      await this.cacheManager.set(this.lockKey(user.id), String(+lockedUntil), nextLockSec * 1000);
+      await this.redis.set(this.lockKey(user.id), String(+lockedUntil), 'EX', nextLockSec);
     }
   }
 
@@ -116,9 +119,9 @@ export class LockoutService {
    * 登录成功复位：清 Redis 计数/锁；重置 DB 字段
    */
   async onSuccess(phone: string, ip: string, user: LockoutUser) {
-    await this.cacheManager.del(this.failAcctKey(phone));
-    await this.cacheManager.del(this.failIpKey(ip));
-    await this.cacheManager.del(this.lockKey(user.id));
+    await this.redis.del(this.failAcctKey(phone));
+    await this.redis.del(this.failIpKey(ip));
+    await this.redis.del(this.lockKey(user.id));
     await this.pgService.user.update({
       where: { id: user.id },
       data: {
@@ -132,7 +135,7 @@ export class LockoutService {
   }
 
   async unlockUser(id: number) {
-    await this.cacheManager.del(this.lockKey(id));
+    await this.redis.del(this.lockKey(id));
     await this.pgService.user.update({
       where: { id },
       data: {

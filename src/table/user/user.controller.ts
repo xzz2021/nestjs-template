@@ -89,4 +89,17 @@ export class UserController {
   allList(@Query() params: QueryUserParams) {
     return this.userService.findAll(params);
   }
+
+  @Get('online/list')
+  @ApiOperation({ summary: '查询当前在线用户' })
+  getOnlineUser() {
+    return this.userService.listOnlineUser();
+  }
+
+  @Post('online/kick')
+  @ApiOperation({ summary: '下线指定在线用户' })
+  async kick(@Req() req: any): Promise<void> {
+    const { id } = req.user;
+    await this.userService.kickUser(+id);
+  }
 }

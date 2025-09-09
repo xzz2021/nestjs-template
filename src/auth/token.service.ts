@@ -1,14 +1,11 @@
 // src/auth/session/session.service.ts
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { randomUUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
-
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 export interface SessionConfig {
-  ttlSec: number; // token / 会话有效期（秒）
-  listTtlSec?: number; // 用户会话列表键的 TTL（秒）
   lockTtlMs?: number; // 互斥锁占用时长（毫秒）
   lockMaxWaitMs?: number; // 获取锁的最大等待时长（毫秒）
 }
@@ -16,32 +13,23 @@ export interface SessionConfig {
 @Injectable()
 export class TokenService {
   private readonly cfg: SessionConfig = {
-    ttlSec: 60 * 60, // 1h
-    listTtlSec: 2 * 60 * 60, // 2h
     lockTtlMs: 400, // 锁的 TTL
     lockMaxWaitMs: 300, // 最多等待拿锁 300ms
   };
   private maxSessions: number;
   private JWT_SECRET: string;
+  private JWT_EXPIRES_TIME: number;
+  private readonly redis: Redis;
   constructor(
     private readonly jwt: JwtService,
-    @Inject(CACHE_MANAGER) private readonly cache: Cache,
+    private readonly redisService: RedisService,
     private readonly configService: ConfigService,
   ) {
+    this.redis = this.redisService.getOrThrow();
     const ssoCount = this.configService.get<string>('SSO_COUNT') || '2';
     this.maxSessions = Number(ssoCount);
     this.JWT_SECRET = this.configService.get<string>('JWT_SECRET') || '';
-  }
-
-  // —— 注意：不同 store 的 TTL 单位不同。大多数 redis-store 用“秒”，memory-store 用“毫秒”。
-  //    根据你的实际 store 改这个开关；也可做成配置注入。
-  private readonly TTL_IS_MS = true;
-
-  private sToStoreTtl(sec: number) {
-    return this.TTL_IS_MS ? sec * 1000 : sec;
-  }
-  private msToStoreTtl(ms: number) {
-    return this.TTL_IS_MS ? ms : Math.ceil(ms / 1000);
+    this.JWT_EXPIRES_TIME = Number(this.configService.get<string>('JWT_EXPIRES_TIME') || 60 * 60 * 24 * 7);
   }
 
   // —— Key helpers ——
@@ -69,12 +57,12 @@ export class TokenService {
 
     // 尝试获取锁（尽量减少并发写冲突）
     while (true) {
-      const existing = await this.cache.get<string>(lockKey);
+      const existing = await this.redis.get(lockKey);
       if (!existing) {
         // 没锁 → 设置；cache-manager 不支持 NX，只能“尽快设置+短TTL”
-        await this.cache.set(lockKey, token, this.msToStoreTtl(ttlMs));
+        await this.redis.set(lockKey, token, 'PX', ttlMs);
         // 双检，降低竞争窗口
-        const confirm = await this.cache.get<string>(lockKey);
+        const confirm = await this.redis.get(lockKey);
         if (confirm === token) break;
       }
       if (Date.now() - start > maxWait) break; // 超时放弃加锁，直接走非互斥路径（尽力而为）
@@ -85,16 +73,16 @@ export class TokenService {
       const res = await fn();
       return res;
     } finally {
-      const v = await this.cache.get<string>(lockKey);
+      const v = await this.redis.get(lockKey);
       if (v === token) {
-        await this.cache.del(lockKey);
+        await this.redis.del(lockKey);
       }
     }
   }
 
   // 从缓存读取用户会话列表（数组形式）
   private async loadList(userId: number): Promise<string[]> {
-    const raw = await this.cache.get<string>(this.listKey(userId));
+    const raw = await this.redis.get(this.listKey(userId));
     if (!raw) return [];
     try {
       const arr = JSON.parse(raw);
@@ -105,8 +93,9 @@ export class TokenService {
   }
   // 持久化用户会话列表
   private async saveList(userId: number, list: string[]) {
-    const ttl = this.cfg.listTtlSec ? this.sToStoreTtl(this.cfg.listTtlSec) : undefined;
-    await this.cache.set(this.listKey(userId), JSON.stringify(list), ttl);
+    // const ttl = this.cfg.listTtlSec ? this.sToStoreTtl(this.cfg.listTtlSec) : undefined;
+    // 永久有效
+    await this.redis.set(this.listKey(userId), JSON.stringify(list));
   }
 
   // —— 对外 API ——
@@ -115,12 +104,12 @@ export class TokenService {
   async issue(userId: number, extraPayload: Record<string, any> = {}) {
     const jti = randomUUID();
     const nowSec = Math.floor(Date.now() / 1000);
-    const exp = nowSec + this.cfg.ttlSec;
+    const exp = nowSec + this.JWT_EXPIRES_TIME;
 
-    const token = await this.jwt.signAsync({ sub: userId, ...extraPayload }, { secret: this.JWT_SECRET, expiresIn: this.cfg.ttlSec, jwtid: jti });
-
+    const token = await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME, jwtid: jti });
+    // const expiresTime = nowSec + this.cfg.ttlSec;
     // 记录 jti 的 exp（撤销时可直接查）
-    await this.cache.set(this.jtiKey(jti), String(exp), this.sToStoreTtl(this.cfg.ttlSec));
+    await this.redis.set(this.jtiKey(jti), String(exp), 'EX', this.JWT_EXPIRES_TIME);
 
     // 修改用户的会话列表（尽量加锁，避免并发覆盖）
     await this.withUserListLock(userId, async () => {
@@ -136,7 +125,7 @@ export class TokenService {
 
       // 把被逐出的 jti 拉黑
       for (const oldJti of evicted) {
-        const expStr = await this.cache.get<string>(this.jtiKey(oldJti));
+        const expStr = await this.redis.get(this.jtiKey(oldJti));
         const oldExp = expStr ? Number(expStr) : 0;
         await this.blacklistByJti(oldJti, oldExp);
       }
@@ -155,7 +144,7 @@ export class TokenService {
       }
     });
 
-    const expStr = await this.cache.get<string>(this.jtiKey(jti));
+    const expStr = await this.redis.get(this.jtiKey(jti));
     const exp = expStr ? Number(expStr) : 0;
     await this.blacklistByJti(jti, exp);
   }
@@ -171,7 +160,7 @@ export class TokenService {
     });
 
     for (const jti of toRevoke) {
-      const expStr = await this.cache.get<string>(this.jtiKey(jti));
+      const expStr = await this.redis.get(this.jtiKey(jti));
       const exp = expStr ? Number(expStr) : 0;
       await this.blacklistByJti(jti, exp);
     }
@@ -179,7 +168,7 @@ export class TokenService {
 
   /** jti 是否已拉黑 */
   async isBlacklisted(jti: string): Promise<boolean> {
-    const v = await this.cache.get<string>(this.blKey(jti));
+    const v = await this.redis.get(this.blKey(jti));
     return v === '1';
   }
 
@@ -187,7 +176,7 @@ export class TokenService {
   async blacklistByJti(jti: string, exp: number) {
     const ttlSec = exp - Math.floor(Date.now() / 1000);
     if (ttlSec > 0) {
-      await this.cache.set(this.blKey(jti), '1', this.sToStoreTtl(ttlSec));
+      await this.redis.set(this.blKey(jti), 1, 'EX', ttlSec);
     }
   }
 

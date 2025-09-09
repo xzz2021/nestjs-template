@@ -1,19 +1,14 @@
 import { Inject, Injectable, LoggerService } from '@nestjs/common';
-// import { PgService } from '@/prisma/pg.service';
-// import { CACHE_MANAGER } from '@nestjs/cache-manager';
-// import { Cache } from 'cache-manager';
-import { debug, Logger } from 'winston';
+import { Logger } from 'winston';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { PgService } from '@/prisma/pg.service';
 import { DeleteLogDto, QueryLogParams } from './dto/logger.dto';
 import { buildPrismaWhere } from '@/processor/utils/object';
+
 @Injectable()
 export class LogService implements LoggerService {
   constructor(
-    // private readonly pgService: PgService,
-    // @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(WINSTON_MODULE_NEST_PROVIDER as 'NestWinston') private readonly logger: Logger,
-
     private readonly pgService: PgService,
   ) {}
 

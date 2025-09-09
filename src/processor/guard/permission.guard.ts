@@ -1,9 +1,9 @@
 import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
-import { PrismaService as pgService } from 'src/prisma/prisma.service';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+// import { PrismaService as pgService } from 'src/prisma/prisma.service';
 import { Reflector } from '@nestjs/core';
 import { PERMISSION_KEY } from '@/processor/decorator/permission';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 
 /*
 
@@ -14,11 +14,14 @@ import { PERMISSION_KEY } from '@/processor/decorator/permission';
 */
 @Injectable()
 export class PermissionGuard implements CanActivate {
+  private readonly redis: Redis;
   constructor(
-    private readonly pgService: pgService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    // private readonly pgService: pgService,
+    private readonly redisService: RedisService,
     private reflector: Reflector,
-  ) {}
+  ) {
+    this.redis = this.redisService.getOrThrow();
+  }
 
   getPermission(userId: number): string[] {
     if (!userId) {
@@ -93,12 +96,12 @@ export class PermissionGuard implements CanActivate {
     }
     // 从缓存获取权限 没有则从数据库查询
     let permissionList: string[] = [];
-    permissionList = (await this.cacheManager.get(`permission_${user.id}`)) || [];
+    permissionList = JSON.parse((await this.redis.get(`permission_${user.id}`)) || '[]');
 
     if (!permissionList.length) {
       console.log('🚀 ~ PermissionGuard ~ canActivate ~ permissionList.length:', permissionList.length);
       permissionList = this.getPermission(user.id as number);
-      await this.cacheManager.set(`permission_${user.id}`, permissionList, 60 * 60 * 24);
+      await this.redis.set(`permission_${user.id}`, JSON.stringify(permissionList), 'EX', 60 * 60 * 24);
     }
 
     const hasPermission = permissionList.includes(requiredPermission);

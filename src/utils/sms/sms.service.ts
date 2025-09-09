@@ -4,8 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import Dysmsapi20170525, { SendSmsRequest } from '@alicloud/dysmsapi20170525';
 import * as $OpenApi from '@alicloud/openapi-client';
 import * as $Util from '@alicloud/tea-util';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 
 export interface SmsPayload {
   phone: string;
@@ -23,11 +23,12 @@ export class AliSmsService {
   private client: Dysmsapi20170525;
   private runtime: $Util.RuntimeOptions;
   private readonly aliSmsKey: AliSmsKeyType;
-
+  private readonly redis: Redis;
   constructor(
     private readonly configService: ConfigService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly redisService: RedisService,
   ) {
+    this.redis = this.redisService.getOrThrow();
     this.aliSmsKey = this.configService.get('aliSms') as AliSmsKeyType;
     this.runtime = new $Util.RuntimeOptions({});
     this.initClient();
@@ -70,14 +71,14 @@ export class AliSmsService {
   //  校验短信  验证码
   async checkSmsCode(smskey: string, code: string) {
     try {
-      const cacheCode = await this.cacheManager.get(smskey);
+      const cacheCode = await this.redis.get(smskey);
       if (!cacheCode) {
         return { status: false, message: '验证码已过期, 请重新获取!' };
       }
       if (cacheCode != code) {
         return { status: false, message: '验证码错误, 请重新输入!' };
       }
-      await this.cacheManager.del(smskey);
+      await this.redis.del(smskey);
       return { status: true, message: '验证码正确' };
     } catch (error) {
       console.log('🚀 ~ AuthService ~ checkSmsCode ~ error:', error);
@@ -88,7 +89,7 @@ export class AliSmsService {
   //  生成   短信验证码
   async generateSmsCode(phone: string, cachekey: string) {
     const cacheKeyName = cachekey + '_' + phone;
-    const code = await this.cacheManager.get(cacheKeyName);
+    const code = await this.redis.get(cacheKeyName);
     if (code) {
       return { code: 200, message: '验证码已发送,请60秒后再试!' };
     }
@@ -98,7 +99,7 @@ export class AliSmsService {
     const res = await this.send({ code: newCode, phone });
     const isSuccess = res?.error ? false : true;
     if (isSuccess) {
-      await this.cacheManager.set(cacheKeyName, newCode, 60000);
+      await this.redis.set(cacheKeyName, newCode, 'EX', 60);
     }
     return { message: isSuccess ? '发送验证码成功' : '发送验证码失败', res };
   }

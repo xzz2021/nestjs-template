@@ -1,16 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
 import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo, UpdatePwdDto, AdminUpdatePwdDto, CreateUserDto } from './dto/user.dto';
 import { buildPrismaWhere, BuildPrismaWhereParams } from '@/processor/utils/object';
+import { ONLINE_USER_PREFIX } from '@/utils/sse/sse.service';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
+
 @Injectable()
 export class UserService {
+  private readonly redis: Redis;
   constructor(
     private readonly pgService: PgService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+    private readonly redisService: RedisService,
+  ) {
+    this.redis = this.redisService.getOrThrow();
+  }
 
   findOne(phone: string) {
     return this.pgService.user.findUnique({
@@ -248,14 +253,14 @@ export class UserService {
   //  校验短信 或邮箱 验证码
   async checkSmsCode(smskey: string, code: string, type: 'sms' | 'email' = 'sms') {
     try {
-      const cacheCode = await this.cacheManager.get(type + '_' + smskey);
+      const cacheCode = await this.redis.get(type + '_' + smskey);
       if (!cacheCode) {
         return { status: false, code: 400, message: '验证码已过期, 请重新获取!' };
       }
       if (cacheCode != code) {
         return { status: false, code: 400, message: '验证码错误, 请重新输入!' };
       }
-      await this.cacheManager.del(type + '_' + smskey);
+      await this.redis.del(type + '_' + smskey);
       return { status: true, code: 200, message: '验证码正确' };
     } catch (error) {
       console.log('🚀 ~ AuthService ~ checkSmsCode ~ error:', error);
@@ -281,4 +286,14 @@ export class UserService {
     });
     return { list, total, message: '获取日志列表成功' };
   }
+
+  async listOnlineUser() {
+    const keys = await this.redis.keys(ONLINE_USER_PREFIX + '*');
+    // console.log('xzz2021: UserService -> listOnlineUser -> keys:', keys);
+    const list = await Promise.all(keys.map(async key => JSON.parse((await this.redis.get(key)) ?? '{}')));
+    // console.log('xzz2021: UserService -> listOnlineUser -> list:', list);
+    return { list, total: list.length, message: '获取在线用户列表成功' };
+  }
+
+  async kickUser(userId: number) {}
 }

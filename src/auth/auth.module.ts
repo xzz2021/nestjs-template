@@ -9,6 +9,8 @@ import { SmsModule } from '@/utils/sms/sms.module';
 import { ConfigService } from '@nestjs/config';
 import { LockoutService } from './lockout.service';
 import { TokenService } from './token.service';
+import { SseController } from '@/utils/sse/sse.controller';
+import { SseModule } from '@/utils/sse/sse.module';
 
 @Module({
   imports: [
@@ -21,15 +23,16 @@ import { TokenService } from './token.service';
         return {
           // global: true,
           secret: configService.get<string>('JWT_SECRET'),
-          signOptions: {
-            expiresIn: configService.get<string>('JWT_EXPIRES_IN', '3d'), // 默认 7 天
-          },
+          // signOptions: {
+          //   expiresIn: Number(configService.get<string>('JWT_EXPIRES_TIME')), // 默认 7 天
+          // },
         };
       },
     }),
     SmsModule,
+    SseModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, SseController],
   providers: [AuthService, LockoutService, TokenService, JwtStrategy, JwtRefreshStrategy],
   exports: [AuthService, LockoutService, TokenService],
 })

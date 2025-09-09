@@ -18,12 +18,13 @@ import { WinstonLoggerModule } from '@/logger/winston.module';
 import { OperationLogInterceptor } from '@/processor/interceptor/operation.log.interceptor';
 import { AllExceptionsFilter } from '@/processor/filter/all-exceptions.filter';
 import { WsModule } from '@/ws/ws.module';
-import { CACHE_MODULE } from './cache';
+import { REDIS_MODULE } from './cache-ioredis';
 import { TransformInterceptor } from '@/processor/interceptor/transform.interceptor';
 // import { HttpExceptionFilter } from '@/processor/filter/http-exception.filter';
 import { ScheduleTaskModule } from '@/schedule/schedule.module';
 // import { DynamicThrottlerGuard } from '@/processor/guard/throttler.guard';
 import { TimeoutInterceptor } from '@/processor/interceptor/http.timeout.Interceptor';
+import { SseModule } from '@/utils/sse/sse.module';
 
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
@@ -43,7 +44,8 @@ export const CORE_MODULE = [
   SERVER_STATIC_MODULE,
   StaticfileModule,
   // 外部 redis 缓存  版本一
-  CACHE_MODULE,
+  // CACHE_MODULE,
+  REDIS_MODULE,
   //  @SkipThrottle()  跳过速率限制
   //  @Throttle({ default: { limit: 3, ttl: 60000 } }) 装饰器，可用于覆盖全局模块中设置的 limit 和 ttl
   //  @Throttle('medium') // 使用 medium 策略
@@ -101,6 +103,7 @@ export const CORE_MODULE = [
   this.cls.get('userId');
 
   */
+  SseModule,
   WinstonLoggerModule,
   // WsModule,
   ...buildFeatureImports(),
@@ -117,12 +120,12 @@ export const GLOBAL_GUARD = [
   //   provide: APP_GUARD,
   //   useClass: DynamicThrottlerGuard,
   // },
-  {
-    //  全局缓存所有 get 端点 ?????
-    provide: APP_INTERCEPTOR,
-    useClass: CacheInterceptor, //  自定义 处理  HttpCacheInterceptor
-    multi: true,
-  },
+  // {
+  //   //  全局缓存所有 get 端点 ?????
+  //   provide: APP_INTERCEPTOR,
+  //   useClass: CacheInterceptor, //  自定义 处理  HttpCacheInterceptor
+  //   multi: true,
+  // },
 
   /*
     内置的缓存拦截器  CacheInterceptor  可以应用在 不同层级上
@@ -148,7 +151,7 @@ export class AppController {
   { provide: APP_INTERCEPTOR, useClass: OperationLogInterceptor }, // 全局启用日志拦截器
   { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
 
-  { provide: APP_INTERCEPTOR, useFactory: () => new TimeoutInterceptor() }, // 全局超时拦截器  默认10000ms
+  // { provide: APP_INTERCEPTOR, useFactory: () => new TimeoutInterceptor() }, // 全局超时拦截器  默认10000ms
 
   // { provide: APP_INTERCEPTOR, useClass: IdempotenceInterceptor },
 

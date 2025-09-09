@@ -30,6 +30,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     if (!ok) return false;
     const user = request.user;
+    // console.log('🚀 ~ JwtAuthGuard ~ canActivate ~ user:', user);
     const userId = user?.sub as number;
     const jti = user?.jti as string;
 
@@ -50,15 +51,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       throw new UnauthorizedException('token not active');
     }
 
-    // 更新用户在线状态
-    // await this.pgService.user.update({
-    //   where: { id: userId },
-    //   data: { isOnline: true },
-    // });
-
     return true;
-
-    // 在return boolean 之前 可以做 一些 权限校验 或者 数据处理 request['anyobject'] = {aaa: 000};
   }
 
   /**
@@ -67,9 +60,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
    * 主动失效token  直接抛出异常
    */
   handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
-    if (err || !user) {
-      throw err || new UnauthorizedException('Token 无效或未提供');
-    }
+    // if (err || !user) {
+    //   throw err || new UnauthorizedException('Token 无效或未提供');
+    // }
 
     // ✅ 自定义逻辑：举个例子，禁止被禁用用户访问
     if (user.status === 'banned') {
