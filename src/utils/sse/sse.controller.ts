@@ -1,10 +1,11 @@
-import { BeforeApplicationShutdown, Controller, Headers, Ip, Param, ParseIntPipe, Req, Res, Sse } from '@nestjs/common';
+import { BeforeApplicationShutdown, Controller, Headers, Ip, Param, ParseIntPipe, Req, Res, Sse, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { interval, Observable } from 'rxjs';
 import { MessageEvent, SseService } from './sse.service';
 import { Request, Response } from 'express';
 import { Public } from '@/processor/decorator/public.decorator';
+import { SseAuthGuard } from '@/processor/guard/sse-auth.guard';
 @ApiTags('sse通知')
 @SkipThrottle()
 @Public()
@@ -31,6 +32,7 @@ export class SseController implements BeforeApplicationShutdown {
 
   @ApiOperation({ summary: '服务端推送消息' })
   @Sse(':uid')
+  @UseGuards(SseAuthGuard)
   async sse(
     @Param('uid', ParseIntPipe) uid: number,
     @Req() req: Request,

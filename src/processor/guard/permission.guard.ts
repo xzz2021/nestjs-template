@@ -99,7 +99,7 @@ export class PermissionGuard implements CanActivate {
     permissionList = JSON.parse((await this.redis.get(`permission_${user.id}`)) || '[]');
 
     if (!permissionList.length) {
-      console.log('🚀 ~ PermissionGuard ~ canActivate ~ permissionList.length:', permissionList.length);
+      // console.log('🚀 ~ PermissionGuard ~ canActivate ~ permissionList.length:', permissionList.length);
       permissionList = this.getPermission(user.id as number);
       await this.redis.set(`permission_${user.id}`, JSON.stringify(permissionList), 'EX', 60 * 60 * 24);
     }

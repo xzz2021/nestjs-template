@@ -39,7 +39,6 @@ export class LogQueueConsumer extends WorkerHost {
   }
 
   async process(job: Job) {
-    // console.log('xzz2021: LogQueueConsumer ~ process ~ job:', job);
     const { name, data } = job;
     if (name === 'user-operation') {
       // console.log('xzz2021: LogQueueConsumer ~ process ~ data:', data);

@@ -52,7 +52,7 @@ export class OperationLogInterceptor implements NestInterceptor {
           context: 'OperationLogInterceptor',
           info: `${url.split('?')[0]}, ${method} ${Date.now() - start}ms`,
         });
-        if (url.includes('/log/getUserOperation')) return;
+        if (url.includes('/log/getUserOperation') || url.includes('/sse/')) return;
         // 构建日志数据
         const logData = {
           userId,
@@ -60,7 +60,7 @@ export class OperationLogInterceptor implements NestInterceptor {
           method,
           ip: extractIP(ip ?? ''),
           userAgent: userAgent,
-          requestUrl: url,
+          requestUrl: url.slice(0, 100),
           responseMsg: data?.message,
           detailInfo: {},
           status: 'success',
