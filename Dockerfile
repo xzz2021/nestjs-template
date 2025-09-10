@@ -11,7 +11,9 @@ COPY package*.json ./
 RUN npm install -g pnpm pm2 && pnpm install
 
 # Copy the rest of the application files
-COPY . .
+# COPY . .
+# 复制当前所有代码到/app工作目录
+COPY dist/ .
 
 RUN pnpm prisma:generate
 

@@ -1,6 +1,6 @@
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CONFIG_MODULE, moduleFactory } from './config.module';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+// import { CacheInterceptor } from '@nestjs/cache-manager';
 // import KeyvRedis from '@keyv/redis';
 import { SERVER_STATIC_MODULE } from './server.static';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -23,8 +23,9 @@ import { TransformInterceptor } from '@/processor/interceptor/transform.intercep
 // import { HttpExceptionFilter } from '@/processor/filter/http-exception.filter';
 import { ScheduleTaskModule } from '@/schedule/schedule.module';
 // import { DynamicThrottlerGuard } from '@/processor/guard/throttler.guard';
-import { TimeoutInterceptor } from '@/processor/interceptor/http.timeout.Interceptor';
+// import { TimeoutInterceptor } from '@/processor/interceptor/http.timeout.Interceptor';
 import { SseModule } from '@/utils/sse/sse.module';
+import { CaptchaModule } from '@/utils/captcha/captcha.module';
 
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
@@ -105,6 +106,7 @@ export const CORE_MODULE = [
   */
   SseModule,
   WinstonLoggerModule,
+  CaptchaModule,
   // WsModule,
   ...buildFeatureImports(),
 ];
@@ -148,6 +150,7 @@ export class AppController {
 
 
     */
+  // { provide: APP_INTERCEPTOR, useClass: CaptchaInterceptor },   // 验证码拦截器
   { provide: APP_INTERCEPTOR, useClass: OperationLogInterceptor }, // 全局启用日志拦截器
   { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
 

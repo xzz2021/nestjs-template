@@ -11,7 +11,6 @@ import { LockoutService } from './lockout.service';
 import { TokenService } from './token.service';
 import { SseController } from '@/utils/sse/sse.controller';
 import { SseModule } from '@/utils/sse/sse.module';
-import { SseStrategy } from '@/utils/sse/sse.strategy';
 
 @Module({
   imports: [

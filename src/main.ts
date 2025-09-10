@@ -133,8 +133,9 @@ axios.post('/api/resource', data, {
 
   app.useGlobalPipes(GLOBAL_VALIDATION_PIPE); // 全局类转换校验  定义了dto的会自动转换
   const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  console.log(`Server is running on port ${port}`);
+  await app.listen(port, () => {
+    console.log(`Server is running on:  http://localhost:${port}`);
+  });
 }
 
 void bootstrap();

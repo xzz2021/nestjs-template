@@ -289,7 +289,7 @@ export class AuthService {
             password: hashedPassword,
           },
         });
-        const res2 = await this.login({ phone: data.phone, password: data.password }, '');
+        const res2 = await this.login2({ phone: data.phone, password: data.password });
         return res2;
       } catch (error) {
         console.log(error);
@@ -311,7 +311,7 @@ export class AuthService {
       false,
     );
     if (res?.res?.id) {
-      return await this.login({ phone: data.phone, password: data.password }, '');
+      return await this.login2({ phone: data.phone, password: data.password });
     }
     // return { code: 400, message: '绑定失败, 请重试!', res };
 
@@ -368,7 +368,7 @@ export class AuthService {
   async smsBind(data: SmsBindDto) {
     //  1. 走正常注册流程
     await this.create({ ...data, code: '' }, false);
-    return await this.login({ phone: data.phone, password: data.password }, '');
+    return await this.login2({ phone: data.phone, password: data.password });
   }
 
   // refreshTokens(userId: number, _refreshToken: string) {
@@ -413,5 +413,39 @@ export class AuthService {
    */
   async verifyAccessToken(token: string): Promise<any> {
     return this.jwtService.verifyAsync(token);
+  }
+
+  async login2(loginInfo: { phone: string; password: string }) {
+    const user = await this.pgService.user.findUnique({
+      where: { phone: loginInfo.phone },
+      select: {
+        id: true,
+        username: true,
+        phone: true,
+        password: true,
+        roles: true,
+        avatar: true,
+        email: true,
+        birthday: true,
+        gender: true,
+        lockedUntil: true,
+      },
+    });
+
+    if (user) {
+      // 比对密码（无用户也走失败分支以防枚举）
+      const ok = user ? await verifyPayPassword(user.password, loginInfo.password) : false;
+      if (!ok) {
+        throw new UnauthorizedException('账号或密码错误');
+      }
+      // 移除密码字段，避免返回给前端
+      const { password, ...result } = user;
+      const access_token = await this.tokenService.signToken(user.id, result);
+      return {
+        message: user.username + '登录成功',
+        userinfo: result,
+        access_token,
+      };
+    }
   }
 }

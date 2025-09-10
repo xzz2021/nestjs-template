@@ -1,4 +1,10 @@
-import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError,
+} from '@prisma/client/runtime/library';
 
 export const checkPrismaError = (exception: any) => {
   // 处理已知的 Prisma 错误
@@ -16,6 +22,13 @@ export const checkPrismaError = (exception: any) => {
       default:
         return { msg: `数据库操作失败: ${exception.code}`, meta: exception.message };
     }
+  }
+
+  if (exception instanceof PrismaClientInitializationError) {
+    return { msg: '数据库初始化失败', meta: exception.message };
+  }
+  if (exception instanceof PrismaClientRustPanicError) {
+    return { msg: '数据库Rust Panic', meta: exception.message };
   }
 
   // 处理未知的 Prisma 错误

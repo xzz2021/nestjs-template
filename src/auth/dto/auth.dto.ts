@@ -64,6 +64,16 @@ export class LoginInfoDto {
   @IsNotEmpty()
   @ApiProperty({ type: String, example: '112233', description: '密码' })
   password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: 'a44833dc-a4d2-4c8b-90d7-a7772b91ca15', description: '验证码ID' })
+  captchaId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '123456', description: '验证码' })
+  captchaText: string;
 }
 
 export class WechatCodeResponse {

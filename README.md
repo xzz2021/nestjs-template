@@ -85,6 +85,7 @@
    > 支付加密: `argon2`  
    > 安全防护: `helmet` `csrf-csrf` `cookie-parser`  
    > 支付宝api: `alipay-sdk`
+   > 验证码生成: `svg-captcha`
 
 #### 注意事项
 

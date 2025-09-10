@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '@/processor/decorator/public.decorator';
 import { TokenService } from '@/auth/token.service';
+// import { Request } from 'express';
 
 //   配合   JwtStrategy 使用   JwtStrategy  注入到module里
 @Injectable()
@@ -79,4 +80,45 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     return user;
   }
+
+  /*
+  // 自定义 自行校验
+   validateRequest(request: Request): Promise<boolean> {
+    if (!request.headers['authorization']) {
+      throw new UnauthorizedException(`失败(missing jwt token)`);
+    }
+
+    const parts = request.headers['authorization'].trim().split(' ');
+    // 从 header 上获取校验信息
+
+    if (parts.length !== 2) {
+      throw new UnauthorizedException('失败(error jwt token)');
+    }
+
+    const [scheme, token] = parts;
+
+    if (/^Bearer$/i.test(scheme)) {
+      try {
+        //jwt.verify方法验证token是否有效
+        this.jwtService.verify(token, {
+          complete: true,
+        });
+        // 用户鉴权信息，注入上下文
+        const d: any = this.jwtService.decode(token);
+        request.user = {
+          id: d.id || '',
+          avatar: '',
+          more: null,
+          name: '',
+          nickname: '',
+        };
+      } catch (error) {
+        throw new AuthException(`失败(${error.message})`);
+      }
+      return true;
+    } else {
+      throw new AuthException('失败(error jwt scheme)');
+    }
+  }
+    */
 }

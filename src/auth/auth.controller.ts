@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginInfoDto, RegisterDto, SmsBindDto, SmsCodeDto, SmsLoginDto } from './dto/auth.dto';
 import { Public } from '@/processor/decorator/public.decorator';
@@ -8,6 +8,7 @@ import { Serialize } from '@/processor/decorator/serialize';
 import { RegisterResDto } from './dto/auth.dto';
 import { extractIP } from '@/processor/utils/string';
 import { ForceLogoutDto } from './dto/auth.dto';
+import { CaptchaGuard } from '@/processor/guard/captcha.guard';
 
 @Public()
 @ApiTags('帐号权限')
@@ -24,6 +25,7 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: '用户登录' })
+  @UseGuards(CaptchaGuard)
   login(@Body() loginInfo: LoginInfoDto, @Req() req: Request) {
     return this.authService.login(loginInfo, extractIP((req['ip'] as string) ?? ''));
   }
