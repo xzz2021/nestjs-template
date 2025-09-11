@@ -24,9 +24,8 @@ async function bootstrap() {
 */
 
   const app = await NestFactory.create(AppModule);
-  // 修复：INestApplication 没有 set 方法，使用 express 实例设置 trust proxy
-  const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.set('trust proxy', true); // 👈 让 req.ip 使用 X-Forwarded-For
+  // 修复：INestApplication 没有 set 方法，使用 express 实例设置 trust proxy     反向代理/CDN 后必开
+  app.getHttpAdapter().getInstance().set('trust proxy', true);
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER)); // 使用winston替换掉nest内置日志
   // app.setGlobalPrefix('api');

@@ -11,7 +11,7 @@ import { JwtAuthGuard } from '@/processor/guard/jwt-auth.guard';
 // import { CaslGuard } from '@/processor/guard/casl.guard';
 // import { CaslModule } from '@/casl/casl.module';
 // import { PoliciesGuard } from '@/processor/guard/casl.guard';
-// import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 // import { DynamicThrottlerGuard } from '@/processor/guard/throttler.guard';
 import { ClsModule } from 'nestjs-cls';
 import { WinstonLoggerModule } from '@/logger/winston.module';
@@ -26,7 +26,10 @@ import { ScheduleTaskModule } from '@/schedule/schedule.module';
 // import { TimeoutInterceptor } from '@/processor/interceptor/http.timeout.Interceptor';
 import { SseModule } from '@/utils/sse/sse.module';
 import { CaptchaModule } from '@/utils/captcha/captcha.module';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import { GlobalThrottlerGuard } from '@/processor/guard/global-throttler.guard';
 
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
 };
@@ -50,23 +53,26 @@ export const CORE_MODULE = [
   //  @SkipThrottle()  跳过速率限制
   //  @Throttle({ default: { limit: 3, ttl: 60000 } }) 装饰器，可用于覆盖全局模块中设置的 limit 和 ttl
   //  @Throttle('medium') // 使用 medium 策略
-  // ThrottlerModule.forRoot([
-  //   {
-  //     name: 'short',
-  //     ttl: 1000,
-  //     limit: 3,
-  //   },
-  //   {
-  //     name: 'medium',
-  //     ttl: 10000,
-  //     limit: 20,
-  //   },
-  //   {
-  //     name: 'long',
-  //     ttl: 60000,
-  //     limit: 100,
-  //   },
-  // ]),
+  ThrottlerModule.forRootAsync({
+    inject: [RedisService],
+    useFactory: (redisService: RedisService) => ({
+      // 新版  storage  需要写在顶层
+      storage: new ThrottlerStorageRedisService(redisService.getOrThrow('default')),
+      throttlers: [
+        {
+          ttl: 60 * 1000,
+          limit: 100,
+        },
+
+        // {
+        //   name: 'captcha',
+        //   ttl: 50 * 1000,
+        //   limit: 1,
+        // },
+      ],
+    }),
+  }),
+
   ScheduleTaskModule,
 
   PrismaModule,
@@ -114,9 +120,15 @@ export const CORE_MODULE = [
 export const GLOBAL_GUARD = [
   // {
   //   // 全局速率限制   默认全局限流只使用第一个配置项
+  //   //  特别注意  如果开启了全局限流 则会先走全局的  再走自定义的Throttler  所以如果有冲突  应该在局部使用@SkipThrottle() // 跳过全局 APP_GUARD 的 Throttler
   //   provide: APP_GUARD,
-  //   useClass: ThrottlerGuard,
+  //   useClass: GlobalThrottlerGuard,
   // },
+  {
+    // 重写自定义全局 ThrottlerGuard  的 key名  从而实现根据不同用户进行限流
+    provide: APP_GUARD,
+    useClass: GlobalThrottlerGuard,
+  },
   // {
   //   // 全局动态限流   相当于上面 原生 ThrottlerGuard 的  加强版
   //   provide: APP_GUARD,
