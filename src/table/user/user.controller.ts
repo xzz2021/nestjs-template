@@ -12,6 +12,7 @@ import {
   BatchDeleteUserDto,
 } from './dto/user.dto';
 import { ConfigService } from '@nestjs/config';
+import { JwtReqDto } from '@/auth/dto/auth.dto';
 @ApiTags('用户')
 @Controller('user')
 export class UserController {
@@ -30,14 +31,14 @@ export class UserController {
   @Get('detailInfo')
   @ApiOperation({ summary: '获取用户详情信息' })
   // @ApiResponse({ type: UpdateUserDto })
-  detailInfo(@Req() req: any) {
+  detailInfo(@Req() req: JwtReqDto) {
     const userId = req.user.id;
     return this.userService.getUserInfo(+userId);
   }
 
   @Post('updatePersonalInfo')
   @ApiOperation({ summary: '用户更新自己的个人信息' })
-  updatePersonalInfo(@Body() updateUserinfo: UpdatePersonalInfo, @Req() req: any) {
+  updatePersonalInfo(@Body() updateUserinfo: UpdatePersonalInfo, @Req() req: JwtReqDto) {
     // 用户更新自己的信息  校验req.user
     if (req.user.id !== +updateUserinfo.id) {
       return { code: 400, message: '无权限更新他人信息' };
@@ -47,7 +48,7 @@ export class UserController {
 
   @Post('updatePassword')
   @ApiOperation({ summary: '用户更新自己的密码' })
-  updatePassword(@Body() updatePasswordDto: UpdatePwdDto, @Req() req: any) {
+  updatePassword(@Body() updatePasswordDto: UpdatePwdDto, @Req() req: JwtReqDto) {
     // 用户更新自己的密码  校验req.user
     if (req.user.id !== +updatePasswordDto.id) {
       return { code: 400, message: '无权限更新他人密码' };
@@ -58,8 +59,8 @@ export class UserController {
   // 管理员重置用户密码
   @Post('resetPassword')
   @ApiOperation({ summary: '管理员重置用户密码' })
-  resetPassword(@Body() updatePasswordDto: AdminUpdatePwdDto, @Req() req: any) {
-    const operateId = req?.user?.id;
+  resetPassword(@Body() updatePasswordDto: AdminUpdatePwdDto, @Req() req: JwtReqDto) {
+    const operateId = req.user.id;
     if (!operateId) throw new BadRequestException('身份识别异常,没有权限');
     const { id, password } = updatePasswordDto;
     if (!id || !password) throw new BadRequestException('参数异常');
@@ -98,8 +99,8 @@ export class UserController {
 
   @Post('online/kick')
   @ApiOperation({ summary: '下线指定在线用户' })
-  async kick(@Req() req: any): Promise<void> {
-    const { id } = req.user;
+  async kick(@Req() req: JwtReqDto): Promise<void> {
+    const id = req.user.id;
     await this.userService.kickUser(+id);
   }
 }

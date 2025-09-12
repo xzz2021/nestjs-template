@@ -3,6 +3,7 @@ import { PaymentService } from './payment.service';
 import { GetWxQrcodeDto, GetAlipayQrcodeDto, WxPayBody, AlipayNotifyDto } from './dto/payment.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { Public } from '@/processor/decorator/public.decorator';
+import { JwtReqDto } from '@/auth/dto/auth.dto';
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
@@ -10,16 +11,16 @@ export class PaymentController {
   //  微信二维码
   @Post('wechat_qrcode')
   @ApiOperation({ summary: '调起微信支付返回二维码' })
-  getWxQrcode(@Body() getWxQrcodeData: GetWxQrcodeDto, @Req() req: any) {
+  getWxQrcode(@Body() getWxQrcodeData: GetWxQrcodeDto, @Req() req: JwtReqDto) {
     console.log('🚀 ~ PaymentController ~ 调起支付返回二维码:');
-    return this.paymentService.getWxQrcode(getWxQrcodeData, req?.user?.id as number);
+    return this.paymentService.getWxQrcode(getWxQrcodeData, req.user.id);
   }
 
   // 支付宝二维码
   @Post('alipay_qrcode')
   @ApiOperation({ summary: '支付宝支付' })
-  getAlipayQrcode(@Body() getAlipayQrcodeData: GetAlipayQrcodeDto, @Req() req: any) {
-    return this.paymentService.getAlipayQrcode(getAlipayQrcodeData, req?.user?.id as number);
+  getAlipayQrcode(@Body() getAlipayQrcodeData: GetAlipayQrcodeDto, @Req() req: JwtReqDto) {
+    return this.paymentService.getAlipayQrcode(getAlipayQrcodeData, req.user.id);
   }
 
   @Public()

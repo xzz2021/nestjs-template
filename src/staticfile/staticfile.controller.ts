@@ -7,11 +7,16 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { generateMulterConfig } from './multer.config';
 import { DeleteFileDto, FileListResDto } from './file.dto';
 import { Serialize } from '@/processor/decorator/serialize';
+import { ConfigService } from '@nestjs/config';
+import { JwtReqDto } from '@/auth/dto/auth.dto';
 
 @ApiTags('静态文件')
 @Controller('staticfile')
 export class StaticfileController {
-  constructor(private readonly staticfileService: StaticfileService) {}
+  constructor(
+    private readonly staticfileService: StaticfileService,
+    private readonly configService: ConfigService,
+  ) {}
   //  流文件
   @Get('steamfile')
   //  形式为 直接下载
@@ -52,7 +57,11 @@ export class StaticfileController {
     const fileExt = file.filename.split('.').pop() || ''; // 文件扩展名
     const { filename, path } = file;
     // 文件路径
-    const url = `${process.env.HOST}:${process.env.PORT}/static/file/manage/${filename}`;
+    const staticUrl = this.configService.get<string>('STATIC_URL');
+    if (!staticUrl) {
+      throw new BadRequestException('STATIC_URL 配置不存在');
+    }
+    const url = `${staticUrl}/static/file/manage/${filename}`;
     const size = file.size; // 文件大小
     return this.staticfileService.uploadFile({
       name: filename,
@@ -73,9 +82,9 @@ export class StaticfileController {
   @Post('upload/avatar')
   @ApiOperation({ summary: '用户上传更新自己的头像' })
   @UseInterceptors(FileInterceptor('file', generateMulterConfig('avatar')))
-  uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
+  uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: JwtReqDto) {
     const userPhone: string = req.user.phone;
-    if (!userPhone) {
+    if (userPhone) {
       throw new BadRequestException('用户手机号不存在');
     }
     const avatarPath = `${process.env.HOST}:${process.env.PORT}/static/avatar/${userPhone}/${file.filename}`;

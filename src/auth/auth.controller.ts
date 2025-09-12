@@ -9,6 +9,9 @@ import { RegisterResDto } from './dto/auth.dto';
 import { extractIP } from '@/processor/utils/string';
 import { ForceLogoutDto } from './dto/auth.dto';
 import { CaptchaGuard } from '@/processor/guard/captcha.guard';
+import { JwtReqDto } from './dto/auth.dto';
+import { JwtAuthGuard } from '@/processor/guard/jwt-auth.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Public()
 @ApiTags('帐号权限')
@@ -31,6 +34,7 @@ export class AuthController {
   }
 
   @Post('getSmsCode')
+  @Throttle({ default: { limit: 5, ttl: 5 * 60 * 1000 } })
   @ApiOperation({ summary: '获取短信验证码' })
   getSmsCode(@Body() data: SmsCodeDto) {
     return this.authService.getSmsCode(data.phone, data.type);
@@ -77,13 +81,23 @@ export class AuthController {
   //   return this.authService.refreshTokens(userId, refreshToken);
   // }
 
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '用户主动退出登录' })
+  logout(@Body() body: ForceLogoutDto, @Req() req: JwtReqDto) {
+    const jti: string = req.user.jti;
+    return this.authService.logout(body.id, jti);
+  }
+
   @Post('forceLogout')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '强制用户下线' })
   forceLogout(@Body() body: ForceLogoutDto) {
     return this.authService.forceLogout(body.id);
   }
 
   @Post('unlock')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '解锁用户' })
   unlock(@Body() body: ForceLogoutDto) {
     return this.authService.unlock(body.id);

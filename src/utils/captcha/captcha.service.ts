@@ -12,9 +12,26 @@ export class CaptchaService {
   constructor(private readonly redisService: RedisService) {
     this.redis = this.redisService.getOrThrow();
   }
+
+  async getCommon(): Promise<CaptchaGenerateResult> {
+    const id = uuidv4();
+    const { data, text } = SvgCaptcha.create({
+      // height: 25,
+      ignoreChars: '0oO1iIl',
+      color: true,
+    });
+    //写入redis存储
+    await this.redis.set(`captchaId:${id}`, text, 'EX', 5 * 60);
+    //写入redis存储
+    const svg = data.replaceAll('"', "'");
+    return {
+      id,
+      svg,
+    };
+  }
+
   async getMathExpr(): Promise<CaptchaGenerateResult> {
     const id = uuidv4();
-
     const res = SvgCaptcha.createMathExpr({
       mathMax: 100,
       mathMin: -100,
@@ -23,22 +40,6 @@ export class CaptchaService {
     await this.redis.set(`captchaId:${id}`, res.text, 'EX', 5 * 60);
 
     const svg = res.data.replaceAll('"', "'");
-    return {
-      id,
-      svg,
-    };
-  }
-
-  async getCommon(): Promise<CaptchaGenerateResult> {
-    const id = uuidv4();
-    const { data, text } = SvgCaptcha.create({
-      // height: 25,
-      color: true,
-    });
-    //写入redis存储
-    await this.redis.set(`captchaId:${id}`, text, 'EX', 5 * 60);
-    //写入redis存储
-    const svg = data.replaceAll('"', "'");
     return {
       id,
       svg,

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PgService } from '@/prisma/pg.service';
 import { LoginInfoDto, RegisterDto, SmsBindDto, SmsLoginDto } from './dto/auth.dto';
@@ -67,7 +67,17 @@ export class AuthService {
         username: true,
         phone: true,
         password: true,
-        roles: true,
+        roles: {
+          include: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
+          },
+        },
         avatar: true,
         email: true,
         birthday: true,
@@ -92,7 +102,8 @@ export class AuthService {
 
       // 移除密码字段，避免返回给前端
       const { password, ...result } = user;
-      const access_token = await this.tokenService.signToken(user.id, result);
+      const { username, phone, id, lockedUntil, roles } = result;
+      const access_token = await this.tokenService.signToken(id, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) });
       return {
         message: user.username + '登录成功',
         userinfo: result,
@@ -399,6 +410,11 @@ export class AuthService {
     this.sseService.sendToClients(id, { type: 'focusLogOut' });
 
     return { message: '强制用户下线成功', id };
+  }
+
+  async logout(id: number, jti: string) {
+    await this.tokenService.logout(id, jti);
+    return { message: '退出登录成功', id };
   }
 
   async unlock(id: number) {

@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { Exclude } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import type { Request } from 'express';
 
 export class RegisterDto {
   @IsString()
@@ -131,4 +132,29 @@ export class ForceLogoutDto {
   @Transform(({ value }) => Number(value))
   @IsNotEmpty()
   id: number;
+}
+
+class JwtUserDto {
+  id: number;
+  username: string;
+  phone: string;
+  roles: string[];
+  lockedUntil: Date;
+  jti: string;
+  iat: number;
+  exp: number;
+}
+export class JwtReqDto extends Request {
+  @ApiProperty({ type: () => JwtUserDto, description: '用户数据' })
+  @IsObject({ message: 'user必须是对象' })
+  //  @ValidateNested({ each: true }) 数组用 true  对象 用false
+  @ValidateNested({ each: false })
+  @Type(() => JwtUserDto)
+  @IsNotEmpty({ message: '用户数据不能为空' })
+  // @Type(() => MetaDto) 的作用：
+  // 1. 将普通对象转换为 MetaDto 实例
+  // 2. 确保 class-transformer 能正确处理嵌套对象
+  // 3. 让 class-validator 能正确进行嵌套验证
+  // 4. 保持类型安全和面向对象特性
+  user: JwtUserDto;
 }
