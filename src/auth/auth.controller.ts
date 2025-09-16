@@ -1,9 +1,9 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginInfoDto, RegisterDto, SmsBindDto, SmsCodeDto, SmsLoginDto } from './dto/auth.dto';
 import { Public } from '@/processor/decorator/public.decorator';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-// import { JwtRefreshAuthGuard } from '@/processor/guard/jwt-refresh.guard';
+import { JwtRefreshAuthGuard } from '@/processor/guard/jwt-refresh.guard';
 import { Serialize } from '@/processor/decorator/serialize';
 import { RegisterResDto } from './dto/auth.dto';
 import { extractIP } from '@/processor/utils/string';
@@ -12,6 +12,7 @@ import { CaptchaGuard } from '@/processor/guard/captcha.guard';
 import { JwtReqDto } from './dto/auth.dto';
 import { JwtAuthGuard } from '@/processor/guard/jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
+import { Response } from 'express';
 
 @Public()
 @ApiTags('帐号权限')
@@ -29,8 +30,8 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: '用户登录' })
   @UseGuards(CaptchaGuard)
-  login(@Body() loginInfo: LoginInfoDto, @Req() req: Request) {
-    return this.authService.login(loginInfo, extractIP((req['ip'] as string) ?? ''));
+  login(@Body() loginInfo: LoginInfoDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    return this.authService.login(loginInfo, extractIP((req['ip'] as string) ?? ''), res);
   }
 
   @Post('getSmsCode')
@@ -74,12 +75,13 @@ export class AuthController {
     return this.authService.smsBind(data);
   }
 
-  // @UseGuards(JwtRefreshAuthGuard)
-  // @Post('refresh')
-  // refresh(@Req() req: any) {
-  //   const { userId, refreshToken } = req['body'] as { userId: number; refreshToken: string };
-  //   return this.authService.refreshTokens(userId, refreshToken);
-  // }
+  @Post('refresh')
+  @UseGuards(JwtRefreshAuthGuard)
+  refresh(@Req() req: any) {
+    console.log('reqreqreqreqreqreqreq', req);
+    // const { userId, refreshToken } = req['body'] as { userId: number; refreshToken: string };
+    // return this.authService.refreshToken(userId, refreshToken);
+  }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)

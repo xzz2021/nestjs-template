@@ -11,6 +11,7 @@ import { TokenService } from './token.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 import { SseService } from '@/utils/sse/sse.service';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -59,7 +60,7 @@ export class AuthService {
     return { message: phone + '注册成功', res };
   }
 
-  async login(loginInfo: LoginInfoDto, ip: string) {
+  async login(loginInfo: LoginInfoDto, ip: string, res: Response) {
     const user = await this.pgService.user.findUnique({
       where: { phone: loginInfo.phone },
       select: {
@@ -103,11 +104,26 @@ export class AuthService {
       // 移除密码字段，避免返回给前端
       const { password, ...result } = user;
       const { username, phone, id, lockedUntil, roles } = result;
-      const access_token = await this.tokenService.signToken(id, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) });
+
+      const { accessToken, refreshToken } = await this.tokenService.signToken(id, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) });
+      // 暂未 利用 refreshToken 相应 功能  只是先实现
+      res.cookie('rt', refreshToken, {
+        httpOnly: true,
+        secure: !true,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 15 * 24 * 60 * 60 * 1000,
+      });
+      /*
+      注意使用res设置cookie后   直接返回数据是无效的
+      1. 使用return res.status(200).json({ accessToken });
+      2. 使用@Res({ passthrough: true }), 让 Nest 继续负责序列化（JSON）, 因为NestJS接管了响应
+
+      */
       return {
-        message: user.username + '登录成功',
+        message: user?.username + '登录成功',
         userinfo: result,
-        access_token,
+        access_token: accessToken,
       };
     }
   }
@@ -174,7 +190,7 @@ export class AuthService {
     return userInfo;
   }
 
-  async refreshToken(token: string) {
+  async refreshWechatToken(token: string) {
     const api = `https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=wxfcddbb227afa4d1d&grant_type=refresh_token&refresh_token=${token}`;
     try {
       const res: resultDataType<{ errcode?: number; access_token: string; refresh_token: string }> = await this.httpService.get(api);
@@ -463,5 +479,21 @@ export class AuthService {
         access_token,
       };
     }
+  }
+
+  async refreshToken(userId: number, refreshToken: string) {
+    //  这里需要返回2个token  最好存入redis  每次获取新的   都要revoke旧的
+    const user = await this.pgService.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new UnauthorizedException('用户不存在');
+    }
+    const payload = { sub: userId };
+    const newAccessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: '15m',
+    });
+    return { access_token: newAccessToken };
   }
 }

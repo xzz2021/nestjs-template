@@ -19,6 +19,7 @@ export class TokenService {
   private maxSessions: number;
   private JWT_SECRET: string;
   private JWT_EXPIRES_TIME: number;
+  private JWT_REFRESH_EXPIRES_TIME: number;
   private readonly redis: Redis;
   constructor(
     private readonly jwt: JwtService,
@@ -30,6 +31,7 @@ export class TokenService {
     this.maxSessions = Number(ssoCount);
     this.JWT_SECRET = this.configService.get<string>('JWT_SECRET') || '';
     this.JWT_EXPIRES_TIME = Number(this.configService.get<string>('JWT_EXPIRES_TIME') || 60 * 60 * 24 * 7);
+    this.JWT_REFRESH_EXPIRES_TIME = Number(this.configService.get<string>('JWT_REFRESH_EXPIRES_TIME') || 60 * 60 * 24 * 7);
   }
 
   // —— Key helpers ——
@@ -106,7 +108,11 @@ export class TokenService {
     const nowSec = Math.floor(Date.now() / 1000);
     const exp = nowSec + this.JWT_EXPIRES_TIME;
 
-    const token = await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME, jwtid: jti });
+    const [accessToken, refreshToken] = await Promise.all([
+      await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME, jwtid: jti }),
+      await this.jwt.signAsync({ sub: userId }, { expiresIn: this.JWT_REFRESH_EXPIRES_TIME }),
+    ]);
+
     // const expiresTime = nowSec + this.cfg.ttlSec;
     // 记录 jti 的 exp（撤销时可直接查）
     await this.redis.set(this.jtiKey(jti), String(exp), 'EX', this.JWT_EXPIRES_TIME);
@@ -131,7 +137,12 @@ export class TokenService {
       }
     });
 
-    return { token, jti, exp };
+    return { jti, exp, accessToken, refreshToken };
+  }
+
+  async issueRefreshToken(userId: number) {
+    const refreshToken = await this.jwt.signAsync({ sub: userId, typ: 'rt' }, { expiresIn: this.JWT_REFRESH_EXPIRES_TIME });
+    return refreshToken;
   }
 
   /** 撤销单个会话 */
@@ -191,8 +202,8 @@ export class TokenService {
 
   // 登录通过后（账号密码已校验）
   async signToken(userId: number, extraPayload = {}) {
-    const { token } = await this.issue(userId, extraPayload);
-    return token;
+    const { accessToken, refreshToken } = await this.issue(userId, extraPayload);
+    return { accessToken, refreshToken };
   }
 
   async logout(userId: number, jti: string) {

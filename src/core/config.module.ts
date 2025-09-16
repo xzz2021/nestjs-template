@@ -1,5 +1,5 @@
-import { ConfigModule, registerAs } from '@nestjs/config';
-import * as Joi from 'joi';
+import { ConfigModule } from '@nestjs/config';
+// import * as Joi from 'joi';
 
 //  此处加载的文件是静态编译的  而cross-env 传递的变量是运行时生效的
 // const envPath = [`.env.${process.env.NODE_ENV}`, '.env']; // 两者变量会去重合并   前者覆写后者
@@ -80,12 +80,21 @@ export const moduleFactory = () => {
   };
 };
 
+export const redis = () => {
+  return {
+    redis: {
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+    },
+  };
+};
+
 // 通过上面方法可以打点调用
 // const dbHost = this.configService.get<string>('database.host');
 
 export const CONFIG_MODULE = ConfigModule.forRoot({
   // load: [aliSms, aliPay, wxPay, mail, redis],
-  load: [aliPay, wxPay, sfApi, aliSms],
+  load: [aliPay, wxPay, sfApi, aliSms, redis],
   isGlobal: true,
   cache: true,
   envFilePath: (() => {
@@ -94,12 +103,12 @@ export const CONFIG_MODULE = ConfigModule.forRoot({
     return [`.env.${env}`, '.env'];
   })(),
   expandVariables: true,
-  validationSchema: Joi.object({
-    // NODE_ENV: Joi.string().valid('development', 'production').required(),
-    // PORT: Joi.number().required(),
-    // JWT_SECRET: Joi.string().required(),
-    // MAIL_PORT: Joi.number().required(),
-  }),
+  // validationSchema: Joi.object({
+  //   // NODE_ENV: Joi.string().valid('development', 'production').required(),
+  //   // PORT: Joi.number().required(),
+  //   // JWT_SECRET: Joi.string().required(),
+  //   // MAIL_PORT: Joi.number().required(),
+  // }),
 });
 
 /*

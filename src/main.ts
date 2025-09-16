@@ -5,6 +5,7 @@ import { GLOBAL_VALIDATION_PIPE } from './processor/pipe/global.validation.pipe'
 import helmet from 'helmet';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import cookieParser from 'cookie-parser';
 // import { AllExceptionsFilter } from './processor/filter/exceptions';
 // import { VersioningType } from '@nestjs/common';
 // =============csfr防攻击 跨站请求伪造=========
@@ -50,6 +51,13 @@ async function bootstrap() {
       }),
     );
   }
+
+  // cookies 携带 跨域
+  app.use(cookieParser());
+  app.enableCors({
+    origin: ['http://localhost:4000'],
+    credentials: true,
+  });
 
   /*
 
