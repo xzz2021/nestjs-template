@@ -30,6 +30,7 @@ import { RedisService } from '@liaoliaots/nestjs-redis';
 import { GlobalThrottlerGuard } from '@/processor/guard/global-throttler.guard';
 
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { RtJwtAuthGuard } from '@/processor/guard/rt-jwt-auth.guard';
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
 };
@@ -173,7 +174,7 @@ export class AppController {
   {
     // 全局JWT token校验
     provide: APP_GUARD,
-    useClass: JwtAuthGuard,
+    useClass: process.env.USE_REFRESH_TOKEN == 'true' ? RtJwtAuthGuard : JwtAuthGuard,
   },
 
   //  全局casl权限校验

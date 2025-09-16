@@ -30,8 +30,15 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: '用户登录' })
   @UseGuards(CaptchaGuard)
-  login(@Body() loginInfo: LoginInfoDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    return this.authService.login(loginInfo, extractIP((req['ip'] as string) ?? ''), res);
+  login(@Body() loginInfo: LoginInfoDto, @Req() req: Request) {
+    return this.authService.login(loginInfo, extractIP((req['ip'] as string) ?? ''));
+  }
+
+  @Post('rt/login')
+  @ApiOperation({ summary: '用户登录(refreshToken版本)' })
+  @UseGuards(CaptchaGuard)
+  rtLogin(@Body() loginInfo: LoginInfoDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    return this.authService.rtLogin(loginInfo, extractIP((req['ip'] as string) ?? ''), res);
   }
 
   @Post('getSmsCode')
@@ -77,10 +84,10 @@ export class AuthController {
 
   @Post('refresh')
   @UseGuards(JwtRefreshAuthGuard)
-  refresh(@Req() req: any) {
-    console.log('reqreqreqreqreqreqreq', req);
-    // const { userId, refreshToken } = req['body'] as { userId: number; refreshToken: string };
-    // return this.authService.refreshToken(userId, refreshToken);
+  refresh(@Req() req: JwtReqDto, @Res({ passthrough: true }) res: Response) {
+    // console.log('xzz2021: AuthController -> refresh -> userId:', req.user);
+    const { id: userId } = req.user;
+    return this.authService.rtRefresh(userId, res);
   }
 
   @Post('logout')

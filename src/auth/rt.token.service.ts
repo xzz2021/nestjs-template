@@ -5,13 +5,14 @@ import { randomUUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
+import { Response } from 'express';
 export interface SessionConfig {
   lockTtlMs?: number; // 互斥锁占用时长（毫秒）
   lockMaxWaitMs?: number; // 获取锁的最大等待时长（毫秒）
 }
 
 @Injectable()
-export class TokenService {
+export class RtTokenService {
   private readonly cfg: SessionConfig = {
     lockTtlMs: 400, // 锁的 TTL
     lockMaxWaitMs: 300, // 最多等待拿锁 300ms
@@ -19,6 +20,8 @@ export class TokenService {
   private maxSessions: number;
   private JWT_SECRET: string;
   private JWT_EXPIRES_TIME: number;
+  private JWT_REFRESH_SECRET: string;
+  private JWT_REFRESH_EXPIRES_TIME: number;
   private readonly redis: Redis;
   constructor(
     private readonly jwt: JwtService,
@@ -29,21 +32,23 @@ export class TokenService {
     const ssoCount = this.configService.get<string>('SSO_COUNT') || '2';
     this.maxSessions = Number(ssoCount);
     this.JWT_SECRET = this.configService.get<string>('JWT_SECRET') || '';
-    this.JWT_EXPIRES_TIME = Number(this.configService.get<string>('JWT_EXPIRES_TIME') || 60 * 60 * 24 * 7);
+    this.JWT_REFRESH_SECRET = this.configService.get<string>('JWT_REFRESH_SECRET') || '';
+    this.JWT_EXPIRES_TIME = Number(this.configService.get<string>('JWT_EXPIRES_TIME') || 60 * 1);
+    this.JWT_REFRESH_EXPIRES_TIME = Number(this.configService.get<string>('JWT_REFRESH_EXPIRES_TIME') || 60 * 2);
   }
 
   // —— Key helpers ——
   private listKey(userId: number) {
-    return `user:sessions:${userId}`;
+    return `user:cookies:${userId}`;
   }
   private jtiKey(jti: string) {
-    return `session:exp:${jti}`;
+    return `cookies:exp:${jti}`;
   }
   private blKey(jti: string) {
-    return `jwt:blacklist:${jti}`;
+    return `rt:jwt:blacklist:${jti}`;
   }
   private lockKey(userId: number) {
-    return `user:sessions:lock:${userId}`;
+    return `user:cookies:lock:${userId}`;
   }
 
   // —— 轻量互斥锁（只用 cache-manager 的 get/set/del） ——
@@ -101,12 +106,15 @@ export class TokenService {
   // —— 对外 API ——
 
   /** 签发会话（含并发限制/逐出旧会话/黑名单） */
-  async issue(userId: number, extraPayload: Record<string, any> = {}) {
+  async issue(userId: number, extraPayload: Record<string, any> = {}, res: Response) {
     const jti = randomUUID();
     const nowSec = Math.floor(Date.now() / 1000);
     const exp = nowSec + this.JWT_EXPIRES_TIME;
 
-    const token = await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME, jwtid: jti });
+    const [accessToken, refreshToken] = await Promise.all([
+      await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME }),
+      await this.jwt.signAsync({ id: userId }, { expiresIn: this.JWT_REFRESH_EXPIRES_TIME, jwtid: jti, secret: this.JWT_REFRESH_SECRET }),
+    ]);
 
     // const expiresTime = nowSec + this.cfg.ttlSec;
     // 记录 jti 的 exp（撤销时可直接查）
@@ -118,6 +126,7 @@ export class TokenService {
 
       // 新的放前面；去重（如果同 jti 不应出现；保险起见）
       list = [jti, ...list.filter(x => x !== jti)];
+      // list = [jti, ...list.filter(x => x !== jti && x !== oldJti)];
 
       // 超出上限 → 逐出尾部旧会话
       const evicted: string[] = list.length > this.maxSessions ? list.slice(this.maxSessions) : [];
@@ -131,8 +140,19 @@ export class TokenService {
         await this.blacklistByJti(oldJti, oldExp);
       }
     });
+    this.setRtCookie(res, refreshToken);
 
-    return { jti, exp, token };
+    return { jti, exp, accessToken, refreshToken };
+  }
+
+  setRtCookie(res: Response, refreshToken: string) {
+    res.cookie('rt', refreshToken, {
+      httpOnly: true,
+      secure: !true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+    });
   }
 
   /** 撤销单个会话 */
@@ -191,9 +211,9 @@ export class TokenService {
   //  以下是操作
 
   // 登录通过后（账号密码已校验）
-  async signToken(userId: number, extraPayload = {}) {
-    const { token } = await this.issue(userId, extraPayload);
-    return token;
+  async signToken(userId: number, extraPayload = {}, res: Response) {
+    const { accessToken, refreshToken } = await this.issue(userId, extraPayload, res);
+    return { accessToken, refreshToken };
   }
 
   async logout(userId: number, jti: string) {

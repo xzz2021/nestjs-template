@@ -12,6 +12,7 @@ import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 import { SseService } from '@/utils/sse/sse.service';
 import { Response } from 'express';
+import { RtTokenService } from './rt.token.service';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +29,7 @@ export class AuthService {
     private readonly lockout: LockoutService,
     private readonly tokenService: TokenService,
     private readonly sseService: SseService,
+    private readonly rtTokenService: RtTokenService,
   ) {
     this.wxAppSecret = this.configService.get<string>('WX_APP_SECRET') || '';
     this.wxAppId = this.configService.get<string>('WX_APP_ID') || '';
@@ -60,7 +62,7 @@ export class AuthService {
     return { message: phone + '注册成功', res };
   }
 
-  async login(loginInfo: LoginInfoDto, ip: string, res: Response) {
+  async login(loginInfo: LoginInfoDto, ip: string) {
     const user = await this.pgService.user.findUnique({
       where: { phone: loginInfo.phone },
       select: {
@@ -105,15 +107,70 @@ export class AuthService {
       const { password, ...result } = user;
       const { username, phone, id, lockedUntil, roles } = result;
 
-      const { accessToken, refreshToken } = await this.tokenService.signToken(id, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) });
+      const accessToken = await this.tokenService.signToken(id, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) });
+
+      return {
+        message: user?.username + '登录成功',
+        userinfo: result,
+        access_token: accessToken,
+      };
+    }
+  }
+
+  async rtLogin(loginInfo: LoginInfoDto, ip: string, res: Response) {
+    const user = await this.pgService.user.findUnique({
+      where: { phone: loginInfo.phone },
+      select: {
+        id: true,
+        username: true,
+        phone: true,
+        password: true,
+        roles: {
+          include: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
+          },
+        },
+        avatar: true,
+        email: true,
+        birthday: true,
+        gender: true,
+        lockedUntil: true,
+      },
+    });
+
+    if (user) {
+      //  校验锁定状态
+      await this.lockout.ensureNotLocked(user);
+
+      // 比对密码（无用户也走失败分支以防枚举）
+      const ok = user ? await verifyPayPassword(user.password, loginInfo.password) : false;
+      if (!ok) {
+        await this.lockout.onFail(loginInfo.phone, ip, user ?? undefined);
+        throw new UnauthorizedException('账号或密码错误');
+      }
+
+      // 成功：复位锁定状态
+      await this.lockout.onSuccess(loginInfo.phone, ip, user);
+
+      // 移除密码字段，避免返回给前端
+      const { password, ...result } = user;
+      const { username, phone, id, lockedUntil, roles } = result;
+
+      const { accessToken } = await this.rtTokenService.signToken(id, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) }, res);
       // 暂未 利用 refreshToken 相应 功能  只是先实现
-      res.cookie('rt', refreshToken, {
-        httpOnly: true,
-        secure: !true,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 15 * 24 * 60 * 60 * 1000,
-      });
+      // res.cookie('rt', refreshToken, {
+      //   httpOnly: true,
+      //   secure: !true,
+      //   sameSite: 'lax',
+      //   path: '/',
+      //   maxAge: 15 * 24 * 60 * 60 * 1000,
+      // });
       /*
       注意使用res设置cookie后   直接返回数据是无效的
       1. 使用return res.status(200).json({ accessToken });
@@ -481,19 +538,39 @@ export class AuthService {
     }
   }
 
-  async refreshToken(userId: number, refreshToken: string) {
+  async rtRefresh(userId: number, res: Response) {
     //  这里需要返回2个token  最好存入redis  每次获取新的   都要revoke旧的
     const user = await this.pgService.user.findUnique({
       where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        phone: true,
+        password: true,
+        roles: {
+          include: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
+          },
+        },
+        avatar: true,
+        email: true,
+        birthday: true,
+        gender: true,
+        lockedUntil: true,
+      },
     });
     if (!user) {
       throw new UnauthorizedException('用户不存在');
     }
-    const payload = { sub: userId };
-    const newAccessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: '15m',
-    });
-    return { access_token: newAccessToken };
+    const { username, phone, id, lockedUntil, roles } = user;
+    //  正常需要在签发新的时  更新refreshToken(已实现)  revoke旧的accessToken(未实现, 后期优化)
+    const { accessToken } = await this.rtTokenService.signToken(userId, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) }, res);
+    return { access_token: accessToken };
   }
 }
