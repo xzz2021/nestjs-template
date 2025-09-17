@@ -60,13 +60,12 @@ export class OperationLogInterceptor implements NestInterceptor {
           method,
           ip: extractIP(ip ?? ''),
           userAgent: userAgent,
-          requestUrl: url.slice(0, 100),
-          responseMsg: data?.message,
+          requestUrl: url.slice(0, 150),
+          responseMsg: data?.message?.slice(0, 150),
           detailInfo: {},
           status: 'success',
           duration: Date.now() - start,
         };
-
         // 调用任务 将日志 异步写入数据库
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.scheduleService.addUserOperationLog(logData);
@@ -88,11 +87,12 @@ export class OperationLogInterceptor implements NestInterceptor {
           ip: extractIP(ip ?? ''),
           userAgent: userAgent,
           requestUrl: url,
-          responseMsg: err?.message,
+          responseMsg: err?.message?.slice(0, 150),
           detailInfo: meta,
           status: 'fail',
           duration: Date.now() - start,
         };
+        // console.log('xzz2021: OperationLogInterceptor -> logData:', logData);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.scheduleService.addUserOperationLog(logData);
 

@@ -358,7 +358,6 @@ model DictionaryEntry {
   @@map("dictionary_entry")
 }
 
-
 model UserOperationLog {
   id        Int     @id @default(autoincrement())
   userId    Int?     @map("user_id") 
@@ -368,7 +367,7 @@ model UserOperationLog {
   requestUrl String  @db.VarChar(150) @map("request_url")
   status    String  @db.VarChar(10) @map("status")
 
-  responseMsg String? @db.VarChar(50) @map("response_msg")
+  responseMsg String? @db.VarChar(150) @map("response_msg")
   detailInfo   Json?   @map("detail_info")
   createdAt DateTime @default(now()) @map("created_at")
   duration  Int  

@@ -31,6 +31,7 @@ import { GlobalThrottlerGuard } from '@/processor/guard/global-throttler.guard';
 
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { RtJwtAuthGuard } from '@/processor/guard/rt-jwt-auth.guard';
+import { MinioClientModule } from '@/utils/minio/minio.module';
 const FLAG_MODULE: Record<string, any> = {
   WS: WsModule,
 };
@@ -114,6 +115,7 @@ export const CORE_MODULE = [
   SseModule,
   WinstonLoggerModule,
   CaptchaModule,
+  MinioClientModule,
   // WsModule,
   ...buildFeatureImports(),
 ];

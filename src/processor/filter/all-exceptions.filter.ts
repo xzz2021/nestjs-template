@@ -17,6 +17,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
+    // 如果返回的是流文件 则不进行处理
+    if (response.headersSent) {
+      return;
+    }
+
     const path = request.url.split('?')[0];
     // ✅ 忽略 favicon.ico 请求
     if (path === 'favicon.ico') {
