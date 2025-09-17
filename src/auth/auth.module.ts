@@ -16,20 +16,21 @@ import { RtTokenService } from './rt.token.service';
 @Module({
   imports: [
     PassportModule,
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        // console.log(configService.get<string>('JWT_SECRET'));
-        // console.log(configService.get<string>('JWT_EXPIRES_IN', '3d'));
-        return {
-          // global: true,
-          secret: configService.get<string>('JWT_SECRET'),
-          // signOptions: {
-          //   expiresIn: Number(configService.get<string>('JWT_EXPIRES_TIME')), // 默认 7 天
-          // },
-        };
-      },
-    }),
+    JwtModule, // 不用传递参数 一律在生成时传递
+    // .registerAsync({
+    //   inject: [ConfigService],
+    //   useFactory: (configService: ConfigService) => {
+    //     // console.log(configService.get<string>('JWT_SECRET'));
+    //     // console.log(configService.get<string>('JWT_EXPIRES_IN', '3d'));
+    //     return {
+    //       // global: true,
+    //       secret: configService.get<string>('JWT_SECRET'),
+    //       // signOptions: {
+    //       //   expiresIn: Number(configService.get<string>('JWT_EXPIRES_TIME')), // 默认 7 天
+    //       // },
+    //     };
+    //   },
+    // }),
     SmsModule,
     SseModule,
   ],

@@ -86,8 +86,8 @@ export class AuthController {
   @UseGuards(JwtRefreshAuthGuard)
   refresh(@Req() req: JwtReqDto, @Res({ passthrough: true }) res: Response) {
     // console.log('xzz2021: AuthController -> refresh -> userId:', req.user);
-    const { id: userId } = req.user;
-    return this.authService.rtRefresh(userId, res);
+    const { id: userId, jti: oldJti } = req.user;
+    return this.authService.rtRefresh(userId, res, oldJti);
   }
 
   @Post('logout')

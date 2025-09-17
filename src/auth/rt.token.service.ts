@@ -19,7 +19,7 @@ export class RtTokenService {
   };
   private maxSessions: number;
   private JWT_SECRET: string;
-  private JWT_EXPIRES_TIME: number;
+  private JWT_EXPIRES_TIME: number; //
   private JWT_REFRESH_SECRET: string;
   private JWT_REFRESH_EXPIRES_TIME: number;
   private readonly redis: Redis;
@@ -106,13 +106,15 @@ export class RtTokenService {
   // —— 对外 API ——
 
   /** 签发会话（含并发限制/逐出旧会话/黑名单） */
-  async issue(userId: number, extraPayload: Record<string, any> = {}, res: Response) {
-    const jti = randomUUID();
+  async issue(userId: number, extraPayload: Record<string, any> = {}, res: Response, oldJti?: string) {
+    // 使用旧的jti进行更换时 可以实现  指定n点登录限制   缺点: 用户真实踢出时间取决于下次refresh token时  无法立即踢出
+    //   解决方案  1. 给 jwttoken也加上黑名单机制  在guard层检查    2. 结合sse进行校验 (无效, sse只在首次连接时会校验/且会影响所有当前连接的同一id)
+    const jti = oldJti || randomUUID();
     const nowSec = Math.floor(Date.now() / 1000);
     const exp = nowSec + this.JWT_EXPIRES_TIME;
 
     const [accessToken, refreshToken] = await Promise.all([
-      await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME }),
+      await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME, secret: this.JWT_SECRET }),
       await this.jwt.signAsync({ id: userId }, { expiresIn: this.JWT_REFRESH_EXPIRES_TIME, jwtid: jti, secret: this.JWT_REFRESH_SECRET }),
     ]);
 
@@ -211,8 +213,8 @@ export class RtTokenService {
   //  以下是操作
 
   // 登录通过后（账号密码已校验）
-  async signToken(userId: number, extraPayload = {}, res: Response) {
-    const { accessToken, refreshToken } = await this.issue(userId, extraPayload, res);
+  async signToken(userId: number, extraPayload = {}, res: Response, oldJti?: string) {
+    const { accessToken, refreshToken } = await this.issue(userId, extraPayload, res, oldJti);
     return { accessToken, refreshToken };
   }
 

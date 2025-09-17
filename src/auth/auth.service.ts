@@ -538,7 +538,7 @@ export class AuthService {
     }
   }
 
-  async rtRefresh(userId: number, res: Response) {
+  async rtRefresh(userId: number, res: Response, oldJti: string) {
     //  这里需要返回2个token  最好存入redis  每次获取新的   都要revoke旧的
     const user = await this.pgService.user.findUnique({
       where: { id: userId },
@@ -570,7 +570,7 @@ export class AuthService {
     }
     const { username, phone, id, lockedUntil, roles } = user;
     //  正常需要在签发新的时  更新refreshToken(已实现)  revoke旧的accessToken(未实现, 后期优化)
-    const { accessToken } = await this.rtTokenService.signToken(userId, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) }, res);
+    const { accessToken } = await this.rtTokenService.signToken(userId, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) }, res, oldJti);
     return { access_token: accessToken };
   }
 }

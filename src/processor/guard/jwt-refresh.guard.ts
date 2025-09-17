@@ -24,7 +24,7 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
     const user = request.user;
     const userId = user?.id as number;
     const jti = user?.jti as string;
-
+    // console.log('xzz2021: JwtRefreshAuthGuard -> canActivate -> jti:', jti);
     if (!userId || !jti) {
       throw new UnauthorizedException('Invalid token payload');
     }
@@ -36,6 +36,7 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
 
     // 2) 仍在该用户的会话列表中（避免已被逐出的旧会话继续访问）
     const list = await this.rtTokenService.listSessions(userId);
+    // console.log('xzz2021: JwtRefreshAuthGuard -> canActivate -> list:', list);
 
     if (!list.includes(jti)) {
       throw new UnauthorizedException('rt token not active');
