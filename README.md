@@ -86,6 +86,8 @@
    > 安全防护: `helmet` `csrf-csrf` `cookie-parser`  
    > 支付宝api: `alipay-sdk`
    > 验证码生成: `svg-captcha`
+   > minio文件管理: `nestjs-minio-client`
+   > 大文件S3管理: `@aws-sdk/client-s3` `@aws-sdk/s3-request-presigner`
 
 #### 注意事项
 

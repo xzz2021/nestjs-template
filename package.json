@@ -33,6 +33,8 @@
     "@alicloud/dysmsapi20170525": "^4.1.2",
     "@alicloud/openapi-client": "^0.4.15",
     "@alicloud/tea-util": "^1.4.10",
+    "@aws-sdk/client-s3": "^3.891.0",
+    "@aws-sdk/s3-request-presigner": "^3.891.0",
     "@casl/ability": "^6.7.3",
     "@casl/prisma": "^1.5.1",
     "@liaoliaots/nestjs-redis": "^10.0.0",

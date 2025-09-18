@@ -1,10 +1,17 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { MinioService } from 'nestjs-minio-client';
-import { Readable } from 'stream';
-
+import { FileInfoDto, SearchFilesResDto, UploadChunkDto } from './dto/minio.dto';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import Redis from 'ioredis';
 @Injectable()
 export class MinioClientService {
-  constructor(private readonly minioService: MinioService) {}
+  private readonly redis: Redis;
+  constructor(
+    private readonly minioService: MinioService,
+    private readonly redisService: RedisService,
+  ) {
+    this.redis = this.redisService.getOrThrow();
+  }
 
   async getListAllBuckets(): Promise<any> {
     const list = await this.minioService.client.listBuckets();
@@ -138,13 +145,7 @@ export class MinioClientService {
   }
 
   // 下载文件
-  async downloadFile(objectName: string): Promise<{
-    stream: NodeJS.ReadableStream;
-    stat: any;
-    objectName: string;
-    size: number;
-    mimeType: string;
-  }> {
+  async downloadFile(objectName: string): Promise<UploadChunkDto> {
     try {
       // 检查文件是否存在
       const stat = await this.minioService.client.statObject('public', objectName);
@@ -185,14 +186,7 @@ export class MinioClientService {
   }
 
   // 获取文件信息
-  async getFileInfo(objectName: string): Promise<{
-    objectName: string;
-    size: number;
-    lastModified: Date;
-    etag: string;
-    mimeType: string;
-    metaData: Record<string, any>;
-  }> {
+  async getFileInfo(objectName: string): Promise<FileInfoDto> {
     try {
       const stat = await this.minioService.client.statObject('public', objectName);
       return {
@@ -235,15 +229,7 @@ export class MinioClientService {
   }
 
   // 搜索文件
-  async searchFiles(
-    searchTerm: string,
-    prefix: string = '',
-  ): Promise<{
-    list: any[];
-    total: number;
-    searchTerm: string;
-    message: string;
-  }> {
+  async searchFiles(searchTerm: string, prefix: string = ''): Promise<SearchFilesResDto> {
     return new Promise((resolve, reject) => {
       const objectsList: any[] = [];
 
@@ -290,7 +276,6 @@ export class MinioClientService {
         resolve({
           list: sortedList,
           total: sortedList.length,
-          searchTerm,
           message: `搜索完成，找到 ${sortedList.length} 个匹配项`,
         });
       });

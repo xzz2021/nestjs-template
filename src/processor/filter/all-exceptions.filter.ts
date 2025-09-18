@@ -51,7 +51,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       // url: request.url,
       // status,
       // message,
-      stack: exception instanceof Error ? exception.stack?.slice(0, 50) : null,
+      stack: exception instanceof Error ? exception.stack?.slice(0, 150) : null,
       context: 'AllExceptionsFilter',
       info: `${path}, ${request.method} ${Date.now() - start}ms`,
     });

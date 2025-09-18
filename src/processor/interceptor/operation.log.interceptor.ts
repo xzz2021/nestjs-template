@@ -75,6 +75,7 @@ export class OperationLogInterceptor implements NestInterceptor {
 
       // 失败时 记录  操作日志
       catchError((err: any) => {
+        // console.log('xzz2021: OperationLogInterceptor -> err:', err);
         const meta = {
           meta: err?.meta,
           stackName: err.stack.split(':')[0],

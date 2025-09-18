@@ -3,11 +3,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { MinioClientService } from './minio.service';
 import { Public } from '@/processor/decorator/public.decorator';
 import { Response } from 'express';
+import { MinioS3Service } from './minio.s3.service';
 
 @Public()
 @Controller('minio')
 export class MinioClientController {
-  constructor(private readonly minioClientService: MinioClientService) {}
+  constructor(
+    private readonly minioClientService: MinioClientService,
+    private readonly minioS3Service: MinioS3Service,
+  ) {}
 
   @Get('allBuckets')
   list() {
