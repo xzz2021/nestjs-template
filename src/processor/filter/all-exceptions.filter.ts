@@ -11,7 +11,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) {}
   catch(exception: unknown, host: ArgumentsHost) {
-    // console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
+    console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
     const start = Date.now();
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();

@@ -13,6 +13,8 @@ export class TransformInterceptor<T> implements NestInterceptor<T, any> {
     return next.handle().pipe(
       // 对所有响应数据进行包装
       map((data: any) => {
+        //  如果数据不存在 也直接返回  这样可以看到未知异常
+        if (!data) return data;
         // 如果返回的是文件流 则不记录日志
         if (data instanceof ReadableStream) {
           return data;

@@ -102,6 +102,65 @@ export class MinioClientController {
     }
   }
 
+  // 下载文件夹（压缩为ZIP）
+  @Get('folder/download')
+  @Header('Content-Type', 'application/zip')
+  async downloadFolder(@Query('folderPath') folderPath: string, @Res() res: Response) {
+    if (!folderPath) {
+      return res.status(400).json({ message: 'folderPath 参数不能为空' });
+    }
+
+    try {
+      const result = await this.minioClientService.downloadFolder(folderPath);
+      console.log('xzz2021: 文件夹下载结果:', result);
+
+      // 设置响应头
+      res.set({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(result.objectName)}"`,
+        'Cache-Control': 'no-cache',
+      });
+
+      // 使用 Promise 包装流处理
+      return new Promise<void>((resolve, reject) => {
+        let isFinished = false;
+
+        // 流错误处理
+        result.stream.on('error', error => {
+          console.error('下载文件夹流错误:', error);
+          if (!isFinished && !res.headersSent) {
+            isFinished = true;
+            res.status(500).json({ message: '文件夹下载失败' });
+            reject(error as Error);
+          }
+        });
+
+        // 流结束处理
+        result.stream.on('end', () => {
+          console.log('文件夹下载完成');
+          if (!isFinished) {
+            isFinished = true;
+            resolve();
+          }
+        });
+
+        // 响应结束处理
+        res.on('close', () => {
+          if (!isFinished) {
+            isFinished = true;
+          }
+        });
+
+        // 开始管道传输
+        result.stream.pipe(res);
+      });
+    } catch (error) {
+      if (!res.headersSent) {
+        res.status(404).json({ message: error?.message || '文件夹下载失败' });
+      }
+    }
+  }
+
   // 获取文件信息 - 修改路由路径
   @Get('info')
   getFileInfo(@Query('objectName') objectName: string) {

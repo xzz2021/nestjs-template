@@ -18,7 +18,7 @@ export class SseAuthGuard extends AuthGuard('sse') {
    * 主动失效token  直接抛出异常
    */
   handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
-    console.log('-=--------------useruser-------', user);
+    // console.log('-=--------------useruser-------', user);
 
     // console.log('[sse guard] handleRequest err=', err, 'info=', info, 'user=', user);
     if (err || !user) {
