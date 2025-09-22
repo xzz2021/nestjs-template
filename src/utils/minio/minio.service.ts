@@ -485,4 +485,14 @@ export class MinioClientService {
       throw new BadRequestException('处理文件失败: ' + error.message);
     }
   }
+
+  //  获取永久 URL
+  // async getPermanentUrl(objectName: string) {
+  //   const { url } = await this.minioService.client.presignedGetObject('public', objectName, Infinity);
+  //   return {
+  //     url,
+  //     objectName,
+  //     message: '获取永久URL成功',
+  //   };
+  // }
 }

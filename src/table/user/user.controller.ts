@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, BadRequestException, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, BadRequestException, Delete, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
@@ -13,6 +13,7 @@ import {
 } from './dto/user.dto';
 import { ConfigService } from '@nestjs/config';
 import { JwtReqDto } from '@/auth/dto/auth.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('用户')
 @Controller('user')
 export class UserController {
@@ -102,5 +103,12 @@ export class UserController {
   async kick(@Req() req: JwtReqDto): Promise<void> {
     const id = req.user.id;
     await this.userService.kickUser(+id);
+  }
+
+  @Post('upload/avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadFile(@UploadedFile() file: Express.Multer.File, @Req() req: JwtReqDto) {
+    const userId = req.user.id;
+    return this.userService.uploadAvatar(file, userId);
   }
 }

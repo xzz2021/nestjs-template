@@ -6,6 +6,9 @@ import { buildPrismaWhere, BuildPrismaWhereParams } from '@/processor/utils/obje
 import { ONLINE_USER_PREFIX } from '@/utils/sse/sse.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
+import { MinioClientService } from '@/utils/minio/minio.service';
+import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UserService {
@@ -13,6 +16,8 @@ export class UserService {
   constructor(
     private readonly pgService: PgService,
     private readonly redisService: RedisService,
+    private readonly minioClientService: MinioClientService,
+    private readonly configService: ConfigService,
   ) {
     this.redis = this.redisService.getOrThrow();
   }
@@ -296,4 +301,11 @@ export class UserService {
   }
 
   async kickUser(userId: number) {}
+
+  async uploadAvatar(file: Express.Multer.File, userId: number) {
+    const { objectName } = await this.minioClientService.uploadFile(file, 'user/avatar/' + userId + '/' + randomUUID() + '/');
+    const url = this.configService.get('minio.url') + '/' + 'public' + '/' + objectName;
+    await this.pgService.user.update({ where: { id: userId }, data: { avatar: url } });
+    return { url, message: '上传头像成功' };
+  }
 }
