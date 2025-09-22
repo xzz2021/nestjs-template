@@ -87,7 +87,11 @@ export class StaticfileController {
     if (userPhone) {
       throw new BadRequestException('用户手机号不存在');
     }
-    const avatarPath = `${process.env.HOST}:${process.env.PORT}/static/avatar/${userPhone}/${file.filename}`;
+    const serverUrl = this.configService.get<string>('SERVER_URL');
+    if (!serverUrl) {
+      throw new BadRequestException('SERVER_URL 配置不存在');
+    }
+    const avatarPath = `${serverUrl}/static/avatar/${userPhone}/${file.filename}`;
     return this.staticfileService.updateAvatar(avatarPath, userPhone);
   }
 }

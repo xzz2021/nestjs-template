@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDepartmentDto, DepartmentSeedDto, UpdateDepartmentDto, UpsertDepartmentDto } from './dto/department.dto';
+import { CreateDepartmentDto, DepartmentSeedDto, UpdateDepartmentDto } from './dto/department.dto';
 import { PgService } from '@/prisma/pg.service';
-import { Prisma } from '@/prisma/client/postgresql';
+import { Prisma } from '../../../prisma/client/postgresql';
 
 @Injectable()
 export class DepartmentService {

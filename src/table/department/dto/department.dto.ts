@@ -179,18 +179,18 @@ export class DepartmentListResDto {
 }
 
 export class DepartmentSeedDto extends OmitType(DepartmentDto, ['id', 'parentId'] as const) {
-  @ApiProperty({ isArray: true, type: () => DepartmentSeedDto })
-  @IsArray()
+  @ApiPropertyOptional({ type: DepartmentSeedDto, isArray: true, description: '部门' })
   @ValidateNested({ each: true })
-  @Type(() => DepartmentDto)
+  @Type(() => DepartmentSeedDto)
+  @IsArray()
   @IsOptional()
-  children: DepartmentSeedDto[];
+  children?: DepartmentSeedDto[];
 }
 
 export class DepartmentSeedArrayDto {
-  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => DepartmentSeedDto)
+  @IsArray()
   @ApiProperty({ type: DepartmentSeedDto, isArray: true })
   data: DepartmentSeedDto[];
 }

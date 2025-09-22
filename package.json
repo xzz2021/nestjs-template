@@ -12,6 +12,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "cross-env NODE_ENV=production  node dist/main",
+    "start:docker": "cross-env NODE_ENV=docker  node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "dev": "pnpm lint && cross-env NODE_ENV=development nest start --watch",
     "prisma:g:pg": "npx prisma generate --schema src/prisma/pg.schema.prisma",

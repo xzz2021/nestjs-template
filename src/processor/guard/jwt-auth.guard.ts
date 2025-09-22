@@ -5,6 +5,9 @@ import { IS_PUBLIC_KEY } from '@/processor/decorator/public.decorator';
 import { TokenService } from '@/auth/token.service';
 // import { Request } from 'express';
 
+//    ==============重要=============
+// NotAcceptableException  406  此异常码专门用于短token过期提示  ??  废弃
+
 //   配合   JwtStrategy 使用   JwtStrategy  注入到module里
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -36,7 +39,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const jti = user?.jti as string;
 
     if (!userId || !jti) {
-      throw new UnauthorizedException('Invalid token payload');
+      throw new UnauthorizedException('Invalid token payload'); // NOT_ACCEPTABLE
     }
 
     // 1) 黑名单校验：被撤销/踢下线的会话直接 401

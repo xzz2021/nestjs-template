@@ -52,11 +52,18 @@ async function bootstrap() {
     );
   }
 
+  const frontendUrl = configService.get<string>('FRONTEND_URL');
+  const serverUrl = configService.get<string>('SERVER_URL');
+  console.log('frontendUrl--serverUrl', frontendUrl, serverUrl);
+  //  重要  origin内的域名结尾一定不能带/  否则请求头会忽略掉origin
   // cookies 携带 跨域
   app.use(cookieParser());
   app.enableCors({
-    origin: ['http://localhost:4000'],
+    origin: [frontendUrl, serverUrl],
     credentials: true,
+    vary: ['origin'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   });
 
   /*
@@ -141,7 +148,7 @@ axios.post('/api/resource', data, {
   app.useGlobalPipes(GLOBAL_VALIDATION_PIPE); // 全局类转换校验  定义了dto的会自动转换
   const port = process.env.PORT ?? 3000;
   await app.listen(port, () => {
-    console.log(`Server is running on:  http://localhost:${port}`);
+    console.log(`Server is running on: ${configService.get<string>('SERVER_URL')}`);
   });
 }
 

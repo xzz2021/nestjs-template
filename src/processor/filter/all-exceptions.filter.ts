@@ -11,7 +11,6 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) {}
   catch(exception: unknown, host: ArgumentsHost) {
-    console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
     const start = Date.now();
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -24,7 +23,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const path = request.url.split('?')[0];
     // ✅ 忽略 favicon.ico 请求
-    if (path === 'favicon.ico') {
+    if (path.includes('favicon.ico')) {
       return response.status(204).send(); // No Content
     }
     let status = 400;
@@ -45,16 +44,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const { msg, meta } = checkPrismaError(exception) || {};
 
-    this.logger.error({
-      timestamp: new Date().toISOString(),
-      // method: request.method,
-      // url: request.url,
-      // status,
-      // message,
-      stack: exception instanceof Error ? exception.stack?.slice(0, 150) : null,
-      context: 'AllExceptionsFilter',
-      info: `${path}, ${request.method} ${Date.now() - start}ms`,
-    });
+    if (status !== 401) {
+      // 用于跳过短token失效的错误
+      console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
+
+      this.logger.error({
+        timestamp: new Date().toISOString(),
+        // method: request.method,
+        // url: request.url,
+        // status,
+        // message,
+        stack: exception instanceof Error ? exception.stack?.slice(0, 150) : null,
+        context: 'AllExceptionsFilter',
+        info: `${path}, ${request.method} ${Date.now() - start}ms`,
+      });
+    }
 
     //  一定要返回数据 否则会截断
     response.status(status).json({

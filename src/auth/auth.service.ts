@@ -4,7 +4,7 @@ import { PgService } from '@/prisma/pg.service';
 import { LoginInfoDto, RegisterDto, SmsBindDto, SmsLoginDto } from './dto/auth.dto';
 import { resultDataType, UndiciHttpService } from '@/utils/http/undici.http.service';
 import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
-import { AliSmsService } from '@/utils/sms/sms.service';
+// import { AliSmsService } from '@/utils/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
 import { LockoutService } from './lockout.service';
 import { TokenService } from './token.service';
@@ -24,7 +24,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly httpService: UndiciHttpService,
-    private readonly smsService: AliSmsService,
+    // private readonly smsService: AliSmsService,
     private readonly configService: ConfigService,
     private readonly lockout: LockoutService,
     private readonly tokenService: TokenService,
@@ -44,11 +44,11 @@ export class AuthService {
     }
 
     // 注册前需要请求验证码 请求时已经将验证码存入cache  此处比对验证码 是否正确
-    if (checkCode) {
-      // if 是为了复用create方法
-      const smsCheck = await this.smsService.checkSmsCode('register_' + phone, code);
-      if (!smsCheck.status) return smsCheck;
-    }
+    // if (checkCode) {
+    //   // if 是为了复用create方法
+    //   const smsCheck = await this.smsService.checkSmsCode('register_' + phone, code);
+    //   if (!smsCheck.status) return smsCheck;
+    // }
 
     const hashedPassword = await hashPayPassword(password);
     const res = await this.pgService.user.create({
@@ -212,7 +212,8 @@ export class AuthService {
         throw new BadRequestException('用户已存在, 请直接登录!');
       }
     }
-    return this.smsService.generateSmsCode(phone, cachekey);
+    return { code: 200, message: '演示模式, 模拟验证码已发送,请60秒后再试!' };
+    // return this.smsService.generateSmsCode(phone, cachekey);
   }
 
   //  ① 验证码登录
@@ -571,6 +572,6 @@ export class AuthService {
     const { username, phone, id, lockedUntil, roles } = user;
     //  正常需要在签发新的时  更新refreshToken(已实现)  revoke旧的accessToken(未实现, 后期优化)
     const { accessToken } = await this.rtTokenService.signToken(userId, { username, phone, id, lockedUntil, roles: roles.map(item => item.role) }, res, oldJti);
-    return { access_token: accessToken };
+    return { access_token: accessToken, message: '获取新的token成功' };
   }
 }

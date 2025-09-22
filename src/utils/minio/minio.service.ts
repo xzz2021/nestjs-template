@@ -378,7 +378,7 @@ export class MinioClientService {
         let fileCount = 0;
         let pendingFiles = 0; // 跟踪待处理的文件数量
 
-        stream.on('data', (obj: any) => {
+        stream.on('data', (obj: { name: string; lastModified: string; size: number }) => {
           try {
             // 跳过文件夹占位符（以 / 结尾且大小为 0 的文件）
             if (obj.name && obj.name.endsWith('/') && obj.size === 0) {
@@ -427,7 +427,7 @@ export class MinioClientService {
         stream.on('end', () => {
           // 如果没有待处理的文件，直接完成ZIP
           if (pendingFiles === 0) {
-            archive.finalize();
+            void archive.finalize();
           }
         });
 

@@ -149,6 +149,9 @@ export class RtTokenService {
 
   setRtCookie(res: Response, refreshToken: string) {
     res.cookie('rt', refreshToken, {
+      // 如果走https
+      // secure: true,
+      // sameSite: 'none',
       httpOnly: true,
       secure: !true,
       sameSite: 'lax',

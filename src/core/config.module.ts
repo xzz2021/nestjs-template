@@ -29,15 +29,15 @@ export const wxPay = () => {
     },
   };
 };
-export const aliPay = () => {
-  return {
-    aliPay: {
-      appId: process.env.ALIPAY_APP_ID,
-      privateKey: process.env.ALIPAY_PRIVATE_KEY,
-      alipayPublicKey: process.env.ALIPAY_PUBLIC_KEY,
-    },
-  };
-};
+// export const aliPay = () => {
+//   return {
+//     aliPay: {
+//       appId: process.env.ALIPAY_APP_ID,
+//       privateKey: process.env.ALIPAY_PRIVATE_KEY,
+//       alipayPublicKey: process.env.ALIPAY_PUBLIC_KEY,
+//     },
+//   };
+// };
 
 export const aliSms = () => {
   // 工厂函数 可以组织变量到一起成为对象  方便使用
@@ -51,28 +51,28 @@ export const aliSms = () => {
   };
 };
 
-export const sfApi = () => {
-  return {
-    sfApi:
-      process.env.SF_SBOX == 'true'
-        ? {
-            partnerID: process.env.SF_SBOX_PARTNER_ID,
-            checkWord: process.env.SF_SBOX_CHECK_WORD,
-            monthlyCard: process.env.SF_SBOX_MONTHLY_CARD,
-            createOrderUrl: process.env.SF_SBOX_CREATE_ORDER_URL,
-            logisticsQueryUrl: process.env.SF_SBOX_LOGISTICS_QUERY_URL,
-            oauthUrl: process.env.SF_SBOX_OAUTH_URL,
-          }
-        : {
-            partnerID: process.env.SF_PARTNER_ID,
-            checkWord: process.env.SF_CHECK_WORD,
-            monthlyCard: process.env.SF_MONTHLY_CARD,
-            createOrderUrl: process.env.SF_CREATE_ORDER_URL,
-            logisticsQueryUrl: process.env.SF_LOGISTICS_QUERY_URL,
-            oauthUrl: process.env.SF_OAUTH_URL,
-          },
-  };
-};
+// export const sfApi = () => {
+//   return {
+//     sfApi:
+//       process.env.SF_SBOX == 'true'
+//         ? {
+//             partnerID: process.env.SF_SBOX_PARTNER_ID,
+//             checkWord: process.env.SF_SBOX_CHECK_WORD,
+//             monthlyCard: process.env.SF_SBOX_MONTHLY_CARD,
+//             createOrderUrl: process.env.SF_SBOX_CREATE_ORDER_URL,
+//             logisticsQueryUrl: process.env.SF_SBOX_LOGISTICS_QUERY_URL,
+//             oauthUrl: process.env.SF_SBOX_OAUTH_URL,
+//           }
+//         : {
+//             partnerID: process.env.SF_PARTNER_ID,
+//             checkWord: process.env.SF_CHECK_WORD,
+//             monthlyCard: process.env.SF_MONTHLY_CARD,
+//             createOrderUrl: process.env.SF_CREATE_ORDER_URL,
+//             logisticsQueryUrl: process.env.SF_LOGISTICS_QUERY_URL,
+//             oauthUrl: process.env.SF_OAUTH_URL,
+//           },
+//   };
+// };
 
 export const moduleFactory = () => {
   return {
@@ -85,6 +85,19 @@ export const redis = () => {
     redis: {
       host: process.env.REDIS_HOST,
       port: process.env.REDIS_PORT,
+      url: process.env.REDIS_HOST + ':' + process.env.REDIS_PORT,
+    },
+  };
+};
+
+export const minio = () => {
+  return {
+    minio: {
+      host: process.env.MINIO_HOST,
+      port: process.env.MINIO_PORT,
+      url: process.env.MINIO_URL,
+      accessKey: process.env.MINIO_ACCESS_KEY,
+      secretKey: process.env.MINIO_SECRET_KEY,
     },
   };
 };
@@ -94,7 +107,7 @@ export const redis = () => {
 
 export const CONFIG_MODULE = ConfigModule.forRoot({
   // load: [aliSms, aliPay, wxPay, mail, redis],
-  load: [aliPay, wxPay, sfApi, aliSms, redis],
+  load: [redis, minio],
   isGlobal: true,
   cache: true,
   envFilePath: (() => {

@@ -5,7 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtRefreshStrategy } from './jwt.refresh.strategy';
-import { SmsModule } from '@/utils/sms/sms.module';
+// import { SmsModule } from '@/utils/sms/sms.module';
 import { ConfigService } from '@nestjs/config';
 import { LockoutService } from './lockout.service';
 import { TokenService } from './token.service';
@@ -31,7 +31,7 @@ import { RtTokenService } from './rt.token.service';
     //     };
     //   },
     // }),
-    SmsModule,
+    // SmsModule,
     SseModule,
   ],
   controllers: [AuthController, SseController],

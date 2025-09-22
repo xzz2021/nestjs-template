@@ -3,7 +3,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public } from './processor/decorator/public.decorator';
 import { AppService } from './app.service';
 // import { MailService } from './utils/mail/mail.service';
-// import { AliSmsService } from './utils/sms/sms.service';
 
 /* 
 当 Nest IoC 容器实例化 CatsController 时，它首先会查找所有依赖项*。
@@ -19,7 +18,6 @@ export class AppController {
     private readonly appService: AppService,
     // @Inject(INQUIRER) private readonly parentClass: object,
     // private readonly mail: MailService,
-    // private readonly sms: AliSmsService,
   ) {}
 
   @Get()
@@ -48,14 +46,6 @@ export class AppController {
   //     to: '18465690@qq.com',
   //     subject: '登录验证码',
   //     text: '11224563',
-  //   });
-  // }
-
-  // @Get('sms')
-  // sendSms() {
-  //   return this.sms.send({
-  //     phone: '130456422',
-  //     code: '112233',
   //   });
   // }
 

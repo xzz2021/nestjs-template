@@ -25,13 +25,13 @@
 - [ x ] 安全限制(限流/幂等/串行)
 - [ x ] 认证与授权(JWT+RBAC+CASL)
 - [ x ] 日志系统(操作√埋点审计)
-- [ x ] OSS文件管理(分片/上传/下载)
+- [√] OSS文件管理(分片/上传/下载)
 
 #### 小功能点实现
 
 - [√] 多点登录限制,强制下线
 - [√] 登录失败锁定,后台解锁
-- [ x ] 双token
+- [√] 双token
 - [ x ] 高频限流guard, 滑动窗口
 
 #### 待深入学习
@@ -146,3 +146,8 @@ ERP系统:
      timestamp: Date;
    }
    ```
+
+#### 首次部署流程
+
+1. docker compose 一键部署
+2. 准备菜单种子数据(prisma:seed),可以临时切换开发时连接线上数据库; 如果数据异常需要重置 `TRUNCATE TABLE menu_meta RESTART IDENTITY;` `TRUNCATE TABLE menu RESTART IDENTITY CASCADE;`

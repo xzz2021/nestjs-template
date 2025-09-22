@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Query, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete } from '@nestjs/common';
 import { DepartmentService } from './department.service';
-import { CreateDepartmentDto, DepartmentDto, DepartmentSeedArrayDto, UpdateDepartmentDto } from './dto/department.dto';
+import { CreateDepartmentDto, DepartmentSeedArrayDto, UpdateDepartmentDto } from './dto/department.dto';
 import { Serialize } from '@/processor/decorator/serialize';
 import { CheckPolicies } from '@/processor/decorator/casl.decorator';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { DepartmentListDto, DepartmentListResDto, DepartmentSeedDto, DeleteDepartmentDto } from './dto/department.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { DepartmentListDto, DepartmentListResDto, DeleteDepartmentDto } from './dto/department.dto';
 
 @ApiTags('部门')
 @Controller('department')

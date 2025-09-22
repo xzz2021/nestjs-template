@@ -34,7 +34,7 @@ export const parseUserAgent = (userAgent: string) => {
 
 export const extractIP = (ipString: string) => {
   const match = ipString.match(/::ffff:(\d+\.\d+\.\d+\.\d+)/);
-  return match ? match[1] : 'ip数据有误';
+  return match ? match[1] : ipString;
 };
 
 // // 示例使用

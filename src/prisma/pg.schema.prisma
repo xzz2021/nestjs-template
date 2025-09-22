@@ -9,8 +9,8 @@
 
 generator client {
   provider               = "prisma-client-js"
-  output                 = "./client/postgresql"
-  previewFeatures        = ["driverAdapters"]
+  output                 = "../../prisma/client/postgresql"
+  // previewFeatures        = ["driverAdapters"]
   // Optional
   moduleFormat           = "esm"
   generatedFileExtension = "ts"
@@ -26,7 +26,7 @@ generator prismaClassGenerator {
   provider      = "prisma-class-generator"
   useValidation = true // 是否添加 class-validator 装饰器
   dryRun        = false // ❗❗ 加上这个才能真正生成文件
-  output        = "./dto"
+  output        = "../../prisma/dto"
 }
 
 // generator caslAdapter {

@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@/prisma/client/postgresql';
+import { PrismaClient } from '../../prisma/client/postgresql';
 
 /*
 pnpm add pgdb@link:@/prisma/client/postgresql   //  创建软链接
