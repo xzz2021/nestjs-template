@@ -51,7 +51,7 @@ export class StaticfileController {
   @UseInterceptors(FileInterceptor('file', generateMulterConfig('file/manage')))
   uploadFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      return { code: 400, message: '文件上传失败' };
+      return { code: 400, message: '文件不存在' };
     }
 
     const fileExt = file.filename.split('.').pop() || ''; // 文件扩展名

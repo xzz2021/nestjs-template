@@ -48,7 +48,7 @@ async function create_menus_batch(menu_data: any[], tx: any) {
         });
 
         if (children && children.length > 0) {
-          await create_menus_batch(children, tx);
+          await create_menus_batch(children as any[], tx);
         }
       });
 
