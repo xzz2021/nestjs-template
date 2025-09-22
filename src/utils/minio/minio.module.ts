@@ -12,10 +12,12 @@ import { ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const minio = configService.get('minio');
+        const minioUrl = minio.url; // 传递 URL
+        const parsedUrl = new URL(minioUrl as string);
         return {
-          endPoint: minio.host,
-          port: Number(minio.port),
-          useSSL: false,
+          endPoint: parsedUrl.hostname,
+          port: Number(parsedUrl.port),
+          useSSL: parsedUrl.protocol === 'https:',
           accessKey: minio.accessKey,
           secretKey: minio.secretKey,
         };
