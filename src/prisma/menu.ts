@@ -183,7 +183,7 @@ export const menu = [
           },
         ],
         meta: {
-          title: '字典管理',
+          title: 'router.dictionary',
           icon: 'qlementine-icons:dictionary-16',
           hidden: false,
           affix: false,
@@ -230,7 +230,7 @@ export const menu = [
           },
         ],
         meta: {
-          title: '用户身份',
+          title: 'router.userIdentity',
           icon: 'solar:user-linear',
           hidden: false,
           affix: false,
@@ -413,7 +413,7 @@ export const menu = [
         status: true,
         permissionList: [],
         meta: {
-          title: '个人信息',
+          title: 'router.userInfo',
           icon: 'fluent-mdl2:contact-info',
           hidden: false,
           affix: false,
@@ -437,7 +437,7 @@ export const menu = [
     status: true,
     permissionList: [],
     meta: {
-      title: '系统管理',
+      title: 'router.systemManagement',
       icon: 'grommet-icons:system',
       hidden: false,
       affix: false,
@@ -459,7 +459,7 @@ export const menu = [
         status: true,
         permissionList: [],
         meta: {
-          title: '用户管理',
+          title: 'router.userManagement',
           icon: 'solar:user-linear',
           hidden: false,
           affix: false,
@@ -481,7 +481,7 @@ export const menu = [
         status: true,
         permissionList: [],
         meta: {
-          title: '在线用户',
+          title: 'router.onlineUser',
           icon: 'solar:user-linear',
           hidden: false,
           affix: false,
@@ -503,7 +503,7 @@ export const menu = [
         status: true,
         permissionList: [],
         meta: {
-          title: 'OSS管理',
+          title: 'router.ossManagement',
           icon: 'eva:file-outline',
           hidden: false,
           affix: false,
@@ -525,7 +525,7 @@ export const menu = [
         status: true,
         permissionList: [],
         meta: {
-          title: '文件管理',
+          title: 'router.fileManagement',
           icon: 'eva:file-outline',
           hidden: false,
           affix: false,
@@ -547,7 +547,7 @@ export const menu = [
         status: true,
         permissionList: [],
         meta: {
-          title: '用户日志',
+          title: 'router.userLog',
           icon: 'octicon:log-24',
           hidden: false,
           affix: false,

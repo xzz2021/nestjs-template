@@ -7,7 +7,7 @@ import { PrismaClient } from '../../prisma/client/postgresql';
 const prisma = new PrismaClient();
 import { menu as _menu } from './menu';
 
-async function create_menus_batch(menu_data: any[], tx: any) {
+async function create_menus_batch(menu_data: any[], tx: any, parentId?: number) {
   for (const menu_item of menu_data) {
     const { children, meta, permissionList, ...menu_fields } = menu_item;
 
@@ -15,6 +15,7 @@ async function create_menus_batch(menu_data: any[], tx: any) {
     const created_menu = await tx.menu.create({
       data: {
         ...menu_fields,
+        parent: parentId ? { connect: { id: parentId } } : undefined,
         meta: {
           create: meta,
         },
@@ -29,7 +30,7 @@ async function create_menus_batch(menu_data: any[], tx: any) {
       const child_promises = children.map(async child => {
         const { meta: child_meta, permissionList, children, ...child_fields } = child;
 
-        await tx.menu.create({
+        const created_child_menu = await tx.menu.create({
           data: {
             ...child_fields,
             parent: {
@@ -48,7 +49,7 @@ async function create_menus_batch(menu_data: any[], tx: any) {
         });
 
         if (children && children.length > 0) {
-          await create_menus_batch(children as any[], tx);
+          await create_menus_batch(children as any[], tx, created_child_menu.id as number);
         }
       });
 

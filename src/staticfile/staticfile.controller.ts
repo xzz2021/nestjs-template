@@ -57,7 +57,7 @@ export class StaticfileController {
     const fileExt = file.filename.split('.').pop() || ''; // 文件扩展名
     const { filename, path } = file;
     // 文件路径
-    const staticUrl = this.configService.get<string>('STATIC_URL');
+    const staticUrl = this.configService.get<string>('SERVER_URL');
     if (!staticUrl) {
       throw new BadRequestException('STATIC_URL 配置不存在');
     }

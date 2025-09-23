@@ -3,15 +3,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { MinioClientService } from './minio.service';
 import { Public } from '@/processor/decorator/public.decorator';
 import { Response } from 'express';
-import { MinioS3Service } from './minio.s3.service';
 
-@Public()
+// @Public()
 @Controller('minio')
 export class MinioClientController {
-  constructor(
-    private readonly minioClientService: MinioClientService,
-    private readonly minioS3Service: MinioS3Service,
-  ) {}
+  constructor(private readonly minioClientService: MinioClientService) {}
 
   @Get('allBuckets')
   list() {
@@ -40,7 +36,7 @@ export class MinioClientController {
     if (!file) {
       throw new Error('请选择要上传的文件');
     }
-    return this.minioClientService.uploadFile(file, body.folderPath || '');
+    return this.minioClientService.uploadFile(file, body?.folderPath || '');
   }
 
   // 下载文件 - 修改路由路径

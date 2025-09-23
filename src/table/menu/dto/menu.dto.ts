@@ -215,7 +215,7 @@ export class MenuListDto extends MenuDto {
   children: MenuListDto[];
 }
 
-export class SeedMenuDto extends MenuDto {
+export class SeedMenuDto extends OmitType(MenuDto, ['id', 'parentId']) {
   @ApiPropertyOptional({ type: () => SeedMenuDto })
   @IsOptional()
   @ValidateNested({ each: true })

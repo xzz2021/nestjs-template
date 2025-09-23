@@ -207,10 +207,41 @@ export class MenuService {
     }
   }
 
+  async processMenuData2(data: SeedMenuDto, tx: PrismaClient, parentId?: number) {
+    // 有则更新  没有则新建
+    const { name, path, meta, permissionList, children, ...rest } = data;
+    const menu = await tx.menu.upsert({
+      where: { name, path },
+      create: { name, path, ...rest, parent: { connect: parentId ? { id: parentId } : undefined } },
+      update: { name, path, ...rest },
+    });
+    if (meta) {
+      await tx.meta.upsert({
+        where: { menuId: menu.id },
+        create: { ...meta, menuId: menu.id },
+        update: { ...meta, menuId: menu.id },
+      });
+    }
+    if (permissionList) {
+      for (const permission of permissionList) {
+        await tx.permission.upsert({
+          where: { menuId_code: { menuId: menu.id, code: permission.code } },
+          create: { ...permission, menuId: menu.id },
+          update: { ...permission, menuId: menu.id },
+        });
+      }
+    }
+    if (children) {
+      for (const child of children) {
+        await this.processMenuData2(child, tx, menu.id);
+      }
+    }
+  }
+
   async generateMenuSeed(data: SeedMenuDto[]) {
     await this.pgService.$transaction(async (tx: PrismaClient) => {
       for (const item of data) {
-        await this.processMenuData(item, tx);
+        await this.processMenuData2(item, tx);
       }
     });
     return { message: '生成菜单种子数据成功' };

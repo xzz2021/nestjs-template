@@ -12,11 +12,11 @@ import { ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const minio = configService.get('minio');
+        // 注意  外网代理会导致出错  需要关闭
         return {
           endPoint: minio.host,
           port: Number(minio.port),
           useSSL: minio.url.includes('https'), // 一律使用false 否则要配置证书
-          // useSSL: !false,
           accessKey: minio.accessKey,
           secretKey: minio.secretKey,
           region: 'us-east-1',
