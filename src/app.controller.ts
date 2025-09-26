@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Ip } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from './processor/decorator/public.decorator';
 import { AppService } from './app.service';
@@ -22,8 +22,13 @@ export class AppController {
 
   @Get()
   // @Version('1')
-  async getHello(): Promise<string> {
+  getHello() {
     return this.appService.getHello();
+  }
+  @Get('ip')
+  // @Version('1')
+  getIp(@Ip() ip: string) {
+    return this.appService.getIp(ip);
   }
 
   @Get()

@@ -54,12 +54,13 @@ async function bootstrap() {
 
   const frontendUrl = configService.get<string>('FRONTEND_URL');
   const serverUrl = configService.get<string>('SERVER_URL');
-  console.log('frontendUrl--serverUrl', frontendUrl, serverUrl);
+  const n8nUrl = configService.get<string>('N8N_URL');
+  // console.log('frontendUrl--serverUrl--n8nUrl', frontendUrl, serverUrl, n8nUrl);
   //  重要  origin内的域名结尾一定不能带/  否则请求头会忽略掉origin
   // cookies 携带 跨域
   app.use(cookieParser());
   app.enableCors({
-    origin: [frontendUrl, serverUrl],
+    origin: [frontendUrl, serverUrl, n8nUrl],
     credentials: true,
     vary: ['origin'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

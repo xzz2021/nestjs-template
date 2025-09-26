@@ -88,6 +88,7 @@
    > 验证码生成: `svg-captcha`
    > minio文件管理: `nestjs-minio-client`
    > 大文件S3管理: `@aws-sdk/client-s3` `@aws-sdk/s3-request-presigner` `archiver` `@types/archiver`
+   > ip地理库: `maxmind`
 
 #### 注意事项
 

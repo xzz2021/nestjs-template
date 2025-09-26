@@ -6,7 +6,7 @@ import { Throttle } from '@nestjs/throttler';
 @Controller('captcha')
 @Public()
 @ApiTags('验证码')
-@Throttle({ default: { limit: 3, ttl: 50000 } })
+@Throttle({ default: { limit: 10, ttl: 50000 } })
 export class CaptchaController {
   constructor(private captchaService: CaptchaService) {}
 

@@ -97,7 +97,7 @@ export class AuthService {
       const ok = user ? await verifyPayPassword(user.password, loginInfo.password) : false;
       if (!ok) {
         await this.lockout.onFail(loginInfo.phone, ip, user ?? undefined);
-        throw new UnauthorizedException('账号或密码错误');
+        throw new BadRequestException('账号或密码错误'); //  不能抛出401  会导致前端请求 refresh token
       }
 
       // 成功：复位锁定状态
@@ -152,7 +152,7 @@ export class AuthService {
       const ok = user ? await verifyPayPassword(user.password, loginInfo.password) : false;
       if (!ok) {
         await this.lockout.onFail(loginInfo.phone, ip, user ?? undefined);
-        throw new UnauthorizedException('账号或密码错误');
+        throw new BadRequestException('账号或密码错误');
       }
 
       // 成功：复位锁定状态

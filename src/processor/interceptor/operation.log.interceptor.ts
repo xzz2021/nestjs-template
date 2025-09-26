@@ -54,7 +54,7 @@ export class OperationLogInterceptor implements NestInterceptor {
           context: 'OperationLogInterceptor',
           info: `${url.split('?')[0]}, ${method} ${Date.now() - start}ms`,
         });
-        if (url.includes('/log/getUserOperation') || url.includes('/sse/')) return;
+        if (url.includes('/log/getUserOperation') || url.includes('/sse/') || url.includes('/auth/refresh')) return;
         // 构建日志数据
         const logData = {
           userId,
