@@ -1,7 +1,7 @@
 // custom-throttler.guard.ts
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { RATE_KEY } from '../decorator/rate-key.decorator';
+import { RATE_KEY } from '@/processor/decorator';
 
 @Injectable()
 export class GlobalThrottlerGuard extends ThrottlerGuard {

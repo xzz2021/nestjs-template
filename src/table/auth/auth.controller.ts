@@ -1,16 +1,10 @@
 import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginInfoDto, RegisterDto, SmsBindDto, SmsCodeDto, SmsLoginDto } from './dto/auth.dto';
-import { Public } from '@/processor/decorator/public.decorator';
+import { Public, Serialize } from '@/processor/decorator';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { JwtRefreshAuthGuard } from '@/processor/guard/jwt-refresh.guard';
-import { Serialize } from '@/processor/decorator/serialize';
-import { RegisterResDto } from './dto/auth.dto';
-import { extractIP } from '@/processor/utils/string';
-import { ForceLogoutDto } from './dto/auth.dto';
-import { CaptchaGuard } from '@/processor/guard/captcha.guard';
-import { JwtReqDto } from './dto/auth.dto';
-import { JwtAuthGuard } from '@/processor/guard/jwt-auth.guard';
+import { JwtRefreshAuthGuard, JwtAuthGuard, CaptchaGuard } from '@/processor/guard';
+import { RegisterResDto, ForceLogoutDto, JwtReqDto, LoginInfoDto, RegisterDto, SmsBindDto, SmsCodeDto, SmsLoginDto } from './dto/auth.dto';
+import { extractIP } from '@/processor/utils';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 

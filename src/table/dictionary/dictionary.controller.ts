@@ -1,10 +1,9 @@
 import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 import { DictionaryService } from './dictionary.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Public } from '@/processor/decorator/public.decorator';
+import { Public, Serialize } from '@/processor/decorator';
 import { DeleteEntryDto, UpsertEntryDto } from './dto/entry.dto';
 import { DeleteDictionaryDto, DictionaryListDto, DictionarySeedArrayDto, UpsertDictionaryDto } from './dto/dictionary.dto';
-import { Serialize } from '@/processor/decorator/serialize';
 
 // 此模块可以作为范本
 @ApiTags('字典')

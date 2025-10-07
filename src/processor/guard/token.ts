@@ -1,7 +1,7 @@
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '@/processor/decorator/public.decorator';
+import { IS_PUBLIC_KEY } from '@/processor/decorator';
 import { TokenService } from '@/table/auth/token.service';
 
 //   配合   JwtStrategy 使用   JwtStrategy  注入到module里

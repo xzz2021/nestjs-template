@@ -1,6 +1,6 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { SkipThrottle } from '@/processor/decorator/throttle.decorator';
+import { SkipThrottle } from '@/processor/decorator';
 
 @SkipThrottle()
 @WebSocketGateway()

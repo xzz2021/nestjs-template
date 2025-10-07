@@ -4,8 +4,8 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { interval, Observable } from 'rxjs';
 import { MessageEvent, SseService } from './sse.service';
 import { Request, Response } from 'express';
-import { Public } from '@/processor/decorator/public.decorator';
-import { SseAuthGuard } from '@/processor/guard/sse-auth.guard';
+import { Public } from '@/processor/decorator';
+import { SseAuthGuard } from '@/processor/guard';
 @ApiTags('sse通知')
 @SkipThrottle()
 @Public()

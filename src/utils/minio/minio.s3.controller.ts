@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Query, Body } from '@nestjs/common';
-import { Public } from '@/processor/decorator/public.decorator';
+import { Public } from '@/processor/decorator';
 import { MinioS3Service } from './minio.s3.service';
 
 @Public()

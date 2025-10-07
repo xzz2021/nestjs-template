@@ -1,6 +1,6 @@
 import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { CAPTCHA_META_KEY } from '@/processor/decorator/captcha.decorator';
+import { CAPTCHA_META_KEY } from '@/processor/decorator';
 import { CaptchaService } from '@/utils/captcha/captcha.service';
 
 // 未使用  因为全局开销过大  没必要  单独使用guard实现了

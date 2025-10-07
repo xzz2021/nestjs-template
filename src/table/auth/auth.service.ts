@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PgService } from '@/prisma/pg.service';
 import { LoginInfoDto, RegisterDto, SmsBindDto, SmsLoginDto } from './dto/auth.dto';
 import { resultDataType, UndiciHttpService } from '@/utils/undici.http.service';
-import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
+import { hashPayPassword, verifyPayPassword } from '@/processor/utils';
 // import { AliSmsService } from '@/utils/sms/sms.service';
 import { ConfigService } from '@nestjs/config';
 import { LockoutService } from './lockout.service';

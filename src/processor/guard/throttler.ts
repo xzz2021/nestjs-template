@@ -3,7 +3,7 @@
 import { CanActivate, ExecutionContext, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 
 import { Reflector } from '@nestjs/core';
-import { SKIP_THROTTLE_KEY } from '../decorator/throttle.decorator';
+import { SKIP_THROTTLE_KEY } from '@/processor/decorator';
 import * as crypto from 'crypto';
 import { Request, Response } from 'express';
 import { RedisService } from '@liaoliaots/nestjs-redis';

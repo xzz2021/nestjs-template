@@ -1,8 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { hashPayPassword, verifyPayPassword } from '@/processor/utils/encryption';
 import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo, UpdatePwdDto, AdminUpdatePwdDto, CreateUserDto } from './dto/user.dto';
-import { buildPrismaWhere, BuildPrismaWhereParams } from '@/processor/utils/object';
+import { buildPrismaWhere, BuildPrismaWhereParams, hashPayPassword, verifyPayPassword } from '@/processor/utils';
 import { ONLINE_USER_PREFIX } from '@/utils/sse/sse.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';

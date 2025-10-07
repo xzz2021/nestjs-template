@@ -3,7 +3,7 @@ import { Logger } from 'winston';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { PgService } from '@/prisma/pg.service';
 import { DeleteLogDto, QueryLogParams } from './dto/logger.dto';
-import { buildPrismaWhere } from '@/processor/utils/object';
+import { buildPrismaWhere } from '@/processor/utils';
 
 @Injectable()
 export class LogService implements LoggerService {

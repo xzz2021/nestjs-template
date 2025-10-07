@@ -174,3 +174,9 @@ ERP系统:
 
 1. docker compose 一键部署
 2. 准备菜单种子数据(prisma:seed),可以临时切换开发时连接线上数据库; 如果数据异常需要重置表格及索引 `TRUNCATE TABLE menu RESTART IDENTITY CASCADE;`
+
+#### 技术交流
+
+- 1、加入技术交流群
+
+  <img src="https:///wx.jpg" width="200" height="220" style="margin-left:0" />

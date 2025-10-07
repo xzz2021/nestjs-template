@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Delete } from '@nestjs/common';
 import { DepartmentService } from './department.service';
 import { CreateDepartmentDto, DepartmentSeedArrayDto, UpdateDepartmentDto } from './dto/department.dto';
-import { Serialize } from '@/processor/decorator/serialize';
-import { CheckPolicies } from '@/processor/decorator/casl.decorator';
+import { Serialize, CheckPolicies } from '@/processor/decorator';
+// import { CheckPolicies } from '@/processor/decorator/casl.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DepartmentListDto, DepartmentListResDto, DeleteDepartmentDto } from './dto/department.dto';
 

@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Delete, Query, Body, UseInterceptors, UploadedFile, Res, Header } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MinioClientService } from './minio.service';
-import { Public } from '@/processor/decorator/public.decorator';
 import { Response } from 'express';
 
 // @Public()
