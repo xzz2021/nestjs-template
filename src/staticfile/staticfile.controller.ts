@@ -8,7 +8,7 @@ import { generateMulterConfig } from './multer.config';
 import { DeleteFileDto, FileListResDto } from './file.dto';
 import { Serialize } from '@/processor/decorator/serialize';
 import { ConfigService } from '@nestjs/config';
-import { JwtReqDto } from '@/auth/dto/auth.dto';
+import { JwtReqDto } from '@/table/auth/dto/auth.dto';
 
 @ApiTags('静态文件')
 @Controller('staticfile')
@@ -61,7 +61,7 @@ export class StaticfileController {
     if (!staticUrl) {
       throw new BadRequestException('STATIC_URL 配置不存在');
     }
-    const url = `${staticUrl}/static/file/manage/${filename}`;
+    const url = `${staticUrl}/public/file/manage/${filename}`;
     const size = file.size; // 文件大小
     return this.staticfileService.uploadFile({
       name: filename,
@@ -91,7 +91,7 @@ export class StaticfileController {
     if (!serverUrl) {
       throw new BadRequestException('SERVER_URL 配置不存在');
     }
-    const avatarPath = `${serverUrl}/static/avatar/${userPhone}/${file.filename}`;
+    const avatarPath = `${serverUrl}/public/avatar/${userPhone}/${file.filename}`;
     return this.staticfileService.updateAvatar(avatarPath, userPhone);
   }
 }

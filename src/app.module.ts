@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { CORE_MODULE, GLOBAL_GUARD } from './core/app.core';
-import { TABLE_MODULE } from './core/app.table';
+import { CORE_TABLE_MODULE } from './table/app.table';
+
 // import { WsGateway } from './ws/ws.gateway';
 
 @Module({
-  imports: [...CORE_MODULE, ...TABLE_MODULE],
-  controllers: [AppController],
-  providers: [AppService, ...GLOBAL_GUARD],
+  imports: [...CORE_MODULE, ...CORE_TABLE_MODULE],
+  controllers: [],
+  providers: [...GLOBAL_GUARD],
   // providers: [AppService, ...GLOBAL_GUARD, WsGateway],  //  如果需要使用websocket 网关 需要在这里引入
   // 只有子模块MODULE 需要exports  这样其他模块导入后才能使用到 导出的service
   // exports: [AppService], //  导出  AppService 服务   也可以写成 'CUSTOM_APP_SERVICE'  以便其他模块可以注入使用

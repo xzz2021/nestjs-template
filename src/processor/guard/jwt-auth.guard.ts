@@ -2,7 +2,7 @@ import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/com
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '@/processor/decorator/public.decorator';
-import { TokenService } from '@/auth/token.service';
+import { TokenService } from '@/table/auth/token.service';
 // import { Request } from 'express';
 
 //    ==============重要=============
@@ -21,8 +21,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     // console.log('xzz2021: JwtAuthGuard -> canActivate:', request);
-    // 允许对 `/static/` 开头的资源访问
-    if (request.url.startsWith('/static/')) {
+    // 允许对 `/public/` 开头的资源访问
+    if (request.url.startsWith('/public/')) {
       return true;
     }
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);

@@ -1,7 +1,7 @@
 // jwt-refresh-auth.guard.ts
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { RtTokenService } from '@/auth/rt.token.service';
+import { RtTokenService } from '@/table/auth/rt.token.service';
 
 //  局部接口使用
 @Injectable()
@@ -13,8 +13,8 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    // 允许对 `/static/` 开头的资源访问
-    if (request.url.startsWith('/static/')) {
+    // 允许对 `/public/` 开头的资源访问
+    if (request.url.startsWith('/public/')) {
       return true;
     }
 

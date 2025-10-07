@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { Exclude } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
-import type { Request } from 'express';
 
 export class RegisterDto {
   @IsString()

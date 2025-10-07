@@ -94,7 +94,7 @@ export const multerConfigForAvatar = {
       // 获取前端传的完整 filename，例如：'avatar/2025/03/user123.jpg'
 
       // 根目录（打包后的 static 目录）  根目录
-      const staticRoot = join('static/avatar');
+      const staticRoot = join('public/avatar');
       // 拼接完整目录路径
       if (req?.user && 'phone' in req.user) {
         const targetDir = join(staticRoot, req.user.phone as string);

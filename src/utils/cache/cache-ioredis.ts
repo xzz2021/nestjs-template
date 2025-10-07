@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 
+// 使用模块方式  可以设置多个实例
 export const REDIS_MODULE = RedisModule.forRootAsync({
   // isGlobal: true,
   inject: [ConfigService],

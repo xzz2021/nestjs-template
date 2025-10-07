@@ -159,6 +159,40 @@ model Permission {
   @@map("permission")
 }
 
+/*
+
+enum ResourceType {
+  DOMAIN
+  API
+  UI
+}
+
+model Resource {
+  id         Int           @id @default(autoincrement())
+  code       String        @unique @db.VarChar(100) // 如 "order"、"user"、"report"
+  name       String?       @db.VarChar(100)
+  type       ResourceType  @default(DOMAIN)
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  permissions Permission[]
+}
+
+model Action {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique @db.VarChar(50) // 如 "view" | "create" | ...
+  name       String?  @db.VarChar(100)
+
+  menuId Int  @map("menu_id")
+  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@map("action")
+}
+
+
+
+*/
+
 // 角色权限关联表 - 显式多对多关系
 model RolePermission {
   id           Int      @id @default(autoincrement())

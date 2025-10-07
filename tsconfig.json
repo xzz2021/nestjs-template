@@ -21,5 +21,6 @@
     "paths": {
       "@/*": ["src/*"] // 将 @ 作为 src 目录的别名
     }
-  }
+  },
+  "include": ["src", "ecosystem.config.js"]
 }

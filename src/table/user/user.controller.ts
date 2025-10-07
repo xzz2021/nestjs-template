@@ -12,7 +12,7 @@ import {
   BatchDeleteUserDto,
 } from './dto/user.dto';
 import { ConfigService } from '@nestjs/config';
-import { JwtReqDto } from '@/auth/dto/auth.dto';
+import { JwtReqDto } from '@/table/auth/dto/auth.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('用户')
 @Controller('user')

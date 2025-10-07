@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Req, Request } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateRoleDto, RoleListRes, MenuPermissionListRes, QueryRoleParams, RoleSeedArrayDto, UpdateRoleDto } from './dto/role.dto';
-import { JwtReqDto } from '@/auth/dto/auth.dto';
+import { JwtReqDto } from '@/table/auth/dto/auth.dto';
 @ApiTags('角色')
 @Controller('role')
 export class RoleController {

@@ -4,11 +4,33 @@
 
 1. 这是一个基于nestjs-cli生成的模板框架,整合了常用的库和业务功能, 多数据库, 字段校验, 文件上传等, 复杂度较高, 后期会逐渐优化成flag配置式, 减轻使用者的心智负担
 2. 前置条件:
-   > 准备好数据库, 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm prisma:seed`生成菜单种子数据
+
+   > 准备好数据库(参考`compose.yml`文件部署), 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm prisma:seed`生成数据库初始化种子数据
    >
    > 运行 `pnpm prepare` 生成husky
    >
    > `pnpm dev`启动项目
+
+📁 项目文件目录
+
+```text
+nestjs/
+├── public              # 静态资源托管目录
+├── prisma/             # prisma client 自动生成的客户端或dto入口
+├── src/                # 编译目录
+│   ├── assets/         # 项目所需静态文件
+│   ├── core/           # 项目核心配置
+│   ├── prisma/         # prisma模块
+│   ├── processor/      # 项目核心所有处理器(中间件/守卫/拦截器/装饰器...)
+│   ├── staticfile/     # 静态资源管理模块
+│   ├── table/          # 项目核心基础表格模块(RBAC/字典/认证/CASL)
+│   ├── utils/          # 项目核心功能模块
+│   │   ├── **/         # 目录配置复杂模块
+│   │   └── *.ts        # 简单功能服务
+│   └── app.module.ts   # 模块总入口
+│   └── main.ts         # 项目运行总入口
+└── .env                # 环境变量
+```
 
 #### 必备功能定位
 
@@ -151,4 +173,4 @@ ERP系统:
 #### 首次部署流程
 
 1. docker compose 一键部署
-2. 准备菜单种子数据(prisma:seed),可以临时切换开发时连接线上数据库; 如果数据异常需要重置 `TRUNCATE TABLE menu_meta RESTART IDENTITY;` `TRUNCATE TABLE menu RESTART IDENTITY CASCADE;`
+2. 准备菜单种子数据(prisma:seed),可以临时切换开发时连接线上数据库; 如果数据异常需要重置表格及索引 `TRUNCATE TABLE menu RESTART IDENTITY CASCADE;`

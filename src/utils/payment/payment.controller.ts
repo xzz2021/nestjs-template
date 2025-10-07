@@ -3,7 +3,7 @@ import { PaymentService } from './payment.service';
 import { GetWxQrcodeDto, GetAlipayQrcodeDto, WxPayBody, AlipayNotifyDto } from './dto/payment.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { Public } from '@/processor/decorator/public.decorator';
-import { JwtReqDto } from '@/auth/dto/auth.dto';
+import { JwtReqDto } from '@/table/auth/dto/auth.dto';
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}

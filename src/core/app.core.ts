@@ -1,12 +1,10 @@
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { CONFIG_MODULE, moduleFactory } from './config.module';
+import { CONFIG_MODULE } from './config.module';
 // import { CacheInterceptor } from '@nestjs/cache-manager';
 // import KeyvRedis from '@keyv/redis';
 import { SERVER_STATIC_MODULE } from './server.static';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { StaticfileModule } from '@/staticfile/staticfile.module';
-import { HttpModule } from '@/utils/http/http.module';
-import { AuthModule } from '@/auth/auth.module';
 import { JwtAuthGuard } from '@/processor/guard/jwt-auth.guard';
 // import { CaslGuard } from '@/processor/guard/casl.guard';
 // import { CaslModule } from '@/casl/casl.module';
@@ -14,37 +12,24 @@ import { JwtAuthGuard } from '@/processor/guard/jwt-auth.guard';
 import { ThrottlerModule } from '@nestjs/throttler';
 // import { DynamicThrottlerGuard } from '@/processor/guard/throttler.guard';
 import { ClsModule } from 'nestjs-cls';
-import { WinstonLoggerModule } from '@/logger/winston.module';
+import { WinstonLoggerModule } from '@/utils/logger/winston.module';
 import { OperationLogInterceptor } from '@/processor/interceptor/operation.log.interceptor';
 import { AllExceptionsFilter } from '@/processor/filter/all-exceptions.filter';
-import { WsModule } from '@/ws/ws.module';
-import { REDIS_MODULE } from './cache-ioredis';
+import { REDIS_MODULE } from '@/utils/cache/cache-ioredis';
 import { TransformInterceptor } from '@/processor/interceptor/transform.interceptor';
 // import { HttpExceptionFilter } from '@/processor/filter/http-exception.filter';
-import { ScheduleTaskModule } from '@/schedule/schedule.module';
+import { ScheduleTaskModule } from '@/utils/schedule/schedule.module';
 // import { DynamicThrottlerGuard } from '@/processor/guard/throttler.guard';
 // import { TimeoutInterceptor } from '@/processor/interceptor/http.timeout.Interceptor';
-import { SseModule } from '@/utils/sse/sse.module';
+// import { SseModule } from '@/utils/sse/sse.module';
 import { CaptchaModule } from '@/utils/captcha/captcha.module';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { GlobalThrottlerGuard } from '@/processor/guard/global-throttler.guard';
-
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { RtJwtAuthGuard } from '@/processor/guard/rt-jwt-auth.guard';
 import { MinioClientModule } from '@/utils/minio/minio.module';
-const FLAG_MODULE: Record<string, any> = {
-  WS: WsModule,
-};
+import { UtilsModule } from '@/utils/utils.module';
 
-function buildFeatureImports() {
-  const imports: any[] = [];
-  for (const [key, enabled] of Object.entries(moduleFactory())) {
-    if (enabled) {
-      imports.push(FLAG_MODULE[key]);
-    }
-  }
-  return imports;
-}
 export const CORE_MODULE = [
   CONFIG_MODULE,
   SERVER_STATIC_MODULE,
@@ -78,9 +63,6 @@ export const CORE_MODULE = [
   ScheduleTaskModule,
 
   PrismaModule,
-  HttpModule,
-  AuthModule,
-  // CaslModule,
 
   ClsModule.forRoot({
     middleware: {
@@ -111,13 +93,11 @@ export const CORE_MODULE = [
   private readonly cls: ClsService,
   this.cls.get('userId');
 
-  */
-  SseModule,
+    */
+  UtilsModule,
   WinstonLoggerModule,
   CaptchaModule,
   MinioClientModule,
-  // WsModule,
-  ...buildFeatureImports(),
 ];
 
 export const GLOBAL_GUARD = [

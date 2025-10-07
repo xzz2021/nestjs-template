@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { extractIP } from '@/processor/utils/string';
-import { ScheduleService } from '@/schedule/schedule.service';
+import { ScheduleService } from '@/utils/schedule/schedule.service';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 //  请求拦截器  提供日志记录
 

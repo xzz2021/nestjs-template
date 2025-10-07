@@ -4,4 +4,5 @@ import { MenuModule } from '@/table/menu/menu.module';
 import { PermissionModule } from '@/table/permission/permission.module';
 import { UserModule } from '@/table/user/user.module';
 import { DictionaryModule } from '@/table/dictionary/dictionary.module';
-export const TABLE_MODULE = [DepartmentModule, RoleModule, MenuModule, PermissionModule, UserModule, DictionaryModule];
+import { AuthModule } from '@/table/auth/auth.module';
+export const CORE_TABLE_MODULE = [DepartmentModule, RoleModule, MenuModule, PermissionModule, UserModule, DictionaryModule, AuthModule];

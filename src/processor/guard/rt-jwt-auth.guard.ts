@@ -13,8 +13,8 @@ export class RtJwtAuthGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     // console.log('xzz2021: JwtAuthGuard -> canActivate:', request);
-    // 允许对 `/static/` 开头的资源访问
-    if (request.url.startsWith('/static/')) {
+    // 允许对 `/public/` 开头的资源访问
+    if (request.url.startsWith('/public/')) {
       return true;
     }
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);

@@ -51,6 +51,9 @@ export class DepartmentService {
           },
         },
       },
+      orderBy: {
+        id: 'asc',
+      },
     });
     const total = await this.pgService.department.count();
     return { list, total, message: '获取部门列表成功' };

@@ -2,7 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
-import { CodeTemplate } from './template';
+import { CodeTemplate } from './mail.template';
 import { ConfigService } from '@nestjs/config';
 
 export interface MailInfo {
