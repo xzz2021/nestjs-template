@@ -1,12 +1,15 @@
 import { Global, Module } from '@nestjs/common';
-import { SshService } from './ssh.service';
 import { ConfigModule } from '@nestjs/config';
-import { UndiciHttpService } from './undici.http.service';
 import { IpToAddressService } from './ip-to-address.service';
+import { ServerService } from './server.service';
+import { SshService } from './ssh.service';
+import { UndiciHttpService } from './undici.http.service';
+import { UtilsController } from './utils.controller';
 @Global()
 @Module({
   imports: [ConfigModule],
-  providers: [SshService, UndiciHttpService, IpToAddressService],
+  controllers: [UtilsController],
+  providers: [SshService, UndiciHttpService, IpToAddressService, ServerService],
   exports: [SshService, UndiciHttpService, IpToAddressService],
 })
 export class UtilsModule {}
