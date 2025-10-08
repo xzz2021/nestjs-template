@@ -1,5 +1,5 @@
 // src/shared/sms/ali-sms.service.ts
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Dysmsapi20170525, { SendSmsRequest } from '@alicloud/dysmsapi20170525';
 import * as $OpenApi from '@alicloud/openapi-client';
@@ -37,7 +37,7 @@ export class AliSmsService {
   private initClient() {
     const { accessKeyId, accessKeySecret, signName, templateCode } = this.aliSmsKey;
     if (!accessKeyId || !accessKeySecret || !signName || !templateCode) {
-      throw new Error('Aliyun SMS 配置错误：缺少 AccessKey');
+      throw new BadRequestException('Aliyun SMS 配置错误：缺少 AccessKey');
     }
     const openApiConfig = new $OpenApi.Config({
       accessKeyId,

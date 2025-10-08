@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateDepartmentDto, DepartmentSeedDto, UpdateDepartmentDto } from './dto/department.dto';
 import { PgService } from '@/prisma/pg.service';
 import { Prisma } from '../../../prisma/client/postgresql';
@@ -25,7 +25,7 @@ export class DepartmentService {
           where: { id: createDepartmentDto.parentId },
           select: { path: true },
         });
-        if (!parent) throw new Error('Parent not found');
+        if (!parent) throw new BadRequestException('父级不存在'); // 父级不存在
         path = `${parent.path}/${tag.id}`;
       }
 
@@ -78,7 +78,7 @@ export class DepartmentService {
         where: { id: parentId },
         select: { path: true },
       });
-      if (!parent) throw new Error('Parent not found');
+      if (!parent) throw new BadRequestException('父级不存在'); // 父级不存在
       path = `${parent.path}/${id}`;
     }
     const res = await this.pgService.department.update({ where: { id }, data: { ...rest, parentId, path }, select: { id: true } });
@@ -97,7 +97,7 @@ export class DepartmentService {
       where: { parentId: id },
       select: { id: true },
     });
-    if (child) throw new Error('当前项有子部门无法删除');
+    if (child) throw new BadRequestException('当前项有子部门无法删除'); // 当前项有子部门无法删除
     await this.pgService.userDepartment.deleteMany({ where: { departmentId: id } });
     await this.pgService.department.delete({ where: { id } });
     return { message: '删除部门成功' };
@@ -132,7 +132,7 @@ export class DepartmentService {
         where: { id: parentId },
         select: { path: true },
       });
-      if (!parent) throw new Error('Parent not found');
+      if (!parent) throw new BadRequestException('父级不存在'); // 父级不存在
       path = `${parent.path}/${tag.id}`;
     }
     await tx.department.update({ where: { id: tag.id }, data: { path, parentId }, select: { id: true } });

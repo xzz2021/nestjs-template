@@ -233,7 +233,7 @@ export class MinioClientService {
               reject(error);
             } else {
               const errorMessage = typeof error === 'string' ? error : '未知错误';
-              reject(new Error(errorMessage));
+              reject(new BadRequestException(errorMessage));
             }
           }
         })();

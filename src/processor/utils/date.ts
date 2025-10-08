@@ -10,3 +10,12 @@ export function getCurrentDateTimeCompact() {
 
   return `${year}${month}${day}${hour}${minute}`;
 }
+
+// 根据秒数转换时间
+export function formatTimeBySeconds(seconds: number) {
+  // 补零
+  const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');
+  const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+  const remainingSeconds = String((seconds % 60).toFixed(0)).padStart(2, '0');
+  return `${hours}:${minutes}:${remainingSeconds}`;
+}

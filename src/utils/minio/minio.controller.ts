@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Query, Body, UseInterceptors, UploadedFile, Res, Header } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Query, Body, UseInterceptors, UploadedFile, Res, Header, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MinioClientService } from './minio.service';
 import { Response } from 'express';
@@ -23,7 +23,7 @@ export class MinioClientController {
   createFolder(@Body() body: { folderName: string; parentPath?: string }) {
     const { folderName, parentPath = '' } = body;
     if (!folderName) {
-      throw new Error('文件夹名称不能为空');
+      throw new BadRequestException('文件夹名称不能为空'); // 文件夹名称不能为空
     }
     return this.minioClientService.createFolder(folderName, parentPath);
   }
@@ -33,7 +33,7 @@ export class MinioClientController {
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(@UploadedFile() file: Express.Multer.File, @Body() body: { folderPath?: string }) {
     if (!file) {
-      throw new Error('请选择要上传的文件');
+      throw new BadRequestException('请选择要上传的文件'); // 请选择要上传的文件
     }
     return this.minioClientService.uploadFile(file, body?.folderPath || '');
   }
@@ -160,7 +160,7 @@ export class MinioClientController {
   @Get('info')
   getFileInfo(@Query('objectName') objectName: string) {
     if (!objectName) {
-      throw new Error('objectName 参数不能为空');
+      throw new BadRequestException('objectName 参数不能为空'); // objectName 参数不能为空
     }
     return this.minioClientService.getFileInfo(objectName);
   }
@@ -169,7 +169,7 @@ export class MinioClientController {
   @Delete('delete')
   deleteObject(@Query('objectName') objectName: string) {
     if (!objectName) {
-      throw new Error('objectName 参数不能为空');
+      throw new BadRequestException('objectName 参数不能为空'); // objectName 参数不能为空
     }
     return this.minioClientService.deleteObject(objectName);
   }
@@ -178,7 +178,7 @@ export class MinioClientController {
   @Get('search')
   searchFiles(@Query('searchTerm') searchTerm: string, @Query('prefix') prefix: string = '') {
     if (!searchTerm) {
-      throw new Error('搜索关键词不能为空');
+      throw new BadRequestException('搜索关键词不能为空'); // 搜索关键词不能为空
     }
     // console.log('xzz2021: MinioClientController -> searchFiles -> searchTerm:', searchTerm, 'prefix:', prefix);
     return this.minioClientService.searchFiles(searchTerm, prefix);
@@ -188,7 +188,7 @@ export class MinioClientController {
   @Get('presigned')
   getPresignedUrl(@Query('objectName') objectName: string, @Query('operation') operation: 'get' | 'put' = 'get', @Query('expiry') expiry: string = '3600') {
     if (!objectName) {
-      throw new Error('objectName 参数不能为空');
+      throw new BadRequestException('objectName 参数不能为空'); // objectName 参数不能为空
     }
     return this.minioClientService.getPresignedUrl(objectName, operation, parseInt(expiry));
   }

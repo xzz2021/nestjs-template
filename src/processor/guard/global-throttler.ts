@@ -3,6 +3,7 @@ import { Injectable, ExecutionContext } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { RATE_KEY } from '@/processor/decorator';
 
+//  guard 默认以ip作为key 重写guard则会以现有的返回值作为key进行hansh
 @Injectable()
 export class GlobalThrottlerGuard extends ThrottlerGuard {
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -24,7 +25,8 @@ export class GlobalThrottlerGuard extends ThrottlerGuard {
 
     // 4. 未登录：回退到 IP + UA，降低共享IP误伤
     const xff = (req.headers['x-forwarded-for'] as string) || '';
-    const ip = (xff.split(',')[0] || '').trim() || req.ip || req.connection?.remoteAddress || 'unknown';
+    const reqIp = req?.ips?.length ? req?.ips[0] : req?.ip;
+    const ip = (xff.split(',')[0] || '').trim() || reqIp || req.connection?.remoteAddress || 'unknown';
     const ua = req.headers['user-agent'] || '';
     return `ip:${ip}|ua:${ua}`;
   }

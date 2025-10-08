@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 interface WxPayData {
   appid: string;
@@ -100,7 +100,7 @@ export class WxPay {
         message = `GET\n/v3/certificates\n${timestamp}\n${nonce_str}\n\n`;
         break;
       default:
-        throw new Error('不支持的类型');
+        throw new BadRequestException('不支持的类型');
     }
     const signature = this.signWithPrivateKey(message);
     // 不可换行
@@ -167,14 +167,14 @@ export class WxPay {
         });
       });
     } catch (_err) {
-      throw new Error('获取平台证书失败');
+      throw new BadRequestException('获取平台证书失败'); // 获取平台证书失败
     }
   }
 
   async verifySign(params: { timestamp: string | number; nonce: string; serial: string; signature: string; body: Record<string, any> | string }) {
     const { timestamp, nonce, serial, signature, body } = params;
     if (!serial || !signature || !timestamp || !nonce) {
-      throw new Error('请求头解析出的参数错误或者有遗漏!');
+      throw new BadRequestException('请求头解析出的参数错误或者有遗漏!'); // 请求头解析出的参数错误或者有遗漏!
     }
     // 获取平台证书公钥
     let publicKey = this.certificates[serial] || '';
@@ -182,7 +182,7 @@ export class WxPay {
       await this.fetchCertificates();
       publicKey = this.certificates[serial] || '';
       if (!publicKey) {
-        throw new Error(`未找到平台证书序列号: ${serial}`);
+        throw new BadRequestException(`未找到平台证书序列号: ${serial}`); // 未找到平台证书序列号: ${serial}
       }
     }
     // 构造签名字符串
@@ -194,7 +194,7 @@ export class WxPay {
     verify.end();
     const isVerify = verify.verify(publicKey as crypto.KeyLike, signature, 'base64');
     if (!isVerify) {
-      throw new Error('签名验证失败');
+      throw new BadRequestException('签名验证失败'); // 签名验证失败
     }
   }
 
@@ -212,7 +212,7 @@ export class WxPay {
       return response.data;
     } catch (error) {
       console.log('🚀 ~ WxPay ~ getWxQrcode ~ error:', error);
-      throw new Error('获取微信支付二维码失败, 原因: ' + error?.response?.data);
+      throw new BadRequestException('获取微信支付二维码失败, 原因: ' + error?.response?.data); // 获取微信支付二维码失败, 原因: ${error?.response?.data}
     }
   }
 }

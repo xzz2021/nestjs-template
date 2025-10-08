@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
 import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo, UpdatePwdDto, AdminUpdatePwdDto, CreateUserDto } from './dto/user.dto';
 import { buildPrismaWhere, BuildPrismaWhereParams, hashPayPassword, verifyPayPassword } from '@/processor/utils';
@@ -133,7 +133,7 @@ export class UserService {
     const isExit = await this.pgService.user.findFirst({ where: { phone } });
     if (isExit?.id && phone) {
       // return { code: 400, message: '手机号已存在,无法添加!' };
-      throw new Error('手机号已存在,无法添加!');
+      throw new BadRequestException('手机号已存在,无法添加!');
     }
     //  2.新增用户  默认密码123456
     const password = await hashPayPassword('123456');
@@ -232,7 +232,7 @@ export class UserService {
       const user = await this.pgService.user.findUnique({ where: { id } });
       const isMatch = await verifyPayPassword(user?.password || '', password);
       if (!isMatch) {
-        throw new Error('修改失败, 旧密码不正确');
+        throw new BadRequestException('修改失败, 旧密码不正确');
       }
       const hashPassword = await hashPayPassword(newPassword);
       const res = await this.pgService.user.update({ where: { id }, data: { password: hashPassword } });

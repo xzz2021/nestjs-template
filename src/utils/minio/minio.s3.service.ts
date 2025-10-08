@@ -10,7 +10,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class MinioS3Service {
       ContentType: contentType || 'application/octet-stream',
     });
     const out = await this.s3.send(cmd);
-    if (!out.UploadId) throw new Error('No UploadId returned');
+    if (!out.UploadId) throw new BadRequestException('No UploadId returned'); // No UploadId returned
     return { uploadId: out.UploadId };
   }
 

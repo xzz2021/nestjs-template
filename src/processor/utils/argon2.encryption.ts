@@ -12,4 +12,13 @@ async function verifyPayPassword(hashedPassword: string, inputPassword: string):
   return await argon2.verify(hashedPassword, inputPassword);
 }
 
+// 加密数据
+async function encryptData(data: string): Promise<string> {
+  return await argon2.hash(data, {
+    type: argon2.argon2id,
+  });
+}
+
+// 解密数据
+
 export { hashPayPassword, verifyPayPassword };

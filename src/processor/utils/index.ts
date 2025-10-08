@@ -2,7 +2,7 @@ export * from './base.service';
 export * from './file.util';
 export * from './string';
 export * from './date';
-export * from './encryption';
+export * from './argon2.encryption';
 export * from './filesizeParser';
 export * from './generateBinaryKey';
 export * from './ip.util';

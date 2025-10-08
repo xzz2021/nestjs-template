@@ -2,14 +2,25 @@
 
 #### 运行说明
 
-1. 这是一个基于nestjs-cli生成的模板框架,整合了常用的库和业务功能, 多数据库, 字段校验, 文件上传等, 复杂度较高, 后期会逐渐优化成flag配置式, 减轻使用者的心智负担
-2. 前置条件:
+1. 这是一个基于nestjs11.0生成的后台管理系统模板框架,整合了常用的库和业务功能, 多数据库, 字段校验, 文件上传等, 复杂度较高, 后期会逐渐优化成flag配置式, 减轻使用者的心智负担
 
-   > 准备好数据库(参考`compose.yml`文件部署), 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm prisma:seed`生成数据库初始化种子数据
-   >
-   > 运行 `pnpm prepare` 生成husky
-   >
-   > `pnpm dev`启动项目
+2. 配套的[前端代码](https://github.com/xzz2021/backstage-template), 后期功能稳定后会整合成monorepo
+
+3. 核心技术栈
+
+- ORM-prisma
+- DB-postgres/redis
+- OSS-minio/s3
+- AUTH-jwt/casl
+- LOG-winston/morgan
+- DEPLOY-docker/nginx proxy manager
+
+4. 前置条件:
+
+   > - 准备好数据库(参考`compose.yml`文件部署)
+   > - 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm prisma:seed`生成数据库初始化种子数据
+   > - 运行 `pnpm prepare` 生成husky
+   > - `pnpm dev`启动项目
 
 📁 项目文件目录
 
@@ -32,13 +43,13 @@ nestjs/
 └── .env                # 环境变量
 ```
 
-#### 必备功能定位
+#### 必备功能汇总
 
 - [√] 环境变量配置
 - [√] redis缓存
 - [√] swagger自动文档
 - [√] 版本控制
-- [√] 静态资源/文件上传/流文件
+- [√] 静态资源/文件管理
 - [√] 架构基础(中间件/守卫/拦截器/管道/控制器/服务/过滤器-异常捕获处理)
 - [√] 任务调度(定时/队列)
 - [√] ORM与连接池及多数据库
@@ -47,34 +58,37 @@ nestjs/
 - [ x ] 安全限制(限流/幂等/串行)
 - [ x ] 认证与授权(JWT+RBAC+CASL)
 - [ x ] 日志系统(操作√埋点审计)
-- [√] OSS文件管理(分片/上传/下载)
+- [√] OSS文件管理(minio分片/上传/下载/加密)
 
 #### 小功能点实现
 
 - [√] 多点登录限制,强制下线
 - [√] 登录失败锁定,后台解锁
-- [√] 双token
+- [√] 双token,无感刷新
+- [√] 支付宝/微信扫码支付
+- [√] 阿里云短信
+- [√] 顺丰下单/打单
+- [√] 邮件服务
+- [√] 图形验证码
+- [√] sse通信
+- [√] ip解析归属地
 - [ x ] 高频限流guard, 滑动窗口
 
-#### 待深入学习
+#### 待深入学习,后期功能拓展
 
 1. 多租户/分库分表
-2. 任务调度
+2. 流程引擎
 3. Cookie和Session
 4. GraphQL
-5. WebSocket
+5. 多语言
 6. Microservices
-7. swagger-cli
+7. 系统监控
 8. prisma官方文档
-9. 流程引擎
-10. 日志审计(操作/接口访问)
-11. 系统监控
-12. 数据可视化
-13. 消息通知(邮件/站内/报表)
-14. 内容管理(富文本/文件/excel)
-15. 多语言
+9. 数据可视化
+10. 消息通知(邮件/站内/报表)
+11. 内容管理(富文本/文件/excel)
 
-#### 开发历程
+#### 三方依赖包
 
 1. 核心依赖
 
@@ -111,13 +125,14 @@ nestjs/
    > minio文件管理: `nestjs-minio-client`
    > 大文件S3管理: `@aws-sdk/client-s3` `@aws-sdk/s3-request-presigner` `archiver` `@types/archiver`
    > ip地理库: `maxmind`
+   > 服务器信息: `systeminformation`
 
 #### 注意事项
 
 1. 自定义多数据库连接时,需要配置nest-cli.json文件,将自定义client输出目录进行设置,否则打包dist内会缺少client(路径不需要src,因为打包入口就是src)
 2. 如果`npx prisma push`出现警告会重置数据库, 一定要取消; 如果是字段冲突, 可以尝试删除冲突表, 再重新生成,避免影响整个数据库;
 
-#### 开发功能笔记
+#### 开发功能原理笔记
 
 1. 多点登录: TokenService实现白名单签发及剔除, JwtGuard校验白名单
 2. 登录锁定: LockoutService实现登录失败多次锁定

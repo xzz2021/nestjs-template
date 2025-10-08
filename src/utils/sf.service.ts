@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateOrderData, InputOrderData, ContactInfo } from './type';
 import { ConfigService } from '@nestjs/config';
 
@@ -47,11 +47,11 @@ export class SfService {
       body,
     });
     if (!res.ok) {
-      throw new Error(`HTTP error! Status: ${res.status}`);
+      throw new BadRequestException(`HTTP error! Status: ${res.status}`);
     }
     const { accessToken } = await res.json();
     if (!accessToken) {
-      throw new Error('获取accessToken失败');
+      throw new BadRequestException('获取accessToken失败');
     }
     return accessToken;
   }
@@ -130,7 +130,7 @@ export class SfService {
       body,
     });
     if (!res.ok) {
-      throw new Error(`HTTP error! Status: ${res.status}`);
+      throw new BadRequestException(`HTTP error! Status: ${res.status}`);
     }
     return await res.json();
   }

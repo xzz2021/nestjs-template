@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { NodeSSH } from 'node-ssh';
 
 interface SshConnectionInfo {
@@ -52,7 +52,7 @@ export class SshService implements OnModuleDestroy {
 
   // 可选：提供执行命令方法
   async execCommand(cmd: string) {
-    if (!this.ssh) throw new Error('SSH 尚未连接');
+    if (!this.ssh) throw new BadRequestException('SSH 尚未连接'); // SSH 尚未连接
     return await this.ssh.execCommand(cmd);
   }
 

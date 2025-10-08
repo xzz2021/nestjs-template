@@ -1,9 +1,8 @@
 {
   "name": "backxzz",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "架构模板",
   "author": "xzz2021",
-  "private": true,
   "scripts": {
     "build": "cross-env NODE_ENV=production nest build",
     "build:docker": "cross-env NODE_ENV=docker nest build",
@@ -84,6 +83,7 @@
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.1",
     "svg-captcha": "^1.4.0",
+    "systeminformation": "^5.27.11",
     "undici": "^7.11.0",
     "uuid": "^11.1.0",
     "winston": "^3.17.0",

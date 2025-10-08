@@ -24,9 +24,11 @@ export const CORE_MODULE = [
   // 外部 redis 缓存  版本一
   // CACHE_MODULE,
   REDIS_MODULE,
-  //  @SkipThrottle()  跳过速率限制
-  //  @Throttle({ default: { limit: 3, ttl: 60000 } }) 装饰器，可用于覆盖全局模块中设置的 limit 和 ttl
-  //  @Throttle('medium') // 使用 medium 策略
+  /*  @SkipThrottle()  跳过速率限制
+    @Throttle({ default: { limit: 3, ttl: 60000 } }) 装饰器，可用于覆盖全局模块中设置的 limit 和 ttl
+    @Throttle('medium') // 使用 medium 策略
+    该拦截是ip级别的，如果走nginx代理  可能要调整guard获取真实ip
+  */
   ThrottlerModule.forRootAsync({
     inject: [RedisService],
     useFactory: (redisService: RedisService) => ({
@@ -161,6 +163,22 @@ export class AppController {
     provide: APP_FILTER,
     useClass: AllExceptionsFilter,
   },
+
+  /**
+   * prisma 异常筛选器
+   * 捕获未处理的 PrismaClientKnownRequestError，并返回不同的
+   *  HttpStatus 代码，而不是 500 内部服务器错误
+   
+  {
+    provide: APP_FILTER,
+    useFactory: ({ httpAdapter }: HttpAdapterHost) => {
+      return new PrismaClientExceptionFilter(httpAdapter);
+    },
+    inject: [HttpAdapterHost],
+  },
+
+  */
+
   // {  // 有全局拦截器后 可以合并处理http异常  HttpExceptionFilter是冗余的
   //   provide: APP_FILTER,
   //   useClass: HttpExceptionFilter,

@@ -1,9 +1,14 @@
+import { BadRequestException } from '@nestjs/common';
+
 export function generateBinaryKey(roles: number[], maxBits = 32) {
   let binaryKey = 0; // 初始值为 0
 
   // 检查角色编号是否超出最大位数
   if (Math.max(...roles) > maxBits) {
-    throw new Error(`角色编号不能大于最大位数 ${maxBits}`);
+    throw new BadRequestException(`角色编号不能大于最大位数 ${maxBits}`);
+  }
+  if (Math.min(...roles) < 1) {
+    throw new BadRequestException('角色编号不能小于1');
   }
 
   // 遍历角色数组，将每个角色的对应二进制位“或”起来

@@ -1,12 +1,12 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { Public, Serialize } from '@/processor/decorator';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { JwtRefreshAuthGuard, JwtAuthGuard, CaptchaGuard } from '@/processor/guard';
-import { RegisterResDto, ForceLogoutDto, JwtReqDto, LoginInfoDto, RegisterDto, SmsBindDto, SmsCodeDto, SmsLoginDto } from './dto/auth.dto';
+import { CaptchaGuard, JwtAuthGuard, JwtRefreshAuthGuard } from '@/processor/guard';
 import { extractIP } from '@/processor/utils';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
+import { AuthService } from './auth.service';
+import { ForceLogoutDto, JwtReqDto, LoginInfoDto, RegisterDto, RegisterResDto, SmsBindDto, SmsCodeDto, SmsLoginDto } from './dto/auth.dto';
 
 @Public()
 @ApiTags('帐号权限')
