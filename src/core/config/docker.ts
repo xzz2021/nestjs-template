@@ -51,7 +51,7 @@ const config: AppConfig = {
   ssoCount: 3,
   swagger: false,
   serverUrl: 'https://api.xzz2021.top',
-  frontendUrl: 'https://admin.xzz2021.top/',
+  frontendUrl: 'https://admin.xzz2021.top',
   minio: {
     host: 'oss.xzz2021.top',
     port: 443,

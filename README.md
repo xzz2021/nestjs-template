@@ -45,7 +45,7 @@ nestjs/
 
 #### 必备功能汇总
 
-- [√] 环境变量配置
+- [√] 环境变量配置(改造成更优雅的ts文件配置)
 - [√] redis缓存
 - [√] swagger自动文档
 - [√] 版本控制
@@ -56,7 +56,7 @@ nestjs/
 - [√] DTO校验/序列化/反序列化
 - [√] websocket通信(socket.io)
 - [ x ] 安全限制(限流/幂等/串行)
-- [ x ] 认证与授权(JWT+RBAC+CASL)
+- [ x ] 认证与授权(JWT √ RBAC √ CASL x)
 - [ x ] 日志系统(操作√埋点审计)
 - [√] OSS文件管理(minio分片/上传/下载/加密)
 
@@ -73,6 +73,9 @@ nestjs/
 - [√] sse通信
 - [√] ip解析归属地
 - [ x ] 高频限流guard, 滑动窗口
+- [ x ] 模块封装: 任务调度/缓存/健康检查/
+- [ x ] 整合pm2部署
+- [ x ] prisma client 优化封装
 
 #### 待深入学习,后期功能拓展
 
@@ -133,8 +136,9 @@ nestjs/
 
 #### 开发功能原理笔记
 
-1. 多点登录: TokenService实现白名单签发及剔除, JwtGuard校验白名单
-2. 登录锁定: LockoutService实现登录失败多次锁定
+1. 多点登录: TokenService实现白名单签发及剔除, Guard校验白名单
+2. 登录锁定: LockoutService实现登录失败多次锁定及解锁
+3. 双token: 模块引入jwt和rt两个策略,登录时颁发2个token,常规接口校验时走jwtGuard,刷新token接口使用public放行加单独的rtGuard,核心锁定及多点控制应该转到rtGuard处理,后期优化
 
 #### 系统设计要点
 

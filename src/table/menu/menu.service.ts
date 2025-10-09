@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { CreateMenuDto, UpdateMenuDto, SeedMenuDto, MenuSortDto } from './dto/menu.dto';
+import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '../../../prisma/client/postgresql';
+import { CreateMenuDto, MenuSortDto, SeedMenuDto, UpdateMenuDto } from './dto/menu.dto';
 
 @Injectable()
 export class MenuService {
@@ -213,21 +213,21 @@ export class MenuService {
     const menu = await tx.menu.upsert({
       where: { name, path },
       create: { name, path, ...rest, parent: { connect: parentId ? { id: parentId } : undefined } },
-      update: { name, path, ...rest },
+      update: { ...rest },
     });
     if (meta) {
       await tx.meta.upsert({
         where: { menuId: menu.id },
-        create: { ...meta, menuId: menu.id },
-        update: { ...meta, menuId: menu.id },
+        create: { ...meta, menu: { connect: { id: menu.id } } },
+        update: { ...meta },
       });
     }
     if (permissionList) {
       for (const permission of permissionList) {
         await tx.permission.upsert({
           where: { menuId_code: { menuId: menu.id, code: permission.code } },
-          create: { ...permission, menuId: menu.id },
-          update: { ...permission, menuId: menu.id },
+          create: { ...permission, menu: { connect: { id: menu.id } } },
+          update: { ...permission },
         });
       }
     }

@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { Request, Response, NextFunction } from 'express';
 import auth from 'basic-auth';
+import { NextFunction, Request, Response } from 'express';
 
 function swaggerAuth(username: string, password: string) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -11,7 +11,6 @@ function swaggerAuth(username: string, password: string) {
       res.set('WWW-Authenticate', 'Basic realm="Swagger"');
       return res.status(401).send('Authentication required.');
     }
-
     next();
   };
 }
