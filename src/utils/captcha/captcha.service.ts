@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import * as SvgCaptcha from 'svg-captcha';
-import { CaptchaGenerateResult } from './captcha.module-definition';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
+import * as SvgCaptcha from 'svg-captcha';
 import { v4 as uuidv4 } from 'uuid';
+import { CaptchaGenerateResult } from './captcha.module-definition';
 
 @Injectable()
 export class CaptchaService {
@@ -52,12 +52,15 @@ export class CaptchaService {
     }
     const res = await this.redis.get(`captchaId:${id}`);
     if (!res) {
-      return false;
+      // 如果拿不到 说明是过期了
+      throw new BadRequestException('验证码已过期');
     }
     const ok = res === text;
-    if (ok) {
-      await this.redis.del(`captchaId:${id}`);
-    }
+    // if (ok) {
+    //   // 核对成功不需要删除 因为有可能是密码错误  删除就会导致重新生成验证码   且获取新的会自动覆写
+    //   // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    //   setTimeout(() => this.redis.del(`captchaId:${id}`), 5 * 60 * 1000);
+    // }
     return ok;
   }
 }

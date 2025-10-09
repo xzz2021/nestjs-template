@@ -1,7 +1,7 @@
 // src/auth/lockout/lockout.service.ts
-import { Injectable, ForbiddenException, Inject } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 
 export interface LockoutConfig {
@@ -38,7 +38,7 @@ export class LockoutService {
   // 建议从 ConfigService 注入；此处保留默认值，亦支持构造时覆盖
   private readonly config: LockoutConfig = {
     windowSec: 15 * 60, // 后期改进  滑动窗口
-    threshold: 5,
+    threshold: 8,
     baseLockSec: 5 * 60,
     maxLockSec: 12 * 60 * 60,
     ipThreshold: 20,
@@ -67,7 +67,7 @@ export class LockoutService {
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      const ttl = Math.ceil(+user.lockedUntil - Date.now()) / 1000;
+      const ttl = Math.ceil((+user.lockedUntil - Date.now()) / 1000);
       await this.redis.set(this.lockKey(user.id), String(+user.lockedUntil), 'EX', ttl);
       throw new ForbiddenException('账号已锁定，请稍后再试');
     }
