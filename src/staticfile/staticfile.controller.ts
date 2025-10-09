@@ -1,22 +1,28 @@
-import { Controller, Get, StreamableFile, Header, Post, UploadedFile, Delete, Query, UseInterceptors, Req, Body, BadRequestException } from '@nestjs/common';
-import { StaticfileService } from './staticfile.service';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Serialize } from '@/processor/decorator/serialize';
+import { JwtReqDto } from '@/table/auth/dto/auth.dto';
+import { BadRequestException, Body, Controller, Delete, Get, Header, Post, Req, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { createReadStream } from 'fs';
 import { join } from 'path';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { generateMulterConfig } from './multer.config';
 import { DeleteFileDto, FileListResDto } from './file.dto';
-import { Serialize } from '@/processor/decorator/serialize';
-import { ConfigService } from '@nestjs/config';
-import { JwtReqDto } from '@/table/auth/dto/auth.dto';
+import { generateMulterConfig } from './multer.config';
+import { StaticfileService } from './staticfile.service';
 
 @ApiTags('静态文件')
 @Controller('staticfile')
 export class StaticfileController {
+  private readonly serverUrl;
+  private readonly staticFileRootPath;
+
   constructor(
     private readonly staticfileService: StaticfileService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.serverUrl = this.configService.get<string>('serverUrl');
+    this.staticFileRootPath = this.configService.get<string>('staticFileRootPath');
+  }
   //  流文件
   @Get('steamfile')
   //  形式为 直接下载
@@ -57,11 +63,11 @@ export class StaticfileController {
     const fileExt = file.filename.split('.').pop() || ''; // 文件扩展名
     const { filename, path } = file;
     // 文件路径
-    const staticUrl = this.configService.get<string>('SERVER_URL');
+    const staticUrl = this.serverUrl;
     if (!staticUrl) {
       throw new BadRequestException('STATIC_URL 配置不存在');
     }
-    const url = `${staticUrl}/public/file/manage/${filename}`;
+    const url = `${staticUrl}/${this.staticFileRootPath}/file/manage/${filename}`;
     const size = file.size; // 文件大小
     return this.staticfileService.uploadFile({
       name: filename,
@@ -87,11 +93,11 @@ export class StaticfileController {
     if (userPhone) {
       throw new BadRequestException('用户手机号不存在');
     }
-    const serverUrl = this.configService.get<string>('SERVER_URL');
+    const serverUrl = this.serverUrl;
     if (!serverUrl) {
       throw new BadRequestException('SERVER_URL 配置不存在');
     }
-    const avatarPath = `${serverUrl}/public/avatar/${userPhone}/${file.filename}`;
+    const avatarPath = `${serverUrl}/${this.staticFileRootPath}/avatar/${userPhone}/${file.filename}`;
     return this.staticfileService.updateAvatar(avatarPath, userPhone);
   }
 }

@@ -1,21 +1,21 @@
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { CONFIG_MODULE } from './config.module';
-import { SERVER_STATIC_MODULE } from './server.static';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { GlobalThrottlerGuard, JwtAuthGuard, RtJwtAuthGuard } from '@/processor/guard';
 import { StaticfileModule } from '@/staticfile/staticfile.module';
-import { JwtAuthGuard, GlobalThrottlerGuard, RtJwtAuthGuard } from '@/processor/guard';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { CONFIG_MODULE } from './config';
+import { SERVER_STATIC_MODULE } from './server.static';
 // import { ClsModule } from 'nestjs-cls';
-import { WinstonLoggerModule } from '@/utils/logger/winston.module';
-import { OperationLogInterceptor, TransformInterceptor } from '@/processor/interceptor';
 import { AllExceptionsFilter } from '@/processor/filter/all-exceptions.filter';
+import { OperationLogInterceptor, TransformInterceptor } from '@/processor/interceptor';
 import { REDIS_MODULE } from '@/utils/cache/cache-ioredis';
-import { ScheduleTaskModule } from '@/utils/schedule/schedule.module';
 import { CaptchaModule } from '@/utils/captcha/captcha.module';
+import { WinstonLoggerModule } from '@/utils/logger/winston.module';
+import { MinioClientModule } from '@/utils/minio/minio.module';
+import { ScheduleTaskModule } from '@/utils/schedule/schedule.module';
+import { UtilsModule } from '@/utils/utils.module';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
-import { MinioClientModule } from '@/utils/minio/minio.module';
-import { UtilsModule } from '@/utils/utils.module';
 
 export const CORE_MODULE = [
   CONFIG_MODULE,

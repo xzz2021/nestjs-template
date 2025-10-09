@@ -1,10 +1,9 @@
-// src/shared/sms/ali-sms.service.ts
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import Dysmsapi20170525, { SendSmsRequest } from '@alicloud/dysmsapi20170525';
 import * as $OpenApi from '@alicloud/openapi-client';
 import * as $Util from '@alicloud/tea-util';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 export interface SmsPayload {
@@ -29,7 +28,12 @@ export class AliSmsService {
     private readonly redisService: RedisService,
   ) {
     this.redis = this.redisService.getOrThrow();
-    this.aliSmsKey = this.configService.get('aliSms') as AliSmsKeyType;
+    this.aliSmsKey = this.configService.get<AliSmsKeyType>('aliSms') || {
+      accessKeyId: '',
+      accessKeySecret: '',
+      signName: '',
+      templateCode: '',
+    };
     this.runtime = new $Util.RuntimeOptions({});
     this.initClient();
   }
@@ -44,7 +48,6 @@ export class AliSmsService {
       accessKeySecret,
       endpoint: 'dysmsapi.aliyuncs.com',
     });
-    // openApiConfig.endpoint = 'dysmsapi.aliyuncs.com';
     this.client = new Dysmsapi20170525(openApiConfig);
   }
 

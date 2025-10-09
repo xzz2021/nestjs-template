@@ -1,14 +1,20 @@
 // src/auth/session/session.service.ts
+import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
-import { ConfigService } from '@nestjs/config';
-import { RedisService } from '@liaoliaots/nestjs-redis';
-import Redis from 'ioredis';
 import { Response } from 'express';
+import Redis from 'ioredis';
 export interface SessionConfig {
   lockTtlMs?: number; // 互斥锁占用时长（毫秒）
   lockMaxWaitMs?: number; // 获取锁的最大等待时长（毫秒）
+}
+interface JwtTokenType {
+  secret: string;
+  refreshSecret: string;
+  expiresTime: number;
+  refreshExpiresTime: number;
 }
 
 @Injectable()
@@ -18,10 +24,7 @@ export class RtTokenService {
     lockMaxWaitMs: 300, // 最多等待拿锁 300ms
   };
   private maxSessions: number;
-  private JWT_SECRET: string;
-  private JWT_EXPIRES_TIME: number; //
-  private JWT_REFRESH_SECRET: string;
-  private JWT_REFRESH_EXPIRES_TIME: number;
+  jwtToken: JwtTokenType;
   private readonly redis: Redis;
   constructor(
     private readonly jwt: JwtService,
@@ -29,12 +32,14 @@ export class RtTokenService {
     private readonly configService: ConfigService,
   ) {
     this.redis = this.redisService.getOrThrow();
-    const ssoCount = this.configService.get<string>('SSO_COUNT') || '2';
-    this.maxSessions = Number(ssoCount);
-    this.JWT_SECRET = this.configService.get<string>('JWT_SECRET') || '';
-    this.JWT_REFRESH_SECRET = this.configService.get<string>('JWT_REFRESH_SECRET') || '';
-    this.JWT_EXPIRES_TIME = Number(this.configService.get<string>('JWT_EXPIRES_TIME') || 60 * 1);
-    this.JWT_REFRESH_EXPIRES_TIME = Number(this.configService.get<string>('JWT_REFRESH_EXPIRES_TIME') || 60 * 2);
+    this.maxSessions = this.configService.get<number>('ssoCount') || 2;
+    const token = this.configService.get<JwtTokenType>('token');
+    this.jwtToken = token || {
+      secret: '',
+      refreshSecret: '',
+      expiresTime: 60 * 1,
+      refreshExpiresTime: 60 * 2,
+    };
   }
 
   // —— Key helpers ——
@@ -111,16 +116,17 @@ export class RtTokenService {
     //   解决方案  1. 给 jwttoken也加上黑名单机制  在guard层检查    2. 结合sse进行校验 (无效, sse只在首次连接时会校验/且会影响所有当前连接的同一id)
     const jti = oldJti || randomUUID();
     const nowSec = Math.floor(Date.now() / 1000);
-    const exp = nowSec + this.JWT_EXPIRES_TIME;
+    const { expiresTime, refreshExpiresTime, secret, refreshSecret } = this.jwtToken;
+    const exp = nowSec + expiresTime;
 
     const [accessToken, refreshToken] = await Promise.all([
-      await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME, secret: this.JWT_SECRET }),
-      await this.jwt.signAsync({ id: userId }, { expiresIn: this.JWT_REFRESH_EXPIRES_TIME, jwtid: jti, secret: this.JWT_REFRESH_SECRET }),
+      await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: expiresTime, secret: secret }),
+      await this.jwt.signAsync({ id: userId }, { expiresIn: refreshExpiresTime, jwtid: jti, secret: refreshSecret }),
     ]);
 
     // const expiresTime = nowSec + this.cfg.ttlSec;
     // 记录 jti 的 exp（撤销时可直接查）
-    await this.redis.set(this.jtiKey(jti), String(exp), 'EX', this.JWT_EXPIRES_TIME);
+    await this.redis.set(this.jtiKey(jti), String(exp), 'EX', expiresTime);
 
     // 修改用户的会话列表（尽量加锁，避免并发覆盖）
     await this.withUserListLock(userId, async () => {

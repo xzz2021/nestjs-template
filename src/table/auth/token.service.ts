@@ -1,13 +1,17 @@
 // src/auth/session/session.service.ts
+import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
-import { ConfigService } from '@nestjs/config';
-import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 export interface SessionConfig {
   lockTtlMs?: number; // 互斥锁占用时长（毫秒）
   lockMaxWaitMs?: number; // 获取锁的最大等待时长（毫秒）
+}
+interface JwtTokenType {
+  secret: string;
+  expiresTime: number;
 }
 
 @Injectable()
@@ -17,7 +21,7 @@ export class TokenService {
     lockMaxWaitMs: 300, // 最多等待拿锁 300ms
   };
   private maxSessions: number;
-  private JWT_SECRET: string;
+  private jwtToken: JwtTokenType;
   private JWT_EXPIRES_TIME: number;
   private readonly redis: Redis;
   constructor(
@@ -26,10 +30,12 @@ export class TokenService {
     private readonly configService: ConfigService,
   ) {
     this.redis = this.redisService.getOrThrow();
-    const ssoCount = this.configService.get<string>('SSO_COUNT') || '2';
-    this.maxSessions = Number(ssoCount);
-    this.JWT_SECRET = this.configService.get<string>('JWT_SECRET') || '';
-    this.JWT_EXPIRES_TIME = Number(this.configService.get<string>('JWT_EXPIRES_TIME') || 60 * 60 * 24 * 7);
+    this.maxSessions = this.configService.get<number>('ssoCount') || 2;
+    const token = this.configService.get<JwtTokenType>('token');
+    this.jwtToken = token || {
+      secret: '',
+      expiresTime: 60 * 60 * 24 * 7,
+    };
   }
 
   // —— Key helpers ——
@@ -104,13 +110,14 @@ export class TokenService {
   async issue(userId: number, extraPayload: Record<string, any> = {}) {
     const jti = randomUUID();
     const nowSec = Math.floor(Date.now() / 1000);
-    const exp = nowSec + this.JWT_EXPIRES_TIME;
+    const { expiresTime, secret } = this.jwtToken;
+    const exp = nowSec + expiresTime;
 
-    const token = await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: this.JWT_EXPIRES_TIME, jwtid: jti });
+    const token = await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: expiresTime, jwtid: jti, secret });
 
     // const expiresTime = nowSec + this.cfg.ttlSec;
     // 记录 jti 的 exp（撤销时可直接查）
-    await this.redis.set(this.jtiKey(jti), String(exp), 'EX', this.JWT_EXPIRES_TIME);
+    await this.redis.set(this.jtiKey(jti), String(exp), 'EX', expiresTime);
 
     // 修改用户的会话列表（尽量加锁，避免并发覆盖）
     await this.withUserListLock(userId, async () => {

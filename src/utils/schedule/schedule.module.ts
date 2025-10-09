@@ -1,10 +1,10 @@
-import { Module, Global } from '@nestjs/common';
-import { ScheduleService } from './schedule.service';
-import { ScheduleController } from './schedule.controller';
-import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
-import { LogQueueConsumer, ScheduleConsumer } from './consumer';
+import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { LogQueueConsumer, ScheduleConsumer } from './consumer';
+import { ScheduleController } from './schedule.controller';
+import { ScheduleService } from './schedule.service';
 
 @Global()
 @Module({
@@ -16,7 +16,7 @@ import { ConfigService } from '@nestjs/config';
         connection: {
           // host: configService.get('REDIS_HOST'),
           // port: configService.get('REDIS_PORT'),
-          url: configService.get('redis').url,
+          url: configService.get('redis.url'),
         },
       }),
     }),

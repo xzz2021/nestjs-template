@@ -1,8 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
-import crypto from 'crypto';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateOrderData, InputOrderData, ContactInfo } from './type';
 import { ConfigService } from '@nestjs/config';
+import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
+import { ContactInfo, CreateOrderData, InputOrderData } from './type';
 
 interface SfResponse {
   apiResponseID: string;
@@ -25,7 +25,14 @@ export class SfService {
   private headers: { 'Content-Type': string } = { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' };
   private sfApi: SfApiType;
   constructor(configService: ConfigService) {
-    this.sfApi = configService.get('sfApi') as SfApiType;
+    this.sfApi = configService.get<SfApiType>('sfApi') || {
+      partnerID: '',
+      checkWord: '',
+      monthlyCard: '',
+      createOrderUrl: '',
+      logisticsQueryUrl: '',
+      oauthUrl: '',
+    };
   }
   sign(msgDataStr: string, timestamp: number): string {
     const text = msgDataStr + timestamp + this.sfApi.checkWord;

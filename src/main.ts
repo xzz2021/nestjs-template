@@ -1,11 +1,11 @@
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AppModule } from './app.module';
 import { createSwagger } from './core/swagger';
 import { GLOBAL_VALIDATION_PIPE } from './processor/pipe/global.validation.pipe';
-import helmet from 'helmet';
-import { ConfigService } from '@nestjs/config';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import cookieParser from 'cookie-parser';
 // import { AllExceptionsFilter } from './processor/filter/exceptions';
 // import { VersioningType } from '@nestjs/common';
 // =============csfr防攻击 跨站请求伪造=========
@@ -31,11 +31,11 @@ async function bootstrap() {
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER)); // 使用winston替换掉nest内置日志
   // app.setGlobalPrefix('api');
   const configService = app.get(ConfigService);
-  if (configService.get<string>('SWAGGER') == 'true') {
+  if (configService.get<boolean>('swagger') === true) {
     createSwagger(app);
   }
 
-  if (configService.get<string>('HELMET') == 'true') {
+  if (configService.get<boolean>('helmet') === true) {
     app.use(
       helmet({
         crossOriginEmbedderPolicy: false,
@@ -52,9 +52,9 @@ async function bootstrap() {
     );
   }
 
-  const frontendUrl = configService.get<string>('FRONTEND_URL');
-  const serverUrl = configService.get<string>('SERVER_URL');
-  const n8nUrl = configService.get<string>('N8N_URL');
+  const frontendUrl = configService.get<string>('frontendUrl');
+  const serverUrl = configService.get<string>('serverUrl');
+  const n8nUrl = configService.get<string>('n8nHost');
   // console.log('frontendUrl--serverUrl--n8nUrl', frontendUrl, serverUrl, n8nUrl);
   //  重要  origin内的域名结尾一定不能带/  否则请求头会忽略掉origin
   // cookies 携带 跨域
@@ -147,9 +147,9 @@ axios.post('/api/resource', data, {
   */
 
   app.useGlobalPipes(GLOBAL_VALIDATION_PIPE); // 全局类转换校验  定义了dto的会自动转换
-  const port = process.env.PORT ?? 3000;
+  const port = configService.get<number>('port') as number;
   await app.listen(port, () => {
-    console.log(`Server is running on: ${configService.get<string>('SERVER_URL')}`);
+    console.log(`Server is running on: ${serverUrl}`);
   });
 }
 

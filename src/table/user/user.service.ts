@@ -1,13 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { QueryUserParams, UpdateUserDto, UpdatePersonalInfo, UpdatePwdDto, AdminUpdatePwdDto, CreateUserDto } from './dto/user.dto';
 import { buildPrismaWhere, BuildPrismaWhereParams, hashPayPassword, verifyPayPassword } from '@/processor/utils';
+import { MinioClientService } from '@/utils/minio/minio.service';
 import { ONLINE_USER_PREFIX } from '@/utils/sse/sse.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import Redis from 'ioredis';
-import { MinioClientService } from '@/utils/minio/minio.service';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
+import Redis from 'ioredis';
+import { AdminUpdatePwdDto, CreateUserDto, QueryUserParams, UpdatePersonalInfo, UpdatePwdDto, UpdateUserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
@@ -303,7 +303,8 @@ export class UserService {
 
   async uploadAvatar(file: Express.Multer.File, userId: number) {
     const { objectName } = await this.minioClientService.uploadFile(file, 'user/avatar/' + userId + '/' + randomUUID() + '/');
-    const url = this.configService.get('minio.url') + '/' + 'public' + '/' + objectName;
+    const staticFileRootPath = this.configService.get<string>('staticFileRootPath');
+    const url = this.configService.get<string>('minio.url') + '/' + staticFileRootPath + '/' + objectName;
     await this.pgService.user.update({ where: { id: userId }, data: { avatar: url } });
     return { url, message: '上传头像成功' };
   }

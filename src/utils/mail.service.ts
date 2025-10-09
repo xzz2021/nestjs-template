@@ -1,9 +1,9 @@
 // src/shared/mail/mail.service.ts
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
 import { CodeTemplate } from './mail.template';
-import { ConfigService } from '@nestjs/config';
 
 export interface MailInfo {
   to: string;
@@ -30,14 +30,14 @@ export class MailService {
   private readonly mailConfig: MailConfig;
 
   constructor(private readonly configService: ConfigService) {
-    this.mailConfig = {
-      host: this.configService.get<string>('MAIL_HOST', 'smtp.exmail.qq.com'),
-      port: this.configService.get<number>('MAIL_PORT', 465),
+    this.mailConfig = this.configService.get<MailConfig>('mail') || {
+      host: 'smtp.exmail.qq.com',
+      port: 465,
       secure: true,
-      sender: this.configService.get<string>('MAIL_SENDER', 'admin@yun3d.com'),
+      sender: 'aaa@aaa.com',
       auth: {
-        user: this.configService.get<string>('MAIL_USER', ''),
-        pass: this.configService.get<string>('MAIL_PASS', ''),
+        user: '',
+        pass: '',
       },
     };
     this.transporter = nodemailer.createTransport(this.mailConfig);

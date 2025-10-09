@@ -1,18 +1,18 @@
+import { PgService } from '@/prisma/pg.service';
+import { hashPayPassword, verifyPayPassword } from '@/processor/utils';
+import { resultDataType, UndiciHttpService } from '@/utils/undici.http.service';
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PgService } from '@/prisma/pg.service';
 import { LoginInfoDto, RegisterDto, SmsBindDto, SmsLoginDto } from './dto/auth.dto';
-import { resultDataType, UndiciHttpService } from '@/utils/undici.http.service';
-import { hashPayPassword, verifyPayPassword } from '@/processor/utils';
 // import { AliSmsService } from '@/utils/sms/sms.service';
-import { ConfigService } from '@nestjs/config';
-import { LockoutService } from './lockout.service';
-import { TokenService } from './token.service';
-import { RedisService } from '@liaoliaots/nestjs-redis';
-import Redis from 'ioredis';
 import { SseService } from '@/utils/sse/sse.service';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import Redis from 'ioredis';
+import { LockoutService } from './lockout.service';
 import { RtTokenService } from './rt.token.service';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
@@ -31,8 +31,9 @@ export class AuthService {
     private readonly sseService: SseService,
     private readonly rtTokenService: RtTokenService,
   ) {
-    this.wxAppSecret = this.configService.get<string>('WX_APP_SECRET') || '';
-    this.wxAppId = this.configService.get<string>('WX_APP_ID') || '';
+    const wechat = this.configService.get<{ appId: string; appSecret: string }>('wechat');
+    this.wxAppSecret = wechat?.appSecret || '';
+    this.wxAppId = wechat?.appId || '';
     this.redis = this.redisService.getOrThrow();
   }
 

@@ -1,13 +1,13 @@
+import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import path, { join } from 'path';
-import * as fs from 'fs';
-import { STATIC_FILE_ROOT_PATH } from '@/core/server.static';
+
+const STATIC_FILE_ROOT_PATH = join(process.cwd(), process.env.STATIC_FILE_ROOT_PATH as string);
 
 // 修复文件名
 function fixFileName(originalname: string): string {
   return Buffer.from(originalname, 'latin1').toString('utf-8');
 }
-
 export const multerConfig = {
   storage: diskStorage({
     destination: (_req, _file, cb) => {
