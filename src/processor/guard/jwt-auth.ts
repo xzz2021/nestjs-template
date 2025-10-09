@@ -1,8 +1,8 @@
+import { IS_PUBLIC_KEY } from '@/processor/decorator';
+import { TokenService } from '@/table/auth/token.service';
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '@/processor/decorator';
-import { TokenService } from '@/table/auth/token.service';
 // import { Request } from 'express';
 
 //    ==============重要=============
@@ -36,23 +36,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const user = request.user;
     // console.log('🚀 ~ JwtAuthGuard ~ canActivate ~ user:', user);
     const userId = user?.sub as number;
-    const jti = user?.jti as string;
 
-    if (!userId || !jti) {
+    if (!userId) {
       throw new UnauthorizedException('Invalid token payload'); // NOT_ACCEPTABLE
-    }
-
-    // 1) 黑名单校验：被撤销/踢下线的会话直接 401
-    if (await this.tokenService.isBlacklisted(jti)) {
-      throw new UnauthorizedException('Token 已失效');
-    }
-
-    // 2) 仍在该用户的会话列表中（避免已被逐出的旧会话继续访问）
-    const list = await this.tokenService.listSessions(userId);
-    // console.log('xzz2021: JwtAuthGuard -> canActivate -> list:', list);
-    // console.log('xzz2021: JwtAuthGuard -> canActivate -> jti:', jti);
-    if (!list.includes(jti)) {
-      throw new UnauthorizedException('token not active');
     }
 
     return true;

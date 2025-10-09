@@ -22,7 +22,6 @@ export class TokenService {
   };
   private maxSessions: number;
   private jwtToken: JwtTokenType;
-  private JWT_EXPIRES_TIME: number;
   private readonly redis: Redis;
   constructor(
     private readonly jwt: JwtService,

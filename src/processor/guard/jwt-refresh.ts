@@ -1,7 +1,7 @@
 // jwt-refresh-auth.guard.ts
+import { RtTokenService } from '@/table/auth/rt.token.service';
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { RtTokenService } from '@/table/auth/rt.token.service';
 
 //  局部接口使用
 @Injectable()
@@ -20,13 +20,13 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
 
     const ok = (await super.canActivate(context)) as boolean;
 
-    if (!ok) return false;
+    if (ok) return true;
     const user = request.user;
     const userId = user?.id as number;
     const jti = user?.jti as string;
-    // console.log('xzz2021: JwtRefreshAuthGuard -> canActivate -> jti:', jti);
+    console.log('xzz2021: JwtRefreshAuthGuard -> canActivate -> user:', user);
     if (!userId || !jti) {
-      throw new UnauthorizedException('Invalid token payload');
+      throw new UnauthorizedException('rt Invalid token payload');
     }
 
     // 1) 黑名单校验：被撤销/踢下线的会话直接 401

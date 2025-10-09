@@ -1,5 +1,5 @@
 import { Public, Serialize } from '@/processor/decorator';
-import { CaptchaGuard, JwtAuthGuard, JwtRefreshAuthGuard } from '@/processor/guard';
+import { CaptchaGuard, JwtRefreshAuthGuard } from '@/processor/guard';
 import { extractIP } from '@/processor/utils';
 import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -77,6 +77,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Public()
   @UseGuards(JwtRefreshAuthGuard)
   refresh(@Req() req: JwtReqDto, @Res({ passthrough: true }) res: Response) {
     // console.log('xzz2021: AuthController -> refresh -> userId:', req.user);
@@ -85,7 +86,6 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '用户主动退出登录' })
   logout(@Body() body: ForceLogoutDto, @Req() req: JwtReqDto) {
     const jti: string = req.user.jti;
@@ -93,14 +93,12 @@ export class AuthController {
   }
 
   @Post('forceLogout')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '强制用户下线' })
   forceLogout(@Body() body: ForceLogoutDto) {
     return this.authService.forceLogout(body.id);
   }
 
   @Post('unlock')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '解锁用户' })
   unlock(@Body() body: ForceLogoutDto) {
     return this.authService.unlock(body.id);

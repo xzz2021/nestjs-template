@@ -1,5 +1,5 @@
 import { PrismaModule } from '@/prisma/prisma.module';
-import { GlobalThrottlerGuard, JwtAuthGuard, RtJwtAuthGuard } from '@/processor/guard';
+import { GlobalThrottlerGuard, RtJwtAuthGuard } from '@/processor/guard';
 import { StaticfileModule } from '@/staticfile/staticfile.module';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -143,10 +143,14 @@ export class AppController {
   // { provide: APP_INTERCEPTOR, useClass: IdempotenceInterceptor },
 
   {
-    // 全局JWT token校验
+    // 全局JWT + refresh token校验    先走header cookies换新单独守卫  换新端点跳过header guard
     provide: APP_GUARD,
-    useClass: process.env.USE_REFRESH_TOKEN == 'true' ? RtJwtAuthGuard : JwtAuthGuard,
+    useClass: RtJwtAuthGuard,
   },
+  // {
+  //   provide: APP_GUARD,
+  //   useClass: JwtRefreshAuthGuard,
+  // },
 
   //  全局casl权限校验
   // {

@@ -1,8 +1,8 @@
+import { IS_PUBLIC_KEY } from '@/processor/decorator';
+import { TokenService } from '@/table/auth/token.service';
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '@/processor/decorator';
-import { TokenService } from '@/table/auth/token.service';
 
 //   配合   JwtStrategy 使用   JwtStrategy  注入到module里
 @Injectable()
@@ -29,7 +29,7 @@ export class TokenGuard extends AuthGuard('token') {
     const jti = user?.jti as string;
 
     if (!userId || !jti) {
-      throw new UnauthorizedException('Invalid token payload');
+      throw new UnauthorizedException('---Invalid token payload');
     }
 
     // 1) 黑名单校验：被撤销/踢下线的会话直接 401
