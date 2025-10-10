@@ -303,8 +303,8 @@ export class UserService {
 
   async uploadAvatar(file: Express.Multer.File, userId: number) {
     const { objectName } = await this.minioClientService.uploadFile(file, 'user/avatar/' + userId + '/' + randomUUID() + '/');
-    const staticFileRootPath = this.configService.get<string>('staticFileRootPath');
-    const url = this.configService.get<string>('minio.url') + '/' + staticFileRootPath + '/' + objectName;
+
+    const url = this.configService.get<string>('minio.url') + '/public/' + objectName;
     await this.pgService.user.update({ where: { id: userId }, data: { avatar: url } });
     return { url, message: '上传头像成功' };
   }

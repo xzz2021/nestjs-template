@@ -22,10 +22,9 @@ export class IpToAddressService {
   public async getAddress(ip?: string): Promise<IPAddress> {
     // console.log('ip============------===========', ip);
     // 运行目录下的assets文件夹
-    const filePath = path.join(process.cwd(), './src/assets/GeoLite2-City.mmdb');
+    const filePath = path.join(process.cwd(), './assets/GeoLite2-City.mmdb');
     const lookup = await maxmind.open<CityResponse>(filePath);
     const ad = lookup.get(ip || '112.47.255.103');
-
     // console.log('ad============------===========', ad);
     const country = ad?.country?.names['zh-CN'] as string;
     const province = ad?.subdivisions?.[0]?.names['zh-CN'] as string;

@@ -1,10 +1,11 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { MinioService } from 'nestjs-minio-client';
-import { FileInfoDto, SearchFilesResDto, UploadChunkDto } from './dto/minio.dto';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import Redis from 'ioredis';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import archiver from 'archiver';
+import Redis from 'ioredis';
+import { MinioService } from 'nestjs-minio-client';
 import { PassThrough } from 'stream';
+import { FileInfoDto, SearchFilesResDto, UploadChunkDto } from './dto/minio.dto';
 
 @Injectable()
 export class MinioClientService {
@@ -12,6 +13,7 @@ export class MinioClientService {
   constructor(
     private readonly minioService: MinioService,
     private readonly redisService: RedisService,
+    private readonly configService: ConfigService,
   ) {
     this.redis = this.redisService.getOrThrow();
   }
@@ -495,4 +497,13 @@ export class MinioClientService {
   //     message: '获取永久URL成功',
   //   };
   // }
+
+  // 获取公开桶文件的固定url
+  getPublicFileUrl(objectName: string) {
+    const url = this.configService.get<string>('minio.url') + '/public/' + objectName;
+    return {
+      url,
+      message: '获取公开桶文件的固定URL成功',
+    };
+  }
 }

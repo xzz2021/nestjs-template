@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Delete, Query, Body, UseInterceptors, UploadedFile, Res, Header, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Header, Post, Query, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MinioClientService } from './minio.service';
 import { Response } from 'express';
+import { MinioClientService } from './minio.service';
 
 // @Public()
 @Controller('minio')
@@ -191,5 +191,11 @@ export class MinioClientController {
       throw new BadRequestException('objectName 参数不能为空'); // objectName 参数不能为空
     }
     return this.minioClientService.getPresignedUrl(objectName, operation, parseInt(expiry));
+  }
+
+  // 获取公开桶文件的固定URL
+  @Get('publicFileUrl')
+  getPublicFileUrl(@Query('objectName') objectName: string) {
+    return this.minioClientService.getPublicFileUrl(objectName);
   }
 }

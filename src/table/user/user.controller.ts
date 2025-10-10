@@ -1,19 +1,19 @@
-import { Body, Controller, Get, Post, Query, Req, BadRequestException, Delete, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { UserService } from './user.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import {
-  QueryUserParams,
-  UpdateUserDto,
-  UpdatePersonalInfo,
-  UserListRes,
-  UpdatePwdDto,
-  AdminUpdatePwdDto,
-  CreateUserDto,
-  BatchDeleteUserDto,
-} from './dto/user.dto';
-import { ConfigService } from '@nestjs/config';
 import { JwtReqDto } from '@/table/auth/dto/auth.dto';
+import { BadRequestException, Body, Controller, Delete, Get, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  AdminUpdatePwdDto,
+  BatchDeleteUserDto,
+  CreateUserDto,
+  QueryUserParams,
+  UpdatePersonalInfo,
+  UpdatePwdDto,
+  UpdateUserDto,
+  UserListRes,
+} from './dto/user.dto';
+import { UserService } from './user.service';
 @ApiTags('用户')
 @Controller('user')
 export class UserController {
