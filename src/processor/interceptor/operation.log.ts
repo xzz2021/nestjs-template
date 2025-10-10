@@ -1,13 +1,13 @@
 // request-log.interceptor.ts
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Inject, Logger } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { Observable } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
-import { throwError } from 'rxjs';
 import { extractIP } from '@/processor/utils';
 import { ScheduleService } from '@/utils/schedule/schedule.service';
+import { CallHandler, ExecutionContext, Inject, Injectable, Logger, NestInterceptor } from '@nestjs/common';
+import { Request } from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-//  请求拦截器  提供日志记录
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+
+const whiteList = ['/log/getUserOperation', '/sse', '/auth/refresh'];
 
 interface JwtUser {
   id: number;
@@ -32,19 +32,16 @@ export class OperationLogInterceptor implements NestInterceptor {
     const request = ctx.getRequest<RequestWithUser>();
     // const response = ctx.getResponse<Response>();
     const { method, url, ip, headers, user } = request;
-    // console.log('xzz2021: OperationLogInterceptor -> request:', request);
-    // console.log('xzz2021: OperationLogInterceptor -> ip:', ip);
-
     //  注意所有public接口 是没有user的
-    // console.log('xzz2021: OperationLogInterceptor -> request:', user);
     const userAgent = headers['user-agent'] ?? '';
     const userId = user?.id ?? null;
 
     return next.handle().pipe(
       //  tap 是rxjs 的 操作符 用于在流中进行操作  类似于finally
       //  tap是成功时的响应
-
       tap((data: any) => {
+        // 忽略一些频繁调用的 监听 无意义接口   whiteList
+        if (whiteList.some(item => url.includes(item))) return;
         this.logger.log({
           timestamp: new Date().toISOString(),
           message: 'api',
@@ -54,7 +51,6 @@ export class OperationLogInterceptor implements NestInterceptor {
           context: 'OperationLogInterceptor',
           info: `${url.split('?')[0]}, ${method} ${Date.now() - start}ms`,
         });
-        if (url.includes('/log/getUserOperation') || url.includes('/sse/') || url.includes('/auth/refresh')) return;
         // 构建日志数据
         const logData = {
           userId,

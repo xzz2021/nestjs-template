@@ -71,7 +71,12 @@ export class MinioClientService {
 
         // console.log('xzz2021: MinioClientService -> getListPublicBucket -> 总对象数:', sortedList.length);
         resolve({
-          list: sortedList,
+          list: sortedList.map((item, index) => {
+            return {
+              ...item,
+              id: index + 1,
+            };
+          }),
           total: sortedList.length,
           message: '获取public文件列表成功',
         });

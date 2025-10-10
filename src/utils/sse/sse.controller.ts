@@ -1,11 +1,11 @@
+import { Public } from '@/processor/decorator';
+import { SseAuthGuard } from '@/processor/guard';
 import { BeforeApplicationShutdown, Controller, Headers, Ip, Param, ParseIntPipe, Req, Res, Sse, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
+import { Request, Response } from 'express';
 import { interval, Observable } from 'rxjs';
 import { MessageEvent, SseService } from './sse.service';
-import { Request, Response } from 'express';
-import { Public } from '@/processor/decorator';
-import { SseAuthGuard } from '@/processor/guard';
 @ApiTags('sse通知')
 @SkipThrottle()
 @Public()
@@ -59,7 +59,7 @@ export class SseController implements BeforeApplicationShutdown {
         this.replyMap.delete(uid);
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this.sseService.removeOnlineUser(uid);
-        console.log(`user-${uid}已关闭`);
+        // console.log(`user-${uid}已关闭`);
       });
     });
   }

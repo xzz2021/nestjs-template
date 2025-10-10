@@ -11,7 +11,7 @@ export class ServerService {
       cpuNum: cup.cores.length,
       used: currentLoadUser.toFixed(2),
       sys: currentLoadSystem.toFixed(2),
-      free: 100 - Number(currentLoadUser) - Number(currentLoadSystem),
+      free: (100 - Number(currentLoadUser) - Number(currentLoadSystem)).toFixed(2),
     };
   }
 
