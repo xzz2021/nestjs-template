@@ -1,5 +1,3 @@
-### 框架架构
-
 #### 运行说明
 
 1. 这是一个基于nestjs11.0生成的后台管理系统模板框架,整合了常用的库和业务功能, 多数据库, 字段校验, 文件上传等, 复杂度较高, 后期会逐渐优化成flag配置式, 减轻使用者的心智负担
@@ -26,6 +24,7 @@
 
 ```text
 nestjs/
+├── assets              # 项目所需静态文件
 ├── public              # 静态资源托管目录
 ├── prisma/             # prisma client 自动生成的客户端或dto入口
 ├── src/                # 编译目录
@@ -73,13 +72,13 @@ nestjs/
 - [√] sse通信
 - [√] ip解析归属地
 - [ x ] 高频限流guard, 滑动窗口
-- [ x ] 模块封装: 任务调度/缓存/健康检查/
+- [ x ] 模块封装: 任务调度/缓存/健康检查
 - [ x ] 整合pm2部署
 - [ x ] prisma client 优化封装
 
 #### 待深入学习,后期功能拓展
 
-1. 多租户/分库分表
+1. 多租户(nestjs-mtenant)/分库分表
 2. 流程引擎
 3. Cookie和Session
 4. GraphQL
@@ -89,6 +88,25 @@ nestjs/
 8. prisma官方文档
 9. 消息通知(邮件/站内/报表)
 10. 内容管理(富文本/文件/excel)
+11. cqrs
+
+待深入学习: pm2 n8n(流程授权、回退/加签/抄送、超时催办) nestjs高级用法 node基础知识 dockerfile k8s 数据结构算法基础
+日志与审计(日志/监控/告警) 物联网通信 微服务 casbin或casl 单元测试
+数据库(范式/反范式 事务与隔离 锁) 队列 加密与脱敏 备份与灾备 富文本(TipTap/Quill)
+nestjs(分层目录（接口层/应用层/领域层/基础设施层）)全文检索（Elasticsearch/Meilisearch）
+邮箱/手机登录 组织架构(岗位/人员档案/在离职流程) 数据权限(菜单/接口) 审计(变更对比 + 数据留痕)
+枚举/字典、动态表单项、系统参数（可灰度） 站内信(送达与阅读回执) 统计报表/大屏
+运维面板(健康检查、任务队列监控、配置下发、开关灰度)
+
+权限模型：先从 RBAC + 数据范围 起步，给 ABAC 留扩展点（属性规则 + Policy）
+业务流程图（C4 + BPMN/泳道图）
+工作流积木：节点类型（审批/条件/抄送/子流程）、表单版本、回退策略。
+脚手架命令：生成模块/实体/CRUD/前端页面（plop、schematics、Hygen）。
+OpenTelemetry
+TanStack Query
+监控：Prometheus + Grafana
+动态表单/字段 自定义表单
+多环境（dev/staging/prod）与回滚预案；每日自动备份 + 恢复演练
 
 #### 三方依赖包
 
@@ -98,15 +116,16 @@ nestjs/
    > Joi验证器: `joi`  
    > 自定义环境变量: `cross-env`  
    > 缓存功能: `@nestjs/cache-manager` `cache-manager`  
-   > redis缓存: `@liaoliaots/nestjs-redis` `ioredis`
+   > redis缓存: `@liaoliaots/nestjs-redis` `ioredis`  
    > 接口文档: `@nestjs/swagger` `basic-auth` `@types/basic-auth`  
-   > 静态资源托管及文件上传: `@nestjs/serve-static` `@types/multer`  
+   > 静态资源: `@nestjs/serve-static` `@types/multer`  
    > 任务和队列: `@nestjs/schedule` `cron` `@nestjs/bullmq` `bullmq`  
    > 安全速率限制: `@nestjs/throttler`  
    > websocket通信: `@nestjs/websockets` `@nestjs/platform-socket.io` `socket.io`  
    > swc快速编译: `@swc/cli` `@swc/core`  
    > ALS异步调用链私有上下文存储: `nestjs-cls`  
    > 系统日志: `winston` `nest-winston` `winston-daily-rotate-file` `winston-transport` `morgan` `@types/morgan`
+   > 健康检查: `@nestjs/terminus`
 
 2. 外部业务依赖
 
@@ -122,11 +141,11 @@ nestjs/
    > CASL权限: `@casl/ability` `@casl/prisma`  
    > 支付加密: `argon2`  
    > 安全防护: `helmet` `csrf-csrf` `cookie-parser`  
-   > 支付宝api: `alipay-sdk`
-   > 验证码生成: `svg-captcha`
-   > minio文件管理: `nestjs-minio-client`
-   > 大文件S3管理: `@aws-sdk/client-s3` `@aws-sdk/s3-request-presigner` `archiver` `@types/archiver`
-   > ip地理库: `maxmind`
+   > 支付宝api: `alipay-sdk`  
+   > 验证码生成: `svg-captcha`  
+   > minio文件管理: `nestjs-minio-client`  
+   > 大文件S3管理: `@aws-sdk/client-s3` `@aws-sdk/s3-request-presigner` `archiver` `@types/archiver`  
+   > ip地理库: `maxmind`  
    > 服务器信息: `systeminformation`
 
 #### 注意事项
@@ -152,6 +171,12 @@ ERP系统:
 > 6.  销售与客户(订单/客户/报价单/物流)
 > 7.  报表(数据分析统计/文档导出)
 > 8.  项目(计划/任务/成本/进度)
+
+OA系统:
+
+> 1.  流程：请假/报销/采购请示/用印/合同审批；自定义表单 + 审批流。
+> 2.  日程与会议、公告通知、文档/知识库、资产领用、访客/门禁集成。
+> 3.  绩效与考勤：班次、排班、打卡策略、加班调休。
 
 找到你喜欢并擅长的那件事
 

@@ -288,7 +288,7 @@ export class UserService {
     const total = await this.pgService.user.count({
       where,
     });
-    return { list, total, message: '获取日志列表成功' };
+    return { list, total, message: '获取用户列表成功' };
   }
 
   async listOnlineUser() {

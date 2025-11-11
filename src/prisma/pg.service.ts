@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '../../prisma/client/postgresql';
 
 /*
@@ -89,16 +89,16 @@ export class PgService extends PrismaClient implements OnModuleInit, OnModuleDes
     // }
   }
 
-  async healthCheck() {
-    try {
-      await this.$queryRaw`SELECT 1`;
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      await this.healthCheck();
-    } catch (_error) {
-      console.error('数据库健康状态异常, 请进行检查!');
-      await this.reconnect();
-    }
-  }
+  // async healthCheck() {
+  //   try {
+  //     await this.$queryRaw`SELECT 1`;
+  //     await new Promise(resolve => setTimeout(resolve, 5000));
+  //     await this.healthCheck();
+  //   } catch (_error) {
+  //     console.error('数据库健康状态异常, 请进行检查!');
+  //     await this.reconnect();
+  //   }
+  // }
 
   async onModuleDestroy() {
     await this.$disconnect();

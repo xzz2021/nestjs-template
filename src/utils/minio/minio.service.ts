@@ -26,6 +26,7 @@ export class MinioClientService {
 
   // 获取public桶的列表 - 文件夹排列在前面
   async getListPublicBucket(prefix: string = '') {
+    // console.log('xzz2021: MinioClientService -> getListPublicBucket -> prefix:', prefix);
     return new Promise((resolve, reject) => {
       const objectsList: any[] = [];
 

@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common';
-import { MinioClientService } from './minio.service';
-import { MinioClientController } from './minio.controller';
-import { MinioModule } from 'nestjs-minio-client';
-import { MinioS3Service } from './minio.s3.service';
 import { S3Client } from '@aws-sdk/client-s3';
-import { MinioS3Controller } from './minio.s3.controller';
+import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { MinioModule } from 'nestjs-minio-client';
+import { MinioClientController } from './minio.controller';
+import { MinioS3Controller } from './minio.s3.controller';
+import { MinioS3Service } from './minio.s3.service';
+import { MinioClientService } from './minio.service';
 @Module({
   imports: [
     MinioModule.registerAsync({
@@ -47,6 +47,6 @@ import { ConfigService } from '@nestjs/config';
       inject: [ConfigService],
     },
   ],
-  exports: [S3Client, MinioClientService],
+  exports: [MinioClientService],
 })
 export class MinioClientModule {}

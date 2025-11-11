@@ -54,6 +54,8 @@ export const checkPrismaError = (exception: any) => {
         return { msg: '外键约束失败', meta: exception.message || exception.toString() };
       case 'P2014':
         return { msg: '关系约束失败', meta: exception.message || exception.toString() };
+      case 'EPROTO':
+        return { msg: 'minio连接失败', meta: exception.message || exception.toString() };
       default:
         return { msg: `数据库操作失败: ${exception.code}`, meta: exception.message || exception.toString() };
     }

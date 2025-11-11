@@ -17,6 +17,7 @@ interface WxPayType {
   apiV3Secret: string;
   nativePayUrl: string;
   privateKeyPath: string;
+  refundNotifyUrl: string;
 }
 export interface AppConfig {
   port: number;
@@ -73,7 +74,7 @@ export interface AppConfig {
   aliPay?: {
     appId: string;
     privateKey: string;
-    publicKey: string;
+    alipayPublicKey: string;
     gatewayUrl: string;
   };
   // 微信支付

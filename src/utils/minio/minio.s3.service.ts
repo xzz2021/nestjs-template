@@ -1,11 +1,11 @@
 // upload.service.ts
 import {
+  AbortMultipartUploadCommand,
   CompleteMultipartUploadCommand,
   CreateMultipartUploadCommand,
   HeadObjectCommand,
   ListPartsCommand,
   S3Client,
-  AbortMultipartUploadCommand,
   UploadPartCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -15,7 +15,7 @@ import Redis from 'ioredis';
 
 @Injectable()
 export class MinioS3Service {
-  private readonly redis: Redis;
+  redis: Redis;
   constructor(
     private readonly s3: S3Client,
     private readonly redisService: RedisService,
