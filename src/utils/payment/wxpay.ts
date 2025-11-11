@@ -1,8 +1,10 @@
-import * as fs from 'fs';
-import * as crypto from 'crypto';
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
+import * as fs from 'fs';
+import * as crypto from 'node:crypto';
+import { join } from 'path';
 interface WxPayData {
   appid: string;
   mchid: string;
@@ -54,6 +56,37 @@ interface WxPayKey {
   apiV3Secret: string;
   nativePayUrl: string;
   privateKeyPath: string;
+  refundNotifyUrl: string;
+}
+
+export interface WxRefundNotifyData {
+  mchid: string;
+  appid: string;
+  out_trade_no: string;
+  transaction_id: string;
+  refund_id: string;
+  out_refund_no: string;
+  refund_status: string;
+  success_time: string;
+  user_received_account: string;
+  amount: {
+    total: number;
+    refund: number;
+    payer_total: number;
+    payer_refund: number;
+  };
+}
+
+interface WxRefundData {
+  transaction_id?: string; //  微信支付侧订单的唯一标识
+  out_trade_no?: string; //  商户下单时传入的商户系统内部订单号  只能二选一
+  reason?: string;
+  out_refund_no: string; // 系统内部唯一，只能是数字、大小写字母_-|*@
+  amount: {
+    refund: number; // 退款金额，币种的最小单位，只能为整数
+    total: number; // 原支付交易的订单总金额，币种的最小单位，只能为整数
+    currency: string; // 固定传：CNY，代表人民币。
+  };
 }
 @Injectable()
 export class WxPay {
@@ -76,25 +109,34 @@ export class WxPay {
     // const sign = crypto.createSign('SHA256');
     sign.update(data);
     sign.end();
-    const privateKey = fs.readFileSync(this.wxKey.privateKeyPath, 'utf8');
+    const keyPath = join(process.cwd(), this.wxKey.privateKeyPath);
+    const privateKey = fs.readFileSync(keyPath, 'utf8');
     // 3. 生成签名（Base64编码）
     const signature = sign.sign(privateKey, 'base64');
     return signature;
   }
 
-  generateAuthorization(type: string = 'native', body: Partial<WxPayData> = {}) {
+  generateAuthorization(type: string = 'native', body: Partial<WxPayData> | Partial<WxRefundData> = {}) {
     const newBody = {
       ...body,
       appid: this.wxKey.appid,
       mchid: this.wxKey.mchid,
       notify_url: this.wxKey.notifyUrl,
     };
+    if (type === 'refund') {
+      newBody.notify_url = this.wxKey.refundNotifyUrl;
+      delete (newBody as any).appid;
+      delete (newBody as any).mchid;
+    }
     const nonce_str = crypto.randomBytes(16).toString('hex').toUpperCase();
     const timestamp = Math.floor(Date.now() / 1000).toString();
     let message = '';
     switch (type) {
       case 'native':
         message = `POST\n/v3/pay/transactions/native\n${timestamp}\n${nonce_str}\n${JSON.stringify(newBody)}\n`;
+        break;
+      case 'refund':
+        message = `POST\n/v3/refund/domestic/refunds\n${timestamp}\n${nonce_str}\n${JSON.stringify(newBody)}\n`;
         break;
       case 'certificates':
         message = `GET\n/v3/certificates\n${timestamp}\n${nonce_str}\n\n`;
@@ -213,6 +255,23 @@ export class WxPay {
     } catch (error) {
       console.log('🚀 ~ WxPay ~ getWxQrcode ~ error:', error);
       throw new BadRequestException('获取微信支付二维码失败, 原因: ' + error?.response?.data); // 获取微信支付二维码失败, 原因: ${error?.response?.data}
+    }
+  }
+
+  async wechatRefund(objdata: any) {
+    const { Authorization, body } = this.generateAuthorization('refund', objdata as WxRefundData);
+    try {
+      const response = await axios.post(this.wxKey.refundNotifyUrl, body, {
+        headers: {
+          Authorization,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.log('🚀 ~ WxPay ~ wechatRefund ~ error:', error);
+      throw new Error('发起微信退款失败, 原因: ' + error?.response?.data);
     }
   }
 }

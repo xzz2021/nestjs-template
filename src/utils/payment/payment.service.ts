@@ -1,8 +1,8 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { GetWxQrcodeDto, GetAlipayQrcodeDto, WxPayBody, AlipayNotifyDto } from './dto/payment.dto';
 import { PrismaService as pgService } from '@/prisma/prisma.service';
-import { WxPay } from './wxpay';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Alipay } from './alipay';
+import { AlipayNotifyDto, GetAlipayQrcodeDto, GetWxQrcodeDto, WxPayBody } from './dto/payment.dto';
+import { WxPay } from './wxpay';
 
 @Injectable()
 export class PaymentService {
@@ -198,5 +198,18 @@ export class PaymentService {
       return { status: true, message: '订单已支付' };
     }
     return { status: false, message: '订单正在核实中...' };
+  }
+
+  async alipayRefund(refundData: any) {
+    const randomNumber6 = Math.floor(100000 + Math.random() * 900000); //  退款单号 应该由上级下发
+    // 支付宝退款可以直接获取到响应
+    const result = await this.alipay.exec('alipay.trade.refund', {
+      bizContent: {
+        out_trade_no: refundData.order_number, // 原始订单单号
+        refund_amount: refundData.adjustedNet,
+        refund_reason: '正常退款',
+        out_request_no: refundData.order_number + '00REFUND' + randomNumber6,
+      },
+    });
   }
 }
