@@ -10,6 +10,7 @@ import { AllExceptionsFilter } from '@/processor/filter/all-exceptions.filter';
 import { OperationLogInterceptor, TransformInterceptor } from '@/processor/interceptor';
 import { REDIS_MODULE } from '@/utils/cache/cache-ioredis';
 import { CaptchaModule } from '@/utils/captcha/captcha.module';
+import { HealthModule } from '@/utils/health/health.module';
 import { WinstonLoggerModule } from '@/utils/logger/winston.module';
 import { MinioClientModule } from '@/utils/minio/minio.module';
 import { ScheduleTaskModule } from '@/utils/schedule/schedule.module';
@@ -87,6 +88,7 @@ export const CORE_MODULE = [
   WinstonLoggerModule,
   CaptchaModule,
   MinioClientModule,
+  HealthModule,
 ];
 
 export const GLOBAL_GUARD = [
