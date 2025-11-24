@@ -21,4 +21,4 @@ async function encryptData(data: string): Promise<string> {
 
 // 解密数据
 
-export { hashPayPassword, verifyPayPassword };
+export { encryptData, hashPayPassword, verifyPayPassword };

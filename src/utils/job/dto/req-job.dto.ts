@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 /* 新增任务列表 */
 export class AddJobDto {

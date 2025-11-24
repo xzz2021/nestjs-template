@@ -1,8 +1,8 @@
-import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 // import { PrismaService as pgService } from 'src/prisma/prisma.service';
-import { Reflector } from '@nestjs/core';
 import { PERMISSION_KEY } from '@/processor/decorator/permission';
 import { RedisService } from '@liaoliaots/nestjs-redis';
+import { Reflector } from '@nestjs/core';
 import Redis from 'ioredis';
 
 /*

@@ -51,7 +51,7 @@ export const extractIP = (ipString: string) => {
 //  对比数据变化
 
 export const calculateDiff = (before: any, after: any) => {
-  const changes = {};
+  const changes: any = {};
   for (const key in after) {
     if (before?.[key] !== after?.[key]) {
       changes[key] = { from: before?.[key], to: after?.[key] };

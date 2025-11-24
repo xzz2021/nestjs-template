@@ -1,7 +1,7 @@
-import { ValidationPipe, BadRequestException, ValidationError, UnprocessableEntityException } from '@nestjs/common';
+import { UnprocessableEntityException, ValidationError, ValidationPipe } from '@nestjs/common';
 
 // 错误消息映射表
-const ERROR_MAP = new Map([
+export const ERROR_MAP = new Map([
   // 基础类型验证
   ['must be a string', '必须是字符串'],
   ['must be a number', '必须是数字'],

@@ -26,7 +26,7 @@ async function create_menus_batch(menu_data: any[], tx: any, parentId?: number) 
 
     // 创建子菜单
     if (children && children.length > 0) {
-      const child_promises = children.map(async child => {
+      const child_promises = children.map(async (child: any) => {
         const { meta: child_meta, permissionList, children, ...child_fields } = child;
 
         const created_child_menu = await tx.menu.create({

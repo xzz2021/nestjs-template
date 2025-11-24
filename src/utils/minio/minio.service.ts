@@ -9,7 +9,7 @@ import { FileInfoDto, SearchFilesResDto, UploadChunkDto } from './dto/minio.dto'
 
 @Injectable()
 export class MinioClientService {
-  private readonly redis: Redis;
+  readonly redis: Redis;
   constructor(
     private readonly minioService: MinioService,
     private readonly redisService: RedisService,

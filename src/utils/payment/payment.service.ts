@@ -1,4 +1,3 @@
-import { PrismaService as pgService } from '@/prisma/prisma.service';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Alipay } from './alipay';
 import { AlipayNotifyDto, GetAlipayQrcodeDto, GetWxQrcodeDto, WxPayBody } from './dto/payment.dto';
@@ -7,7 +6,6 @@ import { WxPay } from './wxpay';
 @Injectable()
 export class PaymentService {
   constructor(
-    private readonly pgService: pgService,
     private readonly wxPay: WxPay,
     private readonly alipay: Alipay,
   ) {}
@@ -49,6 +47,8 @@ export class PaymentService {
     // 解析数据
     const { nonce, ciphertext, associated_data } = bodyData.resource;
     const decryptData = await this.wxPay.decryptAESGCM(ciphertext, nonce, associated_data);
+    console.log('💣 decryptData', decryptData);
+
     // 新建一张表  存储 微信回调信息  尤其是订单异常信息
 
     // throw new ServiceUnavailableException('数据解析成功, 但我在测试接口');
@@ -211,5 +211,6 @@ export class PaymentService {
         out_request_no: refundData.order_number + '00REFUND' + randomNumber6,
       },
     });
+    return result;
   }
 }

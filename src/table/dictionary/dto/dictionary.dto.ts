@@ -1,8 +1,8 @@
+import { IsDateWithTransform } from '@/processor/pipe/validater';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude, plainToClass, Transform, Type } from 'class-transformer';
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsBoolean, IsArray, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { DictionaryEntryDto } from './entry.dto';
-import { IsDateWithTransform } from '@/processor/pipe/validater';
 
 export class DictionaryDto {
   @ApiProperty({ type: String, description: '字典名称', example: '字典名称' })

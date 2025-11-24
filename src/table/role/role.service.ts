@@ -1,5 +1,5 @@
-import { ConflictException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateRoleDto, QueryRoleParams, RoleSeedDto, UpdateRoleDto } from './dto/role.dto';
 
 @Injectable()
@@ -86,8 +86,8 @@ export class RoleService {
 
   async getRoleList(searchParam: QueryRoleParams) {
     const { pageIndex, pageSize, status, ...rest } = searchParam;
-    const skip = (pageIndex - 1) * pageSize;
-    const take = pageSize;
+    // const skip = (pageIndex - 1) * pageSize;
+    // const take = pageSize;
     // const newParams =
     // 遍历rest 构造 contains 对象
     const where = Object.entries(rest).reduce(
@@ -186,7 +186,7 @@ export class RoleService {
       return { list, message: '获取管理员菜单成功' };
     }
     //  其他用户 先查询角色信息
-    const user = await this.pgService.user.findUnique({
+    await this.pgService.user.findUnique({
       where: { id: userid },
       select: {
         roles: { select: { id: true } },
@@ -340,7 +340,7 @@ export class RoleService {
   async generateRoleSeed(data: RoleSeedDto[]) {
     // 创建或更新  如果当前项已存在相同的name 和code  则只更新当前项
 
-    const res = await this.pgService.$transaction(async tx => {
+    await this.pgService.$transaction(async tx => {
       for (const role of data) {
         await tx.role.upsert({
           where: { code: role.code },

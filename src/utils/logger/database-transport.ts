@@ -1,13 +1,10 @@
-import { PrismaService as pgService } from '@/prisma/prisma.service';
+// import { PrismaService as pgService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 // 自定义数据库传输器
 @Injectable()
 class DatabaseTransport {
-  constructor(
-    private readonly pgService: pgService,
-    private readonly level: string,
-  ) {}
+  constructor() {} // private readonly level: string, // private readonly pgService: pgService,
   log(_info: any, _callback?: (error?: Error) => void): void {
     // setImmediate(() => this.emit('logged', info));
     // 使用 Prisma 客户端将日志写入数据库

@@ -27,8 +27,8 @@ export function list2Tree<T extends ListNode[]>(items: T, parentId: number | nul
  * @param key 用于过滤的字段
  * @param value 用于过滤的值
  */
-export function filterTree2List(treeData, key, value) {
-  const filterChildrenTree = (resTree, treeItem) => {
+export function filterTree2List(treeData: any, key: string, value: any) {
+  const filterChildrenTree = (resTree: any, treeItem: any) => {
     if (treeItem[key].includes(value)) {
       resTree.push(treeItem);
       return resTree;
@@ -66,7 +66,7 @@ export function filterTree<T extends TreeNode>(treeData: TreeNode<T>[], predicat
 }
 
 export function deleteEmptyChildren(arr: any) {
-  arr?.forEach(node => {
+  arr?.forEach((node: any) => {
     if (node.children?.length === 0) delete node.children;
     else deleteEmptyChildren(node.children);
   });

@@ -19,7 +19,7 @@ export class JobService {
   /* 项目每次启动时初始化定时任务 */
   async initJob() {
     /* 查询所有延时任务， 先查询延时作业，在删除重复任务，否则查不到 */
-    const delayedList = await this.jobQueue.getDelayed();
+    // const delayedList = await this.jobQueue.getDelayed();
     /* 查询所有重复作业 */
     const jobSchedulers = await this.jobQueue.getJobSchedulers();
     /* 删除所有重复作业 */
@@ -30,7 +30,7 @@ export class JobService {
     //     status: '0',
     //   },
     // });
-    const sysJobList = [{ jobId: 1, misfirePolicy: '3' }];
+    // const sysJobList = [{ jobId: 1, misfirePolicy: '3' }];
     /* 根据执行策略来决定宕机过程时未按时执行的任务该如何执行 */
     // await Promise.all(
     //   delayedList.map(async (job: Job) => {

@@ -1,6 +1,6 @@
 import { JwtReqDto } from '@/table/auth/dto/auth.dto';
 import { BadRequestException, Body, Controller, Delete, Get, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+// import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
@@ -19,7 +19,7 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    private readonly configService: ConfigService,
+    // private readonly configService: ConfigService,
   ) {}
 
   @Get('listByDepartmentId')

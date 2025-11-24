@@ -80,46 +80,46 @@ export class MenuService {
   }
 
   async findMenuList() {
-    const findModule = {
-      where: {
-        parentId: null,
-      },
-      orderBy: { sort: 'asc' },
-      include: {
-        children: {
-          orderBy: { sort: 'asc' },
-          include: {
-            children: {
-              orderBy: { sort: 'asc' },
-              include: {
-                children: {
-                  orderBy: { sort: 'asc' },
-                  include: {
-                    children: {
-                      orderBy: { sort: 'asc' },
-                      include: {
-                        permissionList: true,
-                        meta: true,
-                      },
-                    },
-                    permissionList: true,
-                    meta: true,
-                  },
-                },
-                meta: true,
-                permissionList: true,
-              },
-            },
-            meta: true,
-            permissionList: true,
-          },
-          meta: true,
-          permissionList: true,
-        },
-        meta: true,
-        permissionList: true,
-      },
-    };
+    // const findModule = {
+    //   where: {
+    //     parentId: null,
+    //   },
+    //   orderBy: { sort: 'asc' },
+    //   include: {
+    //     children: {
+    //       orderBy: { sort: 'asc' },
+    //       include: {
+    //         children: {
+    //           orderBy: { sort: 'asc' },
+    //           include: {
+    //             children: {
+    //               orderBy: { sort: 'asc' },
+    //               include: {
+    //                 children: {
+    //                   orderBy: { sort: 'asc' },
+    //                   include: {
+    //                     permissionList: true,
+    //                     meta: true,
+    //                   },
+    //                 },
+    //                 permissionList: true,
+    //                 meta: true,
+    //               },
+    //             },
+    //             meta: true,
+    //             permissionList: true,
+    //           },
+    //         },
+    //         meta: true,
+    //         permissionList: true,
+    //       },
+    //       meta: true,
+    //       permissionList: true,
+    //     },
+    //     meta: true,
+    //     permissionList: true,
+    //   },
+    // };
     try {
       const res = await this.pgService.menu.findMany({
         where: {

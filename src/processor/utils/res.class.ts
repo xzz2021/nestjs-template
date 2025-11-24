@@ -7,7 +7,7 @@ export class ResResult {
   readonly timestamp: string;
   [key: string]: any;
 
-  constructor(code, message, data) {
+  constructor(code: number, message: string, data: any) {
     this.code = code;
     this.message = message;
     this.timestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-');

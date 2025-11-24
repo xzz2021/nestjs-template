@@ -25,14 +25,14 @@ export class AuthController {
   @ApiOperation({ summary: '用户登录' })
   @UseGuards(CaptchaGuard)
   login(@Body() loginInfo: LoginInfoDto, @Req() req: Request) {
-    return this.authService.login(loginInfo, extractIP((req['ip'] as string) ?? ''));
+    return this.authService.login(loginInfo, extractIP((req as any)['ip'] as string) ?? '');
   }
 
   @Post('rt/login')
   @ApiOperation({ summary: '用户登录(refreshToken版本)' })
   @UseGuards(CaptchaGuard)
   rtLogin(@Body() loginInfo: LoginInfoDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    return this.authService.rtLogin(loginInfo, extractIP((req['ip'] as string) ?? ''), res);
+    return this.authService.rtLogin(loginInfo, extractIP((req as any)['ip'] as string) ?? '', res);
   }
 
   @Post('getSmsCode')

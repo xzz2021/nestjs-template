@@ -32,7 +32,7 @@ async findOne(@User('firstName') firstName: string) {
 
 export const CurrentUser = createParamDecorator((_data: string, ctx: ExecutionContext) => {
   const request = ctx.switchToHttp().getRequest<Request>();
-  const user = request['user']; // request['user'] is set in the AuthGuard
+  const user = (request as any)['user']; // request['user'] is set in the AuthGuard
   return user;
 });
 

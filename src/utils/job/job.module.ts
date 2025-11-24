@@ -74,7 +74,7 @@ async function initJobWithRetry(jobService: JobService, logger: Logger, maxRetri
         // 这样BullMQ才能根据数据库状态正确处理未执行的任务
         // 使用重试机制提高启动成功率
         await initJobWithRetry(jobService, logger);
-        return new JobConsumer(jobService, moduleRef, logger);
+        return new JobConsumer(jobService, moduleRef);
       },
       inject: [JobService, ModuleRef, WINSTON_MODULE_PROVIDER],
     },

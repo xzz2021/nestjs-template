@@ -10,7 +10,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([(req: Request) => req?.cookies?.rt || null]), // 从请求体中取refreshToken
       // 密匙如果对不上 会直接报错 user返回false
-      secretOrKey: configService.get<string>('token.refreshSecret'),
+      secretOrKey: configService.get<string>('token.refreshSecret') as string,
       // passReqToCallback: true,
     });
   }

@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BatchPermissionDto, CreatePermissionDto, UpdatePermissionDto } from './dto/permission.dto';
 import { PermissionService } from './permission.service';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { CreatePermissionDto, UpdatePermissionDto, BatchPermissionDto } from './dto/permission.dto';
 
 @ApiTags('权限')
 @Controller('permission')

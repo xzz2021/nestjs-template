@@ -1,9 +1,9 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { Job } from 'bullmq';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { Logger } from 'winston';
+// import { Inject } from '@nestjs/common';
+// import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+// import { Logger } from 'winston';
 import { AddJobDto, AddJobLogDto } from './dto/req-job.dto';
 import { JobService } from './job.service';
 const JOB_BULL_KEY = 'admin_bull_job';
@@ -13,7 +13,7 @@ export class JobConsumer extends WorkerHost {
   constructor(
     private jobService: JobService,
     private readonly moduleRef: ModuleRef,
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    // @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
     super();
   }
@@ -21,7 +21,7 @@ export class JobConsumer extends WorkerHost {
   async process(job: Job) {
     const { serviceName, funName, argumens } = await this.jobService.analysisinvokeTarget(job.data as AddJobDto);
 
-    const service = this.moduleRef.get(this.jobService.ico[serviceName], { strict: false });
+    const service: any = this.moduleRef.get(this.jobService.ico[serviceName], { strict: false });
     if (job.data.concurrent == '0') {
       try {
         // 允许并发。  如果允许并发将无法捕获任务错误，任务全部为成功。

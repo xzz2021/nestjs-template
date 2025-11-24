@@ -11,7 +11,7 @@ export class SseStrategy extends PassportStrategy(Strategy, 'sse') {
       // jwtFromRequest: ExtractJwt.fromUrlQueryParameter('token'),
       jwtFromRequest: ExtractJwt.fromExtractors([(req: Request) => req?.cookies?.rt || null]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('token.refreshSecret'),
+      secretOrKey: configService.get<string>('token.refreshSecret') as string,
     });
   }
 

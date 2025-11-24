@@ -15,12 +15,12 @@ export class PrismaService {
 
     let modelMatch;
     while ((modelMatch = modelRegex.exec(schemaContent)) !== null) {
-      const [, modelName, modelBody] = modelMatch as [string, string, string];
+      const [, modelName, modelBody] = modelMatch as unknown as [string, string, string];
       const fields: string[] = [];
 
       let fieldMatch;
       while ((fieldMatch = fieldRegex.exec(modelBody)) !== null) {
-        const fieldName = fieldMatch[1] as string;
+        const fieldName = fieldMatch[1];
         fields.push(fieldName);
       }
 

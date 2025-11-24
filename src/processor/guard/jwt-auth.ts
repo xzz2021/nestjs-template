@@ -1,5 +1,5 @@
 import { IS_PUBLIC_KEY } from '@/processor/decorator';
-import { TokenService } from '@/table/auth/token.service';
+// import { TokenService } from '@/table/auth/token.service';
 import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
@@ -13,7 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(
     private reflector: Reflector,
-    private readonly tokenService: TokenService,
+    // private readonly tokenService: TokenService,
   ) {
     super();
   }

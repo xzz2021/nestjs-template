@@ -1,6 +1,6 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
 import { SkipThrottle } from '@/processor/decorator';
+import { MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
 
 @SkipThrottle()
 @WebSocketGateway()
@@ -21,9 +21,9 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
     console.log('✨ 🍰 ✨ xzz2021: WsGateway -> handleDisconnect -> client');
   }
 
-  private getClientQuery(client: Socket): { userId?: number } {
-    return client?.handshake?.query || {};
-  }
+  // private getClientQuery(client: Socket): { userId?: number } {
+  //   return client?.handshake?.query || {};
+  // }
 
   sendMessageToAll(event: string, message: any) {
     this.server.emit(event, message);

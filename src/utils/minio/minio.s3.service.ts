@@ -5,6 +5,7 @@ import {
   CreateMultipartUploadCommand,
   HeadObjectCommand,
   ListPartsCommand,
+  ListPartsCommandOutput,
   S3Client,
   UploadPartCommand,
 } from '@aws-sdk/client-s3';
@@ -51,7 +52,7 @@ export class MinioS3Service {
     let partNumberMarker: string | undefined = undefined;
 
     while (true) {
-      const out = await this.s3.send(
+      const out: ListPartsCommandOutput = await this.s3.send(
         new ListPartsCommand({
           Bucket: bucket,
           Key: key,

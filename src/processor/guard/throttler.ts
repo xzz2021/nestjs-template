@@ -1,12 +1,12 @@
 //  全局动态限流
 
-import { CanActivate, ExecutionContext, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
-import { Reflector } from '@nestjs/core';
 import { SKIP_THROTTLE_KEY } from '@/processor/decorator';
+import { RedisService } from '@liaoliaots/nestjs-redis';
+import { Reflector } from '@nestjs/core';
 import * as crypto from 'crypto';
 import { Request, Response } from 'express';
-import { RedisService } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 
 @Injectable()

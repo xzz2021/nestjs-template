@@ -31,7 +31,7 @@ export class SseService {
     /** 在线用户数量变动时，通知前端实时更新在线用户数量或列表, 3 秒内最多推送一次，避免频繁触发 */
     // 订阅时加节流，3 秒内最多执行一次
     this.updateOnlineUserCount$.pipe(throttleTime(3000, undefined, { leading: true, trailing: true })).subscribe(() => {
-      (this.redis as any).keys(ONLINE_USER_PREFIX + '*').then(keys => {
+      (this.redis as any).keys(ONLINE_USER_PREFIX + '*').then((keys: string[]) => {
         this.sendToAllUser({
           type: 'updateOnlineUserCount',
           data: keys.length,

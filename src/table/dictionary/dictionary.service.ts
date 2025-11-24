@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
 import { PgService } from '@/prisma/pg.service';
-import { DictionarySeedArrayDto, DictionarySeedDto, UpsertDictionaryDto } from './dto/dictionary.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { DictionarySeedArrayDto, UpsertDictionaryDto } from './dto/dictionary.dto';
 import { UpsertEntryDto } from './dto/entry.dto';
 @Injectable()
 export class DictionaryService {

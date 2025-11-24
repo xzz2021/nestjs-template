@@ -38,7 +38,7 @@ export class AuthService {
   }
 
   async create(createUserDto: RegisterDto, checkCode: boolean = true): Promise<{ message: string; res?: { id: number } }> {
-    const { phone, code, password, username } = createUserDto;
+    const { phone, password, username } = createUserDto;
     const user = await this.isUserExist(phone);
     if (user) {
       throw new ConflictException(phone + '手机号已存在');
