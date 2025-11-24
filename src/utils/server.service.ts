@@ -82,7 +82,13 @@ export class ServerService {
   }
 
   async getServerInfo() {
-    const [cpu, mem, sys, node, sysFiles] = await Promise.all([this.getCpu(), this.getMem(), this.getSys(), this.getNode(), this.getSysFiles()]);
+    const [cpu, mem, sys, node, sysFiles] = await Promise.all([
+      this.getCpu(),
+      this.getMem(),
+      this.getSys(),
+      Promise.resolve(this.getNode()),
+      this.getSysFiles(),
+    ]);
 
     return { cpu, mem, sys, node, sysFiles, message: '获取服务器信息成功' };
   }

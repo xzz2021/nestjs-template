@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
-import { MenuService } from './menu.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateMenuDto, MenuListDto, MenuSeedArrayDto, MenuSortArrayDto, UpdateMenuDto } from './dto/menu.dto';
+import { MenuService } from './menu.service';
 
 @ApiTags('菜单')
 @Controller('menu')

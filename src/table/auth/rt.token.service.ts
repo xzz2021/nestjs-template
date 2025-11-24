@@ -120,8 +120,8 @@ export class RtTokenService {
     const exp = nowSec + expiresTime;
 
     const [accessToken, refreshToken] = await Promise.all([
-      await this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: expiresTime, secret: secret }),
-      await this.jwt.signAsync({ id: userId }, { expiresIn: refreshExpiresTime, jwtid: jti, secret: refreshSecret }),
+      this.jwt.signAsync({ sub: userId, ...extraPayload }, { expiresIn: expiresTime, secret: secret }),
+      this.jwt.signAsync({ id: userId }, { expiresIn: refreshExpiresTime, jwtid: jti, secret: refreshSecret }),
     ]);
 
     // const expiresTime = nowSec + this.cfg.ttlSec;
