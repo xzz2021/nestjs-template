@@ -1,7 +1,7 @@
+import { Prisma } from '@/prisma/generated/prisma/client';
+import { PgService } from '@/prisma/pg.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateDepartmentDto, DepartmentSeedDto, UpdateDepartmentDto } from './dto/department.dto';
-import { PgService } from '@/prisma/pg.service';
-import { Prisma } from '../../../prisma/client/postgresql';
 
 @Injectable()
 export class DepartmentService {

@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '../../prisma/client/postgresql';
-
+import { PrismaClient } from './generated/prisma/client';
+import { adapter } from './lib/prisma';
 /*
 pnpm add pgdb@link:@/prisma/client/postgresql   //  创建软链接
 import { PrismaClient } from 'pgdb';   // pgdb依赖别名
@@ -21,31 +21,7 @@ const prisma = new PrismaClient({
 @Injectable()
 export class PgService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    super({
-      // 连接池配置
-      //   connection: {
-      //     pool: {
-      //       min: 2, // 最小连接数
-      //       max: 10, // 最大连接数
-      //       idleTimeoutMillis: 30000, // 空闲超时时间（毫秒）
-      //       acquireTimeoutMillis: 60000, // 获取连接超时时间（毫秒）
-      //     },
-      //   },
-      // 日志配置
-      //   log: ['error', 'warn', 'query'],
-      // omit: { user: { password: true } },  //  慎重使用全局排除
-    });
-    // this.$extends({
-    //   model: {
-    //     user: {
-    //       async findSecond() {
-    //         return await this.user.findUnique({
-    //           where: { id: 2 },
-    //         });
-    //       },
-    //     },
-    //   },
-    // });
+    super({ adapter });
   }
 
   async retryConnect() {

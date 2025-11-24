@@ -7,6 +7,7 @@
  * 5. 使用枚举类型替代魔法数字
  */
 
+/*
 generator client {
   provider               = "prisma-client-js"
   output                 = "../../prisma/client/postgresql"
@@ -22,13 +23,21 @@ datasource db {
   url      = env("PG_DATABASE_URL")
 }
 
-
-
 generator prismaClassGenerator {
   provider      = "prisma-class-generator"
   useValidation = true // 是否添加 class-validator 装饰器
   dryRun        = false // ❗❗ 加上这个才能真正生成文件
   output        = "../../prisma/dto"
+}
+
+*/
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
 }
 
 // generator caslAdapter {
@@ -46,43 +55,32 @@ generator prismaClassGenerator {
  * ALTER TABLE "YourTable"
  * ADD CONSTRAINT paid_amount_non_negative CHECK ("paid_amount" >= 0);
  */
- 
+
 model User {
-  id         Int         @id @default(autoincrement())
-  username   String      @db.VarChar(50)
-  password   String      @db.VarChar(255)
-  avatar     String?     @db.VarChar(255)
-  email      String?     @unique @db.VarChar(50)
-  phone      String      @unique @db.Char(11)
-  birthday   String?
-  gender     String?     @default("OTHER")
-  status     Boolean     @default(true)
-
-
-  failedLoginCount Int     @default(0) @map("failed_login_count")
-  lockLevel        Int     @default(0) @map("lock_level")
-  lockedUntil      DateTime? @map("locked_until") 
-  lastLoginAt      DateTime? @map("last_login_at")
-  lastLoginIp      String? @map("last_login_ip")
-
-
-  isDeleted Boolean  @default(false) @map("is_deleted")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  wechatId   String?     @unique @map("wechat_id")
-  wechatInfo WechatInfo? @relation(fields: [wechatId], references: [unionid])
-
-  // 显式多对多关系
-  roles UserRole[]
-  
-  departments UserDepartment[]
-
-  // 通知相关
+  id               Int                @id @default(autoincrement())
+  username         String             @db.VarChar(50)
+  password         String             @db.VarChar(255)
+  avatar           String?            @db.VarChar(255)
+  email            String?            @unique @db.VarChar(50)
+  phone            String             @unique @db.Char(11)
+  birthday         String?
+  gender           String?            @default("OTHER")
+  status           Boolean            @default(true)
+  wechatId         String?            @unique @map("wechat_id")
+  isDeleted        Boolean            @default(false) @map("is_deleted")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  failedLoginCount Int                @default(0) @map("failed_login_count")
+  lastLoginAt      DateTime?          @map("last_login_at")
+  lastLoginIp      String?            @map("last_login_ip")
+  lockLevel        Int                @default(0) @map("lock_level")
+  lockedUntil      DateTime?          @map("locked_until")
   createdNotices   Notice[]
   noticeRecipients NoticeRecipient[]
-
-  operationLogs UserOperationLog[]
+  wechatInfo       WechatInfo?        @relation(fields: [wechatId], references: [unionid])
+  departments      UserDepartment[]
+  operationLogs    UserOperationLog[]
+  roles            UserRole[]    // 显式多对多关系
 
   @@index([phone])
   @@index([email])
@@ -107,38 +105,32 @@ model WechatInfo {
 }
 
 model Role {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique @db.VarChar(50)
-  code   String  @unique @db.VarChar(50)
-  status Boolean @default(true)
-  remark String? @db.VarChar(100)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  users UserRole[]
-
-  // 显式多对多关系
-  permissions RolePermission[]
+  id          Int              @id @default(autoincrement())
+  name        String           @unique @db.VarChar(50)
+  code        String           @unique @db.VarChar(50)
+  status      Boolean          @default(true)
+  remark      String?          @db.VarChar(100)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
   menus       RoleMenu[]
+  permissions RolePermission[]
+  users       UserRole[]
 
   @@index([code, status])
   @@map("role")
 }
 
-// 用户角色关联表 - 显式多对多关系
 model UserRole {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
   roleId    Int      @map("role_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  // updatedBy Int?     @map("updated_by")
+    // updatedBy Int?     @map("updated_by")
   // updatedByUser User? @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
   // 当删除  某个 角色  或 用户时 需要 级联删除 用户角色关联表
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roleId])
   @@index([userId])
@@ -147,22 +139,16 @@ model UserRole {
 }
 
 model Permission {
-  id       Int     @id @default(autoincrement())
-  name     String  @db.VarChar(50) // 名称可重复 code 必须唯一  配合控制器api 实现唯一性控制
-  code     String  @db.VarChar(50) // 权限标识，例如 "add/update"
-  value    String? @db.VarChar(50) // 权限值，可选
-  resource String  @db.VarChar(50) // 资源(user/menu/dictionary)
-  // type      String          @default("ACTION") // 使用字符串常量
-  // route     String?         // 对应的后端 API（可选）
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  menuId Int  @map("menu_id")
-  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
-
-  // 显式多对多关系
-  roles RolePermission[]
+  id        Int              @id @default(autoincrement())
+  name      String           @db.VarChar(50)
+  code      String           @db.VarChar(50)
+  value     String?          @db.VarChar(50)
+  resource  String           @db.VarChar(50)
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  menuId    Int              @map("menu_id")
+  menu      Menu             @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  roles     RolePermission[]
 
   @@unique([menuId, code])
   @@map("permission")
@@ -202,111 +188,91 @@ model Action {
 
 */
 
-// 角色权限关联表 - 显式多对多关系
+// 角色权限关联表 - 显式多对多关系model RolePermission {
 model RolePermission {
-  id           Int      @id @default(autoincrement())
-  roleId       Int      @map("role_id")
-  permissionId Int      @map("permission_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  id           Int        @id @default(autoincrement())
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
   @@map("role_permission")
 }
 
 model Department {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(50)
-  path      String   @db.VarChar(512)
-  status    Boolean  @default(true)
-  remark    String?  @db.VarChar(100)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  parentId Int?        @map("parent_id")
-  parent   Department? @relation("DepartmentSelf", fields: [parentId], references: [id], onDelete: SetNull)
-
-  children Department[]     @relation("DepartmentSelf")
-  users    UserDepartment[]
-
+  id        Int              @id @default(autoincrement())
+  name      String           @db.VarChar(50)
+  path      String           @db.VarChar(512)
+  status    Boolean          @default(true)
+  remark    String?          @db.VarChar(100)
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  parentId  Int?             @map("parent_id")
+  parent    Department?      @relation("DepartmentSelf", fields: [parentId], references: [id])
+  children  Department[]     @relation("DepartmentSelf")
+  users     UserDepartment[]
+  
   // 使用复合唯一约束，包括一个虚拟字段
   @@unique([name, parentId], name: "unique_department_name_parent")
   @@map("department")
 }
 
 model UserDepartment {
-  id           Int      @id @default(autoincrement())
-  userId       Int      @map("user_id")
-  departmentId Int      @map("department_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // 当删除  某个 部门  或 用户时 需要 级联删除 用户部门关联表
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  id           Int        @id @default(autoincrement())
+  userId       Int        @map("user_id")
+  departmentId Int        @map("department_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, departmentId])
   @@map("user_department")
 }
 
 model Menu {
-  id        Int     @id @default(autoincrement())
-  name      String  @unique @db.VarChar(50)
-  path      String  @db.VarChar(100)
-  redirect  String? @db.VarChar(100)
-  type      Int? // 当type=1时说明是子组件 而不是目录  用于回显菜单类型
-  component String  @db.VarChar(100)
-  sort      Int     @default(0)
-  status    Boolean @default(true)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // 必有的 1:1 关联关键点：非空 + 唯一
-  // metaId Int  @unique
-  // meta   Meta @relation(fields: [metaId], references: [id], onDelete: Cascade)
-
-  meta Meta?
-
+  id             Int          @id @default(autoincrement())
+  name           String       @unique @db.VarChar(50)
+  path           String       @db.VarChar(100)
+  redirect       String?      @db.VarChar(100)
+  type           Int?
+  component      String       @db.VarChar(100)
+  sort           Int          @default(0)
+  status         Boolean      @default(true)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  parentId       Int?         @map("parent_id")
+  parent         Menu?        @relation("MenuSelf", fields: [parentId], references: [id])
+  children       Menu[]       @relation("MenuSelf")
+  meta           Meta?
   permissionList Permission[]
-
-  // 显式多对多关系
-  roles RoleMenu[]
-
-  parentId Int?   @map("parent_id")
-  parent   Menu?  @relation("MenuSelf", fields: [parentId], references: [id], onDelete: SetNull)
-  children Menu[] @relation("MenuSelf")
+  roles          RoleMenu[]
 
   @@index([path])
   @@map("menu")
 }
 
 model Meta {
-  id         Int     @id @default(autoincrement())
-  title      String? @db.VarChar(50)
-  icon       String? @db.VarChar(50)
-  affix      Boolean @default(false)
-  activeMenu Boolean @default(false) @map("active_menu")
-  alwaysShow Boolean @default(false) @map("always_show")
-  breadcrumb Boolean @default(true)
-  canTo      Boolean @default(false) @map("can_to")
-  hidden     Boolean @default(false)
-  noCache    Boolean @default(false) @map("no_cache")
-  noTagsView Boolean @default(false) @map("no_tags_view")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  id         Int      @id @default(autoincrement())
+  title      String?  @db.VarChar(50)
+  icon       String?  @db.VarChar(50)
+  affix      Boolean  @default(false)
+  activeMenu Boolean  @default(false) @map("active_menu")
+  alwaysShow Boolean  @default(false) @map("always_show")
+  breadcrumb Boolean  @default(true)
+  canTo      Boolean  @default(false) @map("can_to")
+  hidden     Boolean  @default(false)
+  noCache    Boolean  @default(false) @map("no_cache")
+  noTagsView Boolean  @default(false) @map("no_tags_view")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
   // 添加反向关系，当Menu被删除时，Meta也会被删除
   // 如果需要执行级联操作  必须在 被操作处 定义 关联字段  必须 @unique
-  menuId Int  @unique
-  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
-
-  // menuName String? @unique @map("menu_name")
-  // menu     Menu? @relation(fields: [menuName], references: [name], onDelete: Cascade)
+  menuId     Int      @unique
+  menu       Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
   @@map("menu_meta")
 }
@@ -318,9 +284,8 @@ model RoleMenu {
   menuId    Int      @map("menu_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, menuId])
   @@index([roleId])
@@ -329,21 +294,18 @@ model RoleMenu {
 }
 
 model Notice {
-  id          Int     @id @default(autoincrement())
-  title       String  @db.VarChar(100)
-  type        String  @default("ANNOUNCEMENT") // 使用枚举类型
-  content     String  @db.Text
-  isPublished Boolean @default(false) @map("is_published")
-
-  isDeleted Boolean   @default(false) @map("is_deleted")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  creatorId Int  @map("creator_id")
-  creator   User @relation(fields: [creatorId], references: [id])
-
-  recipients NoticeRecipient[]
+  id          Int               @id @default(autoincrement())
+  title       String            @db.VarChar(100)
+  type        String            @default("ANNOUNCEMENT")
+  content     String
+  isPublished Boolean           @default(false) @map("is_published")
+  isDeleted   Boolean           @default(false) @map("is_deleted")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  deletedAt   DateTime?         @map("deleted_at")
+  creatorId   Int               @map("creator_id")
+  creator     User              @relation(fields: [creatorId], references: [id])
+  recipients  NoticeRecipient[]
 
   @@index([creatorId])
   @@index([isDeleted])
@@ -361,12 +323,11 @@ model NoticeRecipient {
   notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])
 
-  @@unique([noticeId, userId]) // 复合唯一约束
+  @@unique([noticeId, userId])
   @@index([isRead])
   @@map("notice_recipient")
 }
 
-// 字典模块
 model Dictionary {
   id          Int               @id @default(autoincrement())
   name        String            @db.VarChar(50)
@@ -379,7 +340,6 @@ model Dictionary {
   entries     DictionaryEntry[]
   // @@unique([sort, code])
   // 复合键  Prisma Client 查询中此字段的名称为 name_code
-
   @@index([code])
   @@map("dictionary")
 }
@@ -396,52 +356,49 @@ model DictionaryEntry {
   dictionaryId Int        @map("dictionary_id")
   dictionary   Dictionary @relation(fields: [dictionaryId], references: [id], onDelete: Cascade)
 
-  @@index([code])
   @@unique([code, dictionaryId])
+  @@index([code])
   @@map("dictionary_entry")
 }
 
 model UserOperationLog {
-  id        Int     @id @default(autoincrement())
-  userId    Int?     @map("user_id") 
-  ip        String  @db.VarChar(50)
-  userAgent String  @db.VarChar(150) @map("user_agent")
-  method    String  @db.VarChar(10) 
-  requestUrl String  @db.VarChar(150) @map("request_url")
-  status    String  @db.VarChar(10) @map("status")
-
-  responseMsg String? @db.VarChar(150) @map("response_msg")
-  detailInfo   Json?   @map("detail_info")
-  createdAt DateTime @default(now()) @map("created_at")
-  duration  Int  
-  user User? @relation(fields: [userId], references: [id])
+  id          Int      @id @default(autoincrement())
+  userId      Int?     @map("user_id")
+  ip          String   @db.VarChar(50)
+  userAgent   String   @map("user_agent") @db.VarChar(150)
+  method      String   @db.VarChar(10)
+  requestUrl  String   @map("request_url") @db.VarChar(150)
+  status      String   @map("status") @db.VarChar(10)
+  responseMsg String?  @map("response_msg") @db.VarChar(150)
+  detailInfo  Json?    @map("detail_info")
+  createdAt   DateTime @default(now()) @map("created_at")
+  duration    Int
+  user        User?    @relation(fields: [userId], references: [id])
 
   @@map("user_operation_log")
 }
 
 model SystemLog {
-  id        Int     @id @default(autoincrement())
-  level     String  @db.VarChar(50)
-  service   String  @db.VarChar(50)
-  message   String  @db.VarChar(50)
-  duration  Int    
+  id        Int      @id @default(autoincrement())
+  level     String   @db.VarChar(50)
+  service   String   @db.VarChar(50)
+  message   String   @db.VarChar(50)
   context   Json?
   createdAt DateTime @default(now()) @map("created_at")
+  duration  Int
 
   @@map("system_log")
 }
 
-
 model File {
-  id         Int      @id @default(autoincrement())
-  name   String   @db.VarChar(255)
-  mimeType String  @db.VarChar(50)
-  path      String  @db.VarChar(255)
-  extension  String?  @db.VarChar(20)
-  // sha256     String   @unique @db.Char(64)
-  size       Int
-  url        String   @db.VarChar(255)
-  createdAt  DateTime @default(now()) @map("created_at")
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  mimeType  String   @db.VarChar(50)
+  path      String   @db.VarChar(255)
+  extension String?  @db.VarChar(20)
+  size      Int
+  url       String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@index([extension])
   @@map("file")

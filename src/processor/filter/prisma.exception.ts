@@ -4,7 +4,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
   PrismaClientValidationError,
-} from '@prisma/client/runtime/library';
+} from '@/prisma/generated/prisma/internal/prismaNamespace';
 
 export const checkPrismaError = (exception: any) => {
   // 处理已知的 Prisma 错误

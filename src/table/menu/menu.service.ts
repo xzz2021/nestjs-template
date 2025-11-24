@@ -1,6 +1,6 @@
+import { PrismaClient } from '@/prisma/generated/prisma/client';
 import { PgService } from '@/prisma/pg.service';
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '../../../prisma/client/postgresql';
 import { CreateMenuDto, MenuSortDto, SeedMenuDto, UpdateMenuDto } from './dto/menu.dto';
 
 @Injectable()

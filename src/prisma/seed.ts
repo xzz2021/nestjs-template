@@ -3,8 +3,7 @@
 
 */
 
-import { PrismaClient } from '../../prisma/client/postgresql';
-const prisma = new PrismaClient();
+import { prisma } from './lib/prisma';
 import { menu as _menu } from './menu';
 
 async function create_menus_batch(menu_data: any[], tx: any, parentId?: number) {
