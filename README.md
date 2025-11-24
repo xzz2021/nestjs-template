@@ -119,7 +119,7 @@ TanStack Query
    > redis缓存: `@liaoliaots/nestjs-redis` `ioredis`  
    > 接口文档: `@nestjs/swagger` `basic-auth` `@types/basic-auth`  
    > 静态资源: `@nestjs/serve-static` `@types/multer`  
-   > 任务和队列: `@nestjs/schedule` `cron` `@nestjs/bullmq` `bullmq`  
+   > 任务和队列: `@nestjs/schedule` `cron` (schedule依赖cron版本需和cron版本保持一致) `@nestjs/bullmq` `bullmq`  
    > 安全速率限制: `@nestjs/throttler`  
    > websocket通信: `@nestjs/websockets` `@nestjs/platform-socket.io` `socket.io`  
    > swc快速编译: `@swc/cli` `@swc/core`  

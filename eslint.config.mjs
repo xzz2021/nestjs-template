@@ -4,9 +4,9 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
+export default [
   {
-    ignores: ['eslint.config.mjs', 'ecosystem.config.js', 'prisma/client/*', 'prisma/dto/*', 'prisma/migrations/*'],
+    ignores: ['eslint.config.mjs', 'ecosystem.config.js', 'prisma/client/*', 'prisma/dto/*', 'prisma/migrations/*', 'scripts/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -41,4 +41,4 @@ export default tseslint.config(
       // '@typescript-eslint/no-unused-imports': 'warn',
     },
   },
-);
+];

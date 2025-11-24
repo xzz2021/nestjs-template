@@ -4,12 +4,41 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "builder": "swc",
+    "typeCheck": false,
     "deleteOutDir": true,
     "assets": [
       {
         "include": "assets/*",
         "watchAssets": true
       }
-    ]
+    ],
+    "swcOptions": {
+      "jsc": {
+        "target": "es2022",
+        "parser": {
+          "syntax": "typescript",
+          "decorators": true,
+          "dynamicImport": true
+        },
+        "transform": {
+          "legacyDecorator": true,
+          "decoratorMetadata": true
+        },
+        "keepClassNames": true,
+        "keepFunctionNames": true,
+        "externalHelpers": false,
+        "loose": false
+      },
+      "module": {
+        "type": "commonjs",
+        "strict": false,
+        "strictMode": true,
+        "lazy": false,
+        "noInterop": false
+      },
+      "minify": true,
+      "sourceMaps": false,
+      "inlineSourcesContent": false
+    }
   }
 }
