@@ -1,4 +1,5 @@
 import { Exclude, Expose, Transform } from 'class-transformer';
+import { formatDateToYMDHMS } from 'src/processor/utils/date';
 
 /*
 结合配置参数使用
@@ -38,7 +39,7 @@ export class Department1Entity {
 
   // @Exclude()   //  指定时区 转换
   @Expose()
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
+  @Transform(({ value }) => formatDateToYMDHMS(value))
   updatedAt: Date;
 
   @Exclude()

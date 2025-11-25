@@ -1,10 +1,10 @@
 //  这里是捕获所未知异常  无法拿到源信息
 // 如果需要源信息   后期考虑 实现return next.handle().pipe() 来捕获
 
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Logger, Inject, NotFoundException } from '@nestjs/common';
-import { Response, Request } from 'express';
-import { checkPrismaError } from './prisma.exception';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Inject, Logger, NotFoundException } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { checkPrismaError } from './prisma.exception';
 
 //  捕获 HttpException 异常 或 HttpException 子类 异常
 @Catch() // @Catch()参数留空  表示 捕获所有异常
@@ -60,13 +60,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
+    /*
+       - **问题**: 生产环境可能泄露堆栈信息
+    - **建议**: 根据环境变量控制错误详情输出
+    */
     //  一定要返回数据 否则会截断
     response.status(status).json({
       code: status || 400,
       timestamp: new Date(),
       path,
       message: msg || message || '未捕获异常,请检查后端代码!',
-      meta: metaData || meta,
+      meta: process.env.NODE_ENV === 'development' ? metaData || meta : '生产环境不返回详细信息',
     });
   }
   // //  对正常返回数据进行处理

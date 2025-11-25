@@ -1,6 +1,6 @@
-import { DynamicModule, Global, Module } from '@nestjs/common';
-import { ConfigurableModuleClass, ASYNC_OPTIONS_TYPE, OPTIONS_TYPE } from './captcha.module-definition';
+import { DynamicModule, Module } from '@nestjs/common';
 import { CaptchaController } from './captcha.controller';
+import { ASYNC_OPTIONS_TYPE, ConfigurableModuleClass, OPTIONS_TYPE } from './captcha.module-definition';
 import { CaptchaService } from './captcha.service';
 
 @Module({
@@ -8,7 +8,6 @@ import { CaptchaService } from './captcha.service';
   providers: [CaptchaService],
   exports: [CaptchaService],
 })
-@Global()
 export class CaptchaModule extends ConfigurableModuleClass {
   static register(options: typeof OPTIONS_TYPE): DynamicModule {
     return {

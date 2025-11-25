@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
-import { Exclude } from 'class-transformer';
+import { Exclude, Transform, Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { formatDateToYMDHMS } from 'src/processor/utils/date';
 
 export class RegisterDto {
   @IsString()
@@ -40,10 +40,10 @@ export class RegisterResDto {
   password: Date;
 
   // @Exclude()   //  指定时区 转换
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
+  @Transform(({ value }: { value: string }) => formatDateToYMDHMS(value))
   updatedAt: Date;
 
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
+  @Transform(({ value }: { value: string }) => formatDateToYMDHMS(value))
   createdAt: Date;
 
   @Exclude()
@@ -128,7 +128,7 @@ export class SmsBindDto {
 export class ForceLogoutDto {
   @ApiProperty({ type: Number, description: '用户ID', example: 1 })
   @IsInt()
-  @Transform(({ value }) => Number(value))
+  @Transform(({ value }: { value: string }) => Number(value))
   @IsNotEmpty()
   id: number;
 }

@@ -1,5 +1,5 @@
 import { PgService } from '@/prisma/pg.service';
-import { buildPrismaWhere, BuildPrismaWhereParams, hashPayPassword, verifyPayPassword } from '@/processor/utils';
+import { buildPrismaWhere, BuildPrismaWhereParams, formatDateToYMDHMS, hashPayPassword, verifyPayPassword } from '@/processor/utils';
 import { MinioClientService } from '@/utils/minio/minio.service';
 import { ONLINE_USER_PREFIX } from '@/utils/sse/sse.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
@@ -71,7 +71,15 @@ export class UserService {
     where.status = status;
     let ids: number[] = [];
     if (id && id > 0) {
-      ids = await this.getUsersOfDeptAndChildren(+id);
+      // ids = await this.getUsersOfDeptAndChildren(+id);  // 优化方案???  ? 改用原始查询
+      ids = await this.pgService.$queryRaw`WITH RECURSIVE dept_tree AS (
+        SELECT id, parent_id FROM department WHERE id = $1
+        UNION ALL
+        SELECT d.id, d.parent_id
+        FROM department d
+        INNER JOIN dept_tree dt ON d.parent_id = dt.id
+      )
+      SELECT id FROM dept_tree;`;
       where.departments = { some: { departmentId: { in: ids } } };
     }
     //  同时查询 部门 角色 数据
@@ -117,7 +125,7 @@ export class UserService {
 
     const list = rawlist.map(u => ({
       ...u,
-      createdAt: u.createdAt.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
+      createdAt: formatDateToYMDHMS(u.createdAt),
       departments: u.departments.map(d => d.department.id),
       roles: u.roles.map(r => r.role.id), // 把 { role: {...} } 提取成 {...}
     }));
@@ -179,14 +187,18 @@ export class UserService {
 
   async batchDeleteUser(ids: number[]) {
     //  使用事务 删除用户 同时删除用户角色及部门关联数据
-    const res = await this.pgService.$transaction(tx => {
-      return Promise.all([
-        ...ids.map(id => tx.userRole.deleteMany({ where: { userId: id } })),
-        ...ids.map(id => tx.user.delete({ where: { id } })),
-        ...ids.map(id => tx.userDepartment.deleteMany({ where: { userId: id } })),
-      ]);
+    await this.pgService.$transaction(async tx => {
+      // return Promise.all([
+      //   ...ids.map(id => tx.userRole.deleteMany({ where: { userId: id } })),
+      //   ...ids.map(id => tx.user.delete({ where: { id } })),
+      //   ...ids.map(id => tx.userDepartment.deleteMany({ where: { userId: id } })),
+      // ]);
+      //  优化方案 ??????
+      await tx.userRole.deleteMany({ where: { userId: { in: ids } } });
+      await tx.user.deleteMany({ where: { id: { in: ids } } });
+      await tx.userDepartment.deleteMany({ where: { userId: { in: ids } } });
     });
-    return { message: '删除用户成功', count: res.length };
+    return { message: '删除用户成功', count: ids.length };
   }
 
   async getUserInfo(userId: number) {
@@ -207,7 +219,7 @@ export class UserService {
       ...userInfo,
       roles: userInfo?.roles.map(r => r.role),
       departments: userInfo?.departments.map(d => d.department),
-      createdAt: userInfo?.createdAt.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
+      createdAt: formatDateToYMDHMS(userInfo?.createdAt),
     };
     return { userinfo: shaped, message: '获取个人信息成功' };
   }
@@ -254,23 +266,23 @@ export class UserService {
     return { message: '重置用户密码成功', id: res.id };
   }
 
-  //  校验短信 或邮箱 验证码
-  async checkSmsCode(smskey: string, code: string, type: 'sms' | 'email' = 'sms') {
-    try {
-      const cacheCode = await this.redis.get(type + '_' + smskey);
-      if (!cacheCode) {
-        return { status: false, code: 400, message: '验证码已过期, 请重新获取!' };
-      }
-      if (cacheCode != code) {
-        return { status: false, code: 400, message: '验证码错误, 请重新输入!' };
-      }
-      await this.redis.del(type + '_' + smskey);
-      return { status: true, code: 200, message: '验证码正确' };
-    } catch (error) {
-      console.log('🚀 ~ AuthService ~ checkSmsCode ~ error:', error);
-      return { status: false, code: 400, message: '验证码校验错误, 请稍候重试!' };
-    }
-  }
+  // //  校验短信 或邮箱 验证码
+  // async checkSmsCode(smskey: string, code: string, type: 'sms' | 'email' = 'sms') {
+  //   try {
+  //     const cacheCode = await this.redis.get(type + '_' + smskey);
+  //     if (!cacheCode) {
+  //       return { status: false, code: 400, message: '验证码已过期, 请重新获取!' };
+  //     }
+  //     if (cacheCode != code) {
+  //       return { status: false, code: 400, message: '验证码错误, 请重新输入!' };
+  //     }
+  //     await this.redis.del(type + '_' + smskey);
+  //     return { status: true, code: 200, message: '验证码正确' };
+  //   } catch (error) {
+  //     console.log('🚀 ~ AuthService ~ checkSmsCode ~ error:', error);
+  //     return { status: false, code: 400, message: '验证码校验错误, 请稍候重试!' };
+  //   }
+  // }
 
   async findAll(searchParam: QueryUserParams) {
     // 此处查询 只批量返回一般数据   查询效率会更好    详细数据应当通过单个ip去查询处理
@@ -292,11 +304,13 @@ export class UserService {
   }
 
   async listOnlineUser() {
-    const keys = await this.redis.keys(ONLINE_USER_PREFIX + '*');
-    // console.log('xzz2021: UserService -> listOnlineUser -> keys:', keys);
-    const list = await Promise.all(keys.map(async key => JSON.parse((await this.redis.get(key)) ?? '{}')));
-    // console.log('xzz2021: UserService -> listOnlineUser -> list:', list);
-    return { list, total: list.length, message: '获取在线用户列表成功' };
+    // const keys = await this.redis.keys(ONLINE_USER_PREFIX + '*');
+    // const list = await Promise.all(keys.map(async key => JSON.parse((await this.redis.get(key)) ?? '{}')));
+    // return { list, total: list.length, message: '获取在线用户列表成功' };
+    //  优化方案????     **问题**: `KEYS` 命令会阻塞 Redis，生产环境禁用     **建议**: 使用 `SCAN` 命令或维护在线用户集合
+    const members = await this.redis.smembers('online:users:set');
+    const list = await Promise.all(members.map(id => this.redis.get(`${ONLINE_USER_PREFIX}${id}`)));
+    return { list: list.filter(Boolean), total: list.length, message: '获取在线用户列表成功' };
   }
 
   async kickUser(userId: number) {}

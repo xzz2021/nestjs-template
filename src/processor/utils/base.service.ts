@@ -48,6 +48,14 @@ export abstract class BaseService<T> {
           deleted: null,
         },
       }),
+      //  `count` 在大数据量时性能差   使用游标分页   或缓存 count 结果
+      this.model.aggregate({
+        _count: true,
+        where: {
+          ...where,
+          deleted: null,
+        },
+      }),
     ]);
     return {
       list,

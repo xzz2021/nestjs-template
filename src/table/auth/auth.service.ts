@@ -63,9 +63,9 @@ export class AuthService {
     return { message: phone + '注册成功', res };
   }
 
-  async login(loginInfo: LoginInfoDto, ip: string) {
+  private async getUserForLogin(phone: string) {
     const user = await this.pgService.user.findUnique({
-      where: { phone: loginInfo.phone },
+      where: { phone },
       select: {
         id: true,
         username: true,
@@ -89,6 +89,11 @@ export class AuthService {
         lockedUntil: true,
       },
     });
+    return user;
+  }
+
+  async login(loginInfo: LoginInfoDto, ip: string) {
+    const user = await this.getUserForLogin(loginInfo.phone);
 
     if (user) {
       //  校验锁定状态
@@ -119,31 +124,7 @@ export class AuthService {
   }
 
   async rtLogin(loginInfo: LoginInfoDto, ip: string, res: Response) {
-    const user = await this.pgService.user.findUnique({
-      where: { phone: loginInfo.phone },
-      select: {
-        id: true,
-        username: true,
-        phone: true,
-        password: true,
-        roles: {
-          include: {
-            role: {
-              select: {
-                id: true,
-                name: true,
-                code: true,
-              },
-            },
-          },
-        },
-        avatar: true,
-        email: true,
-        birthday: true,
-        gender: true,
-        lockedUntil: true,
-      },
-    });
+    const user = await this.getUserForLogin(loginInfo.phone);
 
     if (user) {
       //  校验锁定状态

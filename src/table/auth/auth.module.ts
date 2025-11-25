@@ -7,6 +7,7 @@ import { JwtRefreshStrategy } from './jwt.refresh.strategy';
 import { JwtStrategy } from './jwt.strategy';
 // import { SmsModule } from '@/utils/sms/sms.module';
 // import { ConfigService } from '@nestjs/config';
+import { CaptchaModule } from '@/utils/captcha/captcha.module';
 import { SseController } from '@/utils/sse/sse.controller';
 import { SseModule } from '@/utils/sse/sse.module';
 import { LockoutService } from './lockout.service';
@@ -33,6 +34,7 @@ import { TokenService } from './token.service';
     // }),
     // SmsModule,
     SseModule,
+    CaptchaModule,
   ],
   controllers: [AuthController, SseController],
   providers: [AuthService, LockoutService, TokenService, RtTokenService, JwtStrategy, JwtRefreshStrategy],

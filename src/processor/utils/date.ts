@@ -19,3 +19,11 @@ export function formatTimeBySeconds(seconds: number) {
   const remainingSeconds = String((seconds % 60).toFixed(0)).padStart(2, '0');
   return `${hours}:${minutes}:${remainingSeconds}`;
 }
+
+export const formatDateToYMDHMS = (time?: Date | string) => {
+  if (typeof time === 'string') {
+    time = new Date(time);
+  }
+  if (!time) return '';
+  return time.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-');
+};

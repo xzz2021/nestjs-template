@@ -1,7 +1,8 @@
 // dto/create-role.dto.ts
-import { IsOptional, IsString, IsInt, IsNotEmpty, IsArray } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
+import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { formatDateToYMDHMS } from 'src/processor/utils/date';
 
 class LogDto {
   @ApiProperty({ type: Number, description: '日志ID' })
@@ -78,7 +79,7 @@ export class QueryLogParams {
 
 export class DeleteLogDto {
   @ApiProperty({ type: Number, isArray: true, description: '日志ID数组', example: [1, 2, 3] })
-  @Transform(({ value }) => (Array.isArray(value) ? [...new Set(value)].map(Number) : value))
+  @Transform(({ value }: { value: number[] }) => (Array.isArray(value) ? [...new Set(value)].map(Number) : value))
   @IsArray()
   @IsNotEmpty()
   @Type(() => Number)
@@ -87,6 +88,6 @@ export class DeleteLogDto {
 
 export class LogListResDto extends LogDto {
   @ApiProperty({ type: String, description: '创建时间' })
-  @Transform(({ value }) => value.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'))
+  @Transform(({ value }: { value: string }) => formatDateToYMDHMS(value))
   createdAt: string;
 }

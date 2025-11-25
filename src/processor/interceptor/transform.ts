@@ -1,8 +1,9 @@
 // 这里用于 对正常响应数据 做统一格式转换处理
 
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { formatDateToYMDHMS } from '../utils/date';
 
 /**
  * 统一处理接口请求与响应结果
@@ -26,7 +27,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, any> {
           message,
           data: rest, // 返回数据  一律用  data 包裹
           code: 200,
-          timestamp: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).split('T').join(' ').replaceAll('/', '-'),
+          timestamp: formatDateToYMDHMS(new Date()),
         };
       }),
     );

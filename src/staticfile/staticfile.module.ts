@@ -1,8 +1,7 @@
-import { Module, Global } from '@nestjs/common';
-import { StaticfileService } from './staticfile.service';
+import { Module } from '@nestjs/common';
 import { StaticfileController } from './staticfile.controller';
+import { StaticfileService } from './staticfile.service';
 
-@Global()
 @Module({
   controllers: [StaticfileController],
   providers: [StaticfileService],
