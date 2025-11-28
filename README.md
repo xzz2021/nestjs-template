@@ -19,6 +19,7 @@
    > - 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm prisma:seed`生成数据库初始化种子数据
    > - 运行 `pnpm prepare` 生成husky
    > - `pnpm dev`启动项目
+   > - 打包使用`build:minify`可以减少50%体积
 
 📁 项目文件目录
 

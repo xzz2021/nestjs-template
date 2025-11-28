@@ -288,6 +288,153 @@ PrismaClientValidationError    数据字段验证错误
 
 
 
+在关系数据库中，ID 可以是单个字段，也可以基于多个字段。如果模型没有 @id 或 @@id ，则必须定义一个必需的 @unique 字段或 @@unique 块。
+
+  @@id([firstName, lastName])  // 默认名称 firstName_lastName
+  @@id(name: "fullName", fields: [firstName, lastName])  // 自定义名称fullName  否则默认为firstName_lastName
+
+
+  @@unique([authorId, title])  // authorId 和 title 的组合必须是唯一的
+  @@unique(name: "authorTitle", [authorId, title])  // 自定义名称
+
+
+以下示例定义了一个基于 User 模型的 email 字段和 Address 复合类型的 number 字段的多列唯一约束，该 number 字段用于 User.address 中
+
+  type Address {
+  street String
+  number Int?
+  city String
+}
+
+model User {
+  id      Int     @id
+  email   String
+  address Address  //这个类型本身不会单独生成一张数据库表 此处只是相当于限定了address的对象结构  
+  addressList Address[]  //  复合类型仅支持有限的一组属性  @default和@map
+
+  @@unique([email, address.number])
+}
+
+
+
+隐式多对多关系要求两个模型都具有相同的 @id
+
+
+当你在相同的两个模型之间定义两种关系时，需要在 @relation 属性中添加 name 参数来消除歧义。
+
+model User {
+  id           Int     @id @default(autoincrement())
+  name         String?
+  writtenPosts Post[]
+  pinnedPost   Post?
+}
+
+model Post {
+  id         Int     @id @default(autoincrement())
+  title      String?
+  author     User    @relation(fields: [authorId], references: [id])
+  authorId   Int
+  pinnedBy   User?   @relation(fields: [pinnedById], references: [id])
+  pinnedById Int?
+}
+
+
+Many-to-many self relations   多对多自我关系
+
+model User {
+  id         Int     @id @default(autoincrement())
+  name       String?
+  followedBy User[]  @relation("UserFollows")
+  following  User[]  @relation("UserFollows")
+}
+
+等价于
+
+model User {
+  id         Int       @id @default(autoincrement())
+  name       String?
+  followedBy Follows[] @relation("followedBy")
+  following  Follows[] @relation("following")
+}
+
+model Follows {
+  followedBy   User @relation("followedBy", fields: [followedById], references: [id])
+  followedById Int
+  following    User @relation("following", fields: [followingId], references: [id])
+  followingId  Int
+
+  @@id([followingId, followedById])
+}
+
+One-to-one self-relations    
+“最佳搭子”/配偶：对等配对关系（strictly 一对一）   A 的 bestFriend 是 B，同时 B 的 bestFriend 也是 A
+
+model User {
+  id   Int    @id @default(autoincrement())
+  name String?
+
+  bestFriendId Int?   @unique
+  bestFriend   User?  @relation("BestFriendPair", fields: [bestFriendId], references: [id])
+  bestOf       User?  @relation("BestFriendPair")
+}
+
+应用场景:  1. 草稿 / 正式版本：影子记录（shadow record）   2. 账户迁移 / 合并的“一对一映射”, 在同一张表里记录“某账号是由哪个旧账号迁移而来”
+
+
+一对多自关系:  1. 组织结构 / 部门树 / 上下级员工  2. 评论 / 回复（嵌套评论）  3. 树形菜单 / 路由配置  / 结构化文档  4. 邀请 / 推荐关系
+
+
+多对多自关系:  1. 「关注 / 粉丝」关系  2. 好友（Friendship）——对称的多对多 self  3. 任务依赖图 / 有向图  4. 相关内容 / 相似商品 / 相关标签（一般对称）
+
+
+
+级联操作重要设计
+如果未指定参考操作，Prisma ORM 将使用以下默认值：1. onDelete	可选关系SetNull 	强制关系Restrict(阻止) 2. onUpdate	可选关系Cascade 	强制关系Cascade
+
+如果删除 Tag ，则使用 Cascade 引用操作， TagOnPosts 中相应的标签分配也会被删除;
+
+model User {
+  id    Int    @id @default(autoincrement())
+  posts Post[]
+}
+
+model Post {
+  id     Int          @id @default(autoincrement())
+  title  String
+  tags   TagOnPosts[]
+  User   User?        @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  userId Int?
+}
+
+model TagOnPosts {
+  id     Int   @id @default(autoincrement())
+  post   Post? @relation(fields: [postId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  tag    Tag?  @relation(fields: [tagId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  postId Int?
+  tagId  Int?
+}
+
+model Tag {
+  id    Int          @id @default(autoincrement())
+  name  String       @unique
+  posts TagOnPosts[]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

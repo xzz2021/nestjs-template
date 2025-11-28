@@ -31,11 +31,11 @@ async function bootstrap() {
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER)); // 使用winston替换掉nest内置日志
   // app.setGlobalPrefix('api');
   const configService = app.get(ConfigService);
-  if (configService.get<boolean>('swagger') === true) {
+  if (configService.get<boolean>('swagger')) {
     createSwagger(app);
   }
 
-  if (configService.get<boolean>('helmet') === true) {
+  if (configService.get<boolean>('helmet')) {
     app.use(
       helmet({
         crossOriginEmbedderPolicy: false,
@@ -83,15 +83,18 @@ async function bootstrap() {
   // app.use(morganMiddleware); // 启用 Morgan + Winston 日志流
 
   // app.useGlobalFilters(new AllExceptionsFilter()); //  全局异常过滤器
-  // app.enableVersioning({ type: VersioningType.URI }); // 版本控制  方法一 需要在所有请求url加上v1 v2 等
-  // app.enableVersioning({ type: VersioningType.HEADER, header: 'X-API-Version' }); // 方法二 需要在请求头中加上X-API-Version: v1
 
+  /*
+  版本控制 方案
+ app.enableVersioning({ type: VersioningType.URI }); //  方法一 需要在所有请求url加上v1 v2 等
+ app.enableVersioning({ type: VersioningType.HEADER, header: 'X-API-Version' }); // 方法二 需要在请求头中加上X-API-Version: v1
+*/
   // 通过configService打印  所有环境变量
   // const configService = app.get(ConfigService);
   // console.log(configService);
 
   /*
-  // app.use(cookieParser());
+
 
   const { doubleCsrfProtection, generateCsrfToken } = doubleCsrf({
     getSecret: () => 'csf-secret', // 可选传递 secret 或自定义策略
@@ -119,15 +122,6 @@ async function bootstrap() {
     支持 多节点共享消息 的自定义适配器  支持多实例/分布式部署
   app.useWebSocketAdapter(new RedisIoAdapter(app))
 
-
-
-    // 允许跨域
-  app.enableCors({
-    origin: '*',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // 明确允许方法
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'], // 按需配置允许的请求头
-  })
 
 
   //  前端Axios 示例
@@ -159,9 +153,7 @@ void bootstrap();
 核心概念
 
 单独创建的 service 服务  多处调用 会创建多个实例 
-
-而 使用module进行注册 则 只会创建一个实例  service 会放入 容器管理池  实现 单例 模式
-
+而 使用module进行注册 的 service 会放入 容器管理池  实现 单例 模式
 
 
 Execution context 执行上下文  用于在 守卫（Guard）、拦截器（Interceptor）、异常过滤器（Exception Filter） 等生命周期钩子
@@ -261,6 +253,10 @@ function can(action: string, subject: string, user: IUser, resource: any, dto: a
 
 
 
+每个中间件或拦截器都会引入一些处理开销。最好谨慎使用它们，并尽可能将多个拦截器合并成一个精简高效的拦截器。
+
+拦截器封装了请求处理，可以修改输入/输出。如果使用拦截器，请尽量保持轻量级。始终避免覆盖响应，这是使用拦截器时常见的陷阱。
+
 多个拦截器执行顺序
 
 app.useGlobalInterceptors(
@@ -273,80 +269,34 @@ app.useGlobalInterceptors(
 响应时：Controller → C → B → A
 
 
+// 重要功能  ---  事件发射器
 
+内置发布/订阅模式
 
-User  - Profile  一对一
-Post  - Comment 一对多
-Post  - Category 多对多 
+@Injectable()
+export class NotificationService {
+  constructor(private eventEmitter: EventEmitter2) {}
 
-model User {
-  id      Int      @id @default(autoincrement())
-  posts   Post[]
-  profile Profile?
-}
-
-model Profile {
-  id     Int  @id @default(autoincrement())
-  user   User @relation(fields: [userId], references: [id])
-  userId Int  @unique // relation scalar field (used in the `@relation` attribute above)
-}
-
-model Post {
-  id         Int        @id @default(autoincrement())
-  author     User       @relation(fields: [authorId], references: [id])
-  authorId   Int // relation scalar field  (used in the `@relation` attribute above)
-  categories Category[]
-}
-
-model Category {
-  id    Int    @id @default(autoincrement())
-  posts Post[]
-}
-
-//  对同一张表 定义多个  一对多关系  时  会产生歧义 需要设置@relation 的 name  字段
-
-model User {
-  id           Int     @id @default(autoincrement())
-  name         String?
-  writtenPosts Post[]  @relation("WrittenPosts")
-  pinnedPost   Post?   @relation("PinnedPost")
-}
-
-model Post {
-  id         Int     @id @default(autoincrement())
-  title      String?
-  author     User    @relation("WrittenPosts", fields: [authorId], references: [id])
-  authorId   Int
-  pinnedBy   User?   @relation("PinnedPost", fields: [pinnedById], references: [id])
-  pinnedById Int?    @unique
+  sendNotification(data: string) {
+    this.eventEmitter.emit('notification', data);
+  }
 }
 
 
-//  显式多对多关系
+延迟加载模块
+import { Module, DynamicModule } from '@nestjs/common';
+import { LazyService } from './lazy.service';
 
-model Post {
-  id         Int                 @id @default(autoincrement())
-  title      String
-  categories CategoriesOnPosts[]
+@Module({})
+export class LazyModule {
+  static forRoot(): DynamicModule {
+    return {
+      module: LazyModule,
+      providers: [LazyService], 
+      exports: [LazyService], 
+    };
+  }
 }
-
-model Category {
-  id    Int                 @id @default(autoincrement())
-  name  String
-  posts CategoriesOnPosts[]
-}
-
-model CategoriesOnPosts {
-  post       Post     @relation(fields: [postId], references: [id])
-  postId     Int // relation scalar field (used in the `@relation` attribute above)
-  category   Category @relation(fields: [categoryId], references: [id])
-  categoryId Int // relation scalar field (used in the `@relation` attribute above)
-  assignedAt DateTime @default(now())
-  assignedBy String
-
-  @@id([postId, categoryId])
-}
-
 
 
 

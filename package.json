@@ -17,6 +17,7 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "dev": "pnpm lint && cross-env NODE_ENV=development nest start --watch",
     "prisma:deploy": "npx prisma migrate deploy --schema src/prisma/schema.prisma",
+    "prisma:migrate": "npx prisma migrate dev --name  init",
     "prisma:seed": "npx prisma db seed",
     "prisma:pull": "npx prisma db pull",
     "prisma:format": "npx prisma format",
