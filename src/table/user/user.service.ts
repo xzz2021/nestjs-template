@@ -1,11 +1,9 @@
 import { PgService } from '@/prisma/pg.service';
 import { buildPrismaWhere, BuildPrismaWhereParams, formatDateToYMDHMS, hashPayPassword, verifyPayPassword } from '@/processor/utils';
-import { MinioClientService } from '@/utils/minio/minio.service';
 import { ONLINE_USER_PREFIX } from '@/utils/sse/sse.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'crypto';
+// import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { AdminUpdatePwdDto, CreateUserDto, QueryUserParams, UpdatePersonalInfo, UpdatePwdDto, UpdateUserDto } from './dto/user.dto';
 
@@ -15,8 +13,7 @@ export class UserService {
   constructor(
     private readonly pgService: PgService,
     private readonly redisService: RedisService,
-    private readonly minioClientService: MinioClientService,
-    private readonly configService: ConfigService,
+    // private readonly configService: ConfigService,
   ) {
     this.redis = this.redisService.getOrThrow();
   }
@@ -316,10 +313,9 @@ export class UserService {
   async kickUser(userId: number) {}
 
   async uploadAvatar(file: Express.Multer.File, userId: number) {
-    const { objectName } = await this.minioClientService.uploadFile(file, 'user/avatar/' + userId + '/' + randomUUID() + '/');
-
-    const url = this.configService.get<string>('minio.url') + '/public/' + objectName;
-    await this.pgService.user.update({ where: { id: userId }, data: { avatar: url } });
-    return { url, message: '上传头像成功' };
+    // const { objectName } = await this.minioClientService.uploadFile(file, 'user/avatar/' + userId + '/' + randomUUID() + '/');
+    // const url = this.configService.get<string>('minio.url') + '/public/' + objectName;
+    // await this.pgService.user.update({ where: { id: userId }, data: { avatar: url } });
+    // return { url, message: '上传头像成功' };
   }
 }

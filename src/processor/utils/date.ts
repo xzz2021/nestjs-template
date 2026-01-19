@@ -20,7 +20,7 @@ export function formatTimeBySeconds(seconds: number) {
   return `${hours}:${minutes}:${remainingSeconds}`;
 }
 
-export const formatDateToYMDHMS = (time?: Date | string) => {
+export const formatDateToYMDHMS = (time?: Date | string | null) => {
   if (typeof time === 'string') {
     time = new Date(time);
   }

@@ -12,7 +12,6 @@ import { REDIS_MODULE } from '@/utils/cache/cache-ioredis';
 import { CaptchaModule } from '@/utils/captcha/captcha.module';
 import { HealthModule } from '@/utils/health/health.module';
 import { WinstonLoggerModule } from '@/utils/logger/winston.module';
-import { MinioClientModule } from '@/utils/minio/minio.module';
 import { ScheduleTaskModule } from '@/utils/schedule/schedule.module';
 import { UtilsModule } from '@/utils/utils.module';
 import { RedisService } from '@liaoliaots/nestjs-redis';
@@ -87,7 +86,6 @@ export const CORE_MODULE = [
   UtilsModule,
   WinstonLoggerModule,
   CaptchaModule,
-  MinioClientModule,
   HealthModule,
 ];
 

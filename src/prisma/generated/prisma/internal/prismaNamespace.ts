@@ -77,12 +77,12 @@ export type PrismaVersion = {
 };
 
 /**
- * Prisma Client JS version: 7.0.0
- * Query Engine version: 0c19ccc313cf9911a90d99d2ac2eb0280c76c513
+ * Prisma Client JS version: 7.2.0
+ * Query Engine version: 0c8ef2ce45c83248ab3df073180d5eda9e8be7a3
  */
 export const prismaVersion: PrismaVersion = {
-  client: '7.0.0',
-  engine: '0c19ccc313cf9911a90d99d2ac2eb0280c76c513',
+  client: '7.2.0',
+  engine: '0c8ef2ce45c83248ab3df073180d5eda9e8be7a3',
 };
 
 /**
@@ -107,21 +107,21 @@ export const NullTypes = {
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const DbNull = runtime.DbNull as typeof runtime.DbNull;
+export const DbNull = runtime.DbNull;
 
 /**
  * Helper for filtering JSON entries that have JSON `null` values (not empty on the db)
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const JsonNull = runtime.JsonNull as typeof runtime.JsonNull;
+export const JsonNull = runtime.JsonNull;
 
 /**
  * Helper for filtering JSON entries that are `Prisma.DbNull` or `Prisma.JsonNull`
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const AnyNull = runtime.AnyNull as typeof runtime.AnyNull;
+export const AnyNull = runtime.AnyNull;
 
 type SelectAndInclude = {
   select: any;
@@ -1828,7 +1828,6 @@ export const PermissionScalarFieldEnum = {
   id: 'id',
   name: 'name',
   code: 'code',
-  value: 'value',
   resource: 'resource',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -2015,7 +2014,7 @@ export const SortOrder = {
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
 
-export const NullableJsonNullValueInput: { readonly DbNull: typeof DbNull; readonly JsonNull: typeof JsonNull } = {
+export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull,
 } as const;
@@ -2036,7 +2035,7 @@ export const NullsOrder = {
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder];
 
-export const JsonNullValueFilter: { readonly DbNull: typeof DbNull; readonly JsonNull: typeof JsonNull; readonly AnyNull: typeof AnyNull } = {
+export const JsonNullValueFilter = {
   DbNull: DbNull,
   JsonNull: JsonNull,
   AnyNull: AnyNull,
@@ -2159,7 +2158,7 @@ export type PrismaClientOptions = (
    *  { emit: 'stdout', level: 'error' }
    *
    * ```
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+   * Read more in our [docs](https://pris.ly/d/logging).
    */
   log?: (LogLevel | LogDefinition)[];
   /**
@@ -2187,6 +2186,22 @@ export type PrismaClientOptions = (
    * ```
    */
   omit?: GlobalOmitConfig;
+  /**
+   * SQL commenter plugins that add metadata to SQL queries as comments.
+   * Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
+   *
+   * @example
+   * ```
+   * const prisma = new PrismaClient({
+   *   adapter,
+   *   comments: [
+   *     traceContext(),
+   *     queryInsights(),
+   *   ],
+   * })
+   * ```
+   */
+  comments?: runtime.SqlCommenterPlugin[];
 };
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit;

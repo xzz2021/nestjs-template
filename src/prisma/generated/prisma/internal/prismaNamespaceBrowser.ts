@@ -31,21 +31,21 @@ export const NullTypes = {
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const DbNull = runtime.DbNull as typeof runtime.DbNull;
+export const DbNull = runtime.DbNull;
 
 /**
  * Helper for filtering JSON entries that have JSON `null` values (not empty on the db)
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const JsonNull = runtime.JsonNull as typeof runtime.JsonNull;
+export const JsonNull = runtime.JsonNull;
 
 /**
  * Helper for filtering JSON entries that are `Prisma.DbNull` or `Prisma.JsonNull`
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const AnyNull = runtime.AnyNull as typeof runtime.AnyNull;
+export const AnyNull = runtime.AnyNull;
 
 export const ModelName = {
   User: 'User',
@@ -146,7 +146,6 @@ export const PermissionScalarFieldEnum = {
   id: 'id',
   name: 'name',
   code: 'code',
-  value: 'value',
   resource: 'resource',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

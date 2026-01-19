@@ -8,15 +8,14 @@
 
 - ORM-prisma
 - DB-postgres/redis
-- OSS-minio/s3
 - AUTH-jwt/casl
 - LOG-winston/morgan
 - DEPLOY-docker/nginx proxy manager
 
 4. 前置条件:
 
-   > - 准备好数据库(参考`compose.yml`文件部署)
-   > - 执行`pnpm i`安装依赖, `pnpm prisma:push`生成表, `pnpm prisma:generate`生成prisma客户端, `pnpm prisma:seed`生成数据库初始化种子数据
+   > - 准备好数据库postgres(默认需要的数据库名newback)和redis(参考`src/core/config`或`compose.yml`文件部署)
+   > - 执行`pnpm i`安装依赖, 首次使用`npx prisma migrate dev --name init`生成prisma初始迁移记录以及同步数据库表结构, `npx prisma generate`生成prisma客户端, `pnpm prisma:seed`生成数据库初始化数据
    > - 运行 `pnpm prepare` 生成husky
    > - `pnpm dev`启动项目
    > - 打包使用`build:minify`可以减少50%体积
@@ -58,20 +57,20 @@ nestjs/
 - [ x ] 安全限制(限流/幂等/串行)
 - [ x ] 认证与授权(JWT √ RBAC √ CASL x)
 - [ x ] 日志系统(操作√埋点审计)
-- [√] OSS文件管理(minio分片/上传/下载/加密)
+- [√] [已移除] OSS文件管理(minio分片/上传/下载/加密)
 
 #### 小功能点实现
 
 - [√] 多点登录限制,强制下线
 - [√] 登录失败锁定,后台解锁
 - [√] 双token,无感刷新
-- [√] 支付宝/微信扫码支付
-- [√] 阿里云短信
-- [√] 顺丰下单/打单
-- [√] 邮件服务
+- [√] [已移除] 支付宝/微信扫码支付
+- [√] [已移除] 阿里云短信
+- [√] [已移除] 顺丰下单/打单
+- [√] [已移除] 邮件服务
 - [√] 图形验证码
 - [√] sse通信
-- [√] ip解析归属地
+- [√] [已移除] ip解析归属地
 - [ x ] 高频限流guard, 滑动窗口
 - [ x ] 模块封装: 任务调度/缓存/健康检查
 - [ x ] 整合pm2部署
@@ -130,8 +129,6 @@ TanStack Query
 
 2. 外部业务依赖
 
-   > 邮件服务: `nodemailer`  
-   > 阿里云短信:`@alicloud/dysmsapi20170525` `@alicloud/openapi-client` `@alicloud/tea-util`  
    > ssh连接远程服务器: `node-ssh`  
    > ORM平台prisma: `@prisma/client` `prisma`  
    > 字段转换与校验: `class-validator` `class-transformer`  
@@ -142,11 +139,7 @@ TanStack Query
    > CASL权限: `@casl/ability` `@casl/prisma`  
    > 支付加密: `argon2`  
    > 安全防护: `helmet` `csrf-csrf` `cookie-parser`  
-   > 支付宝api: `alipay-sdk`  
-   > 验证码生成: `svg-captcha`  
-   > minio文件管理: `nestjs-minio-client`  
-   > 大文件S3管理: `@aws-sdk/client-s3` `@aws-sdk/s3-request-presigner` `archiver` `@types/archiver`  
-   > ip地理库: `maxmind`  
+   > 验证码生成: `svg-captcha`
    > 服务器信息: `systeminformation`
 
 #### 注意事项

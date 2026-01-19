@@ -135,7 +135,6 @@ export class RoleService {
                 id: true,
                 name: true,
                 code: true,
-                value: true,
                 menuId: true, // 关键：用于归并到对应菜单
               },
             },
@@ -154,7 +153,6 @@ export class RoleService {
           id: p.id,
           name: p.name,
           code: p.code,
-          value: p.value,
         });
       }
 

@@ -39,7 +39,7 @@ export class Department1Entity {
 
   // @Exclude()   //  指定时区 转换
   @Expose()
-  @Transform(({ value }) => formatDateToYMDHMS(value))
+  @Transform(({ value }: { value: string }) => formatDateToYMDHMS(value))
   updatedAt: Date;
 
   @Exclude()

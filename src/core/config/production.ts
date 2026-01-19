@@ -18,25 +18,9 @@ const config: AppConfig = {
   swagger: false,
   serverUrl: 'https://api.xzz2021.top',
   frontendUrl: 'https://admin.xzz2021.top',
-  minio: {
-    host: 'xxxx.top',
-    port: 9091,
-    url: 'https://oss.xxxx.top',
-    accessKey: 'iOwnxxxxee1SNrNPfBe',
-    secretKey: 'K34QIqPLHHooRFxxxyoPIuqsLTKVJnX8TU',
-  },
   n8nHost: 'https://n8n.xzz2021.top',
   staticFileRootPath: 'public',
-  wechat: {
-    appId: 'wx1234567890',
-    appSecret: '1234567890',
-  },
-  aliSms: {
-    accessKeyId: '',
-    accessKeySecret: '',
-    signName: '',
-    templateCode: '',
-  },
+
   // 生产环境特定配置
   // featureXEnabled: false,  // 生产环境默认关闭实验性功能
   // 生产环境优化配置

@@ -44,7 +44,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const { msg, meta } = checkPrismaError(exception) || {};
 
-    if (status !== 401) {
+    if (status != 401 && !(exception instanceof NotFoundException)) {
       // 用于跳过短token失效的错误
       console.log('🚀 ~ AllExceptionsFilter ~ catch ~ exception:', exception);
 
